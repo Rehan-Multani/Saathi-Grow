@@ -159,6 +159,10 @@ const CheckoutPage = () => {
     }, [cartTotal, token]);
 
     const handleApplyPromo = async () => {
+        if (appliedPromo) {
+            toast.warning("A coupon is already applied. Please remove it first to apply a new one.");
+            return;
+        }
         if (!promoInput.trim()) return;
         setIsValidatingPromo(true);
         try {
@@ -187,8 +191,7 @@ const CheckoutPage = () => {
         }
 
         if (!activeStore || isStoreOutOfRange || isStoreInactive) {
-            openStoreSelector?.();
-            toast.error(isStoreInactive ? 'This store is currently inactive.' : 'Store is no longer available. Please select another store.');
+            toast.error(isStoreInactive ? 'This store is currently inactive.' : 'No stores are available in your area.');
             return;
         }
 
@@ -360,10 +363,10 @@ const CheckoutPage = () => {
                                 Please change your delivery address or switch to a closer store.
                             </p>
                             <button
-                                onClick={() => navigate('/')}
+                                onClick={openLocationModal}
                                 className="mt-3 text-[9px] font-black uppercase tracking-widest text-red-600 dark:text-red-400 underline underline-offset-2"
                             >
-                                Switch Store
+                                Change Address
                             </button>
                         </div>
                     </div>
@@ -602,6 +605,10 @@ const CheckoutPage = () => {
                                             <div 
                                                 key={promo._id}
                                                 onClick={() => {
+                                                    if (appliedPromo) {
+                                                        toast.warning("A coupon is already applied. Please remove it first.");
+                                                        return;
+                                                    }
                                                     setPromoInput(promo.code);
                                                     const autoApply = async () => {
                                                         setIsValidatingPromo(true);
@@ -726,12 +733,17 @@ const CheckoutPage = () => {
                         )}
 
                         {billDetails?.freeGift && (
-                            <div className="flex justify-between items-center text-[#0c831f] animate-in slide-in-from-left duration-300">
-                                <div className="flex flex-col">
-                                    <span className="text-[11px] font-bold capitalize">Free Gift Reward</span>
-                                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-tight">{billDetails.freeGift.title}</span>
+                            <div className="flex justify-between items-center text-[#0c831f] animate-in slide-in-from-left duration-300 bg-green-50/30 dark:bg-green-500/5 p-2.5 rounded-xl border border-green-100/50 dark:border-green-500/10">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-9 h-9 bg-white dark:bg-green-500/20 rounded-xl flex items-center justify-center shadow-sm shrink-0">
+                                        <PartyPopper size={18} className="animate-bounce" />
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <span className="text-[11px] font-black capitalize tracking-tight leading-none mb-0.5">Free Gift Reward</span>
+                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tight leading-tight">{billDetails.freeGift.title}</span>
+                                    </div>
                                 </div>
-                                <span className="text-[11px] font-black uppercase">Free</span>
+                                <span className="text-[10px] font-black uppercase bg-[#0c831f] text-white px-2.5 py-1 rounded-lg shadow-sm">Free</span>
                             </div>
                         )}
 

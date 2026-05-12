@@ -13,6 +13,7 @@ import { showDeleteConfirmation, showSuccessAlert, showErrorAlert } from '../../
 import { toast } from 'react-toastify';
 import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
 import { pageInfoData } from '../../../../common/data/pageInfoData';
+import * as XLSX from 'xlsx';
 
 const ProductStatusBadge = ({ status }) => {
     const { t } = useTranslation('admin_products');
@@ -64,27 +65,24 @@ const AllProducts = () => {
     const [bulkFile, setBulkFile] = useState(null);
     const [bulkLoading, setBulkLoading] = useState(false);
 
-    const downloadCsvTemplate = () => {
+    const downloadExcelTemplate = () => {
         const headers = [
             'name', 'category', 'subCategory', 'brandName', 'basePrice', 'mrp',
             'unitType', 'unitValue', 'description', 'tags', 'sku', 'stock', 'status'
         ];
         const example = [
-            'Amul Butter 100g', 'Dairy Bread & Eggs', '', 'Amul', '52', '55',
-            'g', '100', 'Fresh Amul butter 100g pack', 'dairy,butter,amul', 'DAI-AMU-XXXXX', '50', 'Active'
+            'Amul Butter 100g', 'Dairy Bread & Eggs', '', 'Amul', 52, 55,
+            'g', 100, 'Fresh Amul butter 100g pack', 'dairy,butter,amul', 'DAI-AMU-XXXXX', 50, 'Active'
         ];
-        const csvContent = [headers.join(','), example.join(',')].join('\n');
-        const blob = new Blob([csvContent], { type: 'text/csv' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'Saathigro_bulk_product_template.csv';
-        a.click();
-        URL.revokeObjectURL(url);
+        
+        const worksheet = XLSX.utils.aoa_to_sheet([headers, example]);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Products");
+        XLSX.writeFile(workbook, 'Saathigro_bulk_product_template.xlsx');
     };
 
     const handleBulkUpload = async () => {
-        if (!bulkFile) return toast.warning('Please select a CSV file first');
+        if (!bulkFile) return toast.warning('Please select an Excel file first');
         setBulkLoading(true);
         try {
             const formData = new FormData();
@@ -105,7 +103,7 @@ const AllProducts = () => {
             setBulkFile(null);
             fetchData();
         } catch (err) {
-            toast.error(err?.response?.data?.message || 'Bulk upload failed. Check your CSV format.');
+            toast.error(err?.response?.data?.message || 'Bulk upload failed. Check your Excel format.');
         } finally {
             setBulkLoading(false);
         }
@@ -308,15 +306,15 @@ const AllProducts = () => {
                                 products.map((p) => (
                                     <tr key={p._id} className="hover:bg-slate-50/50 transition-colors">
                                         <td className="px-6 py-4">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-10 h-10 bg-slate-50 rounded-lg flex items-center justify-center p-1 border">
-                                                    {p.image ? <img src={p.image} className="w-full h-full object-contain" /> : <Package size={20} className="text-slate-300" />}
+                                            <Link to={`/admin/products/${p._id}`} className="flex items-center gap-4 group/item">
+                                                <div className="w-10 h-10 bg-slate-50 rounded-lg flex items-center justify-center p-1 border group-hover/item:border-blue-400 transition-all shadow-sm">
+                                                    {p.image ? <img src={p.image} className="w-full h-full object-contain group-hover/item:scale-110 transition-transform" /> : <Package size={20} className="text-slate-300" />}
                                                 </div>
                                                 <div className="min-w-0">
-                                                    <div className="text-sm font-semibold text-slate-900 truncate">{p.name}</div>
+                                                    <div className="text-sm font-semibold text-slate-900 truncate group-hover/item:text-blue-600 transition-colors">{p.name}</div>
                                                     <div className="text-[10px] font-medium text-slate-400 font-mono mt-0.5 uppercase tracking-tight">{p.sku}</div>
                                                 </div>
-                                            </div>
+                                            </Link>
                                         </td>
                                         <td className="px-6 py-4 text-center">
                                             <span className="text-xs text-slate-600 font-medium">{p.category}</span>
@@ -399,7 +397,7 @@ const AllProducts = () => {
                                 </div>
                                 <div>
                                     <h2 className="text-base font-bold text-slate-900">Bulk Product Upload</h2>
-                                    <p className="text-xs text-slate-400 font-medium">Upload a CSV file to add multiple products at once</p>
+                                    <p className="text-xs text-slate-400 font-medium">Upload an Excel file to add multiple products at once</p>
                                 </div>
                             </div>
                             <button onClick={() => { setShowBulkModal(false); setBulkFile(null); }} className="p-2 hover:bg-slate-100 rounded-xl transition-all text-slate-400 hover:text-slate-600">
@@ -413,19 +411,19 @@ const AllProducts = () => {
                             <div className="p-4 bg-blue-50 rounded-2xl flex items-center gap-4">
                                 <div className="flex-1">
                                     <p className="text-sm font-bold text-slate-800">Step 1: Download Template</p>
-                                    <p className="text-xs text-slate-500 mt-0.5">Fill in this CSV file with your products</p>
+                                    <p className="text-xs text-slate-500 mt-0.5">Fill in this Excel file with your products</p>
                                 </div>
                                 <button
-                                    onClick={downloadCsvTemplate}
+                                    onClick={downloadExcelTemplate}
                                     className="flex items-center gap-2 px-4 py-2 bg-white border border-blue-200 text-blue-600 rounded-xl text-xs font-bold hover:bg-blue-50 transition-all shadow-sm"
                                 >
-                                    <Download size={14} /> Download CSV
+                                    <Download size={14} /> Download Excel
                                 </button>
                             </div>
 
                             {/* Required Columns Info */}
                             <div className="bg-slate-50 rounded-2xl p-4">
-                                <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-3">Required CSV Columns</p>
+                                <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-3">Required Excel Columns</p>
                                 <div className="grid grid-cols-3 gap-1.5">
                                     {['name*', 'category*', 'basePrice*', 'mrp*', 'unitType', 'unitValue', 'brandName', 'description', 'tags', 'sku', 'stock', 'status'].map(col => (
                                         <span key={col} className={`text-[10px] px-2 py-1 rounded-lg font-bold text-center ${col.includes('*') ? 'bg-rose-100 text-rose-600' : 'bg-white text-slate-500 border border-slate-200'}`}>
@@ -438,7 +436,7 @@ const AllProducts = () => {
 
                             {/* Step 2: Upload File */}
                             <div>
-                                <p className="text-sm font-bold text-slate-800 mb-2">Step 2: Upload Your CSV</p>
+                                <p className="text-sm font-bold text-slate-800 mb-2">Step 2: Upload Your Excel</p>
                                 <label className={`flex flex-col items-center justify-center w-full h-24 border-2 border-dashed rounded-2xl cursor-pointer transition-all ${bulkFile ? 'border-green-400 bg-green-50' : 'border-slate-300 bg-slate-50 hover:border-blue-400 hover:bg-blue-50'}`}>
                                     <div className="flex flex-col items-center gap-2">
                                         {bulkFile ? (
@@ -450,14 +448,14 @@ const AllProducts = () => {
                                         ) : (
                                             <>
                                                 <Upload size={24} className="text-slate-400" />
-                                                <p className="text-sm font-bold text-slate-600">Click to select CSV file</p>
-                                                <p className="text-xs text-slate-400">Only .csv files supported</p>
+                                                <p className="text-sm font-bold text-slate-600">Click to select Excel file</p>
+                                                <p className="text-xs text-slate-400">Only .xlsx and .xls files supported</p>
                                             </>
                                         )}
                                     </div>
                                     <input
                                         type="file"
-                                        accept=".csv"
+                                        accept=".xlsx, .xls"
                                         className="hidden"
                                         onChange={(e) => setBulkFile(e.target.files[0] || null)}
                                     />

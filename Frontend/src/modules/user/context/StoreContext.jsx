@@ -18,7 +18,7 @@ export const StoreProvider = ({ children }) => {
   const [isStoreInactive, setIsStoreInactive] = useState(false); // New flag for production status management
   const [isStoreSelectorOpen, setIsStoreSelectorOpen] = useState(false);
 
-  // Fetch nearby stores whenever the user's location changes
+  // Fetch nearby stores and automatically select the nearest one whenever location changes
   useEffect(() => {
     const fetchStores = async () => {
       if (location?.coordinates) {
@@ -28,26 +28,19 @@ export const StoreProvider = ({ children }) => {
           const stores = await getNearbyStores(lat, lng);
           setNearbyStores(stores);
 
-          // If we have an active store, check if it's still in the nearby list
-          if (activeStore) {
-            const exists = stores.find(s => s.id === activeStore.id);
-            
-            // In a production app, "exists" might be null if 
-            // 1. Store is too far
-            // 2. Store is Inactive (since backend filters inactive ones)
-            if (!exists) {
-              // We should decide if it's out of range OR inactive.
-              // Since getNearbyStores returns all active stores up to 25km,
-              // "not exists" usually means either too far or inactive.
-              setIsStoreOutOfRange(true);
-              setIsStoreInactive(true); // Treat as inactive for UX safety
-            } else {
-              setIsStoreOutOfRange(false);
-              setIsStoreInactive(false);
+          if (stores && stores.length > 0) {
+            const nearestStore = stores[0];
+            // Auto-select nearest store if none selected or if location changed
+            // Requirement: User should not have option to select, nearest should be automatic.
+            if (!activeStore || activeStore.id !== nearestStore.id) {
+                setActiveStore(nearestStore);
             }
-          } else {
             setIsStoreOutOfRange(false);
             setIsStoreInactive(false);
+          } else {
+            setActiveStore(null);
+            setIsStoreOutOfRange(true);
+            setIsStoreInactive(true);
           }
         } catch (error) {
           console.error("Failed to fetch nearby stores:", error);
@@ -59,25 +52,7 @@ export const StoreProvider = ({ children }) => {
     };
 
     fetchStores();
-  }, [location?.coordinates]);
-
-  // Handle auto-opening of store selector
-  useEffect(() => {
-    if (location?.coordinates) {
-      if (!activeStore || isStoreOutOfRange) {
-        setIsStoreSelectorOpen(true);
-      }
-    }
-  }, [location?.coordinates, isStoreOutOfRange, activeStore?.id]);
-
-  // Handle explicit manual location changes triggering store selector
-  useEffect(() => {
-    const handleForceOpen = () => {
-        setIsStoreSelectorOpen(true);
-    };
-    window.addEventListener('saathi_force_store_selector', handleForceOpen);
-    return () => window.removeEventListener('saathi_force_store_selector', handleForceOpen);
-  }, []);
+  }, [location?.coordinates, activeStore?.id]); // Added activeStore?.id to dependency to ensure correct sync
 
   // Persist active store selection
   useEffect(() => {
@@ -90,7 +65,7 @@ export const StoreProvider = ({ children }) => {
 
   const selectStore = (store) => {
     setActiveStore(store);
-    setIsStoreOutOfRange(false); // Reset on selection
+    setIsStoreOutOfRange(false);
     setIsStoreInactive(false);
   };
 
@@ -104,13 +79,15 @@ export const StoreProvider = ({ children }) => {
         selectStore,
         loading,
         setActiveStore,
-        isStoreSelectorOpen,
-        setIsStoreSelectorOpen,
-        openStoreSelector: () => setIsStoreSelectorOpen(true),
-        closeStoreSelector: () => setIsStoreSelectorOpen(false)
+        isStoreSelectorOpen: false, // Always false
+        setIsStoreSelectorOpen: () => {}, // No-op
+        openStoreSelector: () => {}, // No-op
+        closeStoreSelector: () => {} // No-op
       }}
     >
       {children}
     </StoreContext.Provider>
   );
 };
+
+export default StoreContext;

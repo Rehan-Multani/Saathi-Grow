@@ -22,41 +22,48 @@ import {
   getDeliveryRunById,
   cancelDeliveryRun
 } from '../controllers/deliveryRunController.js';
-import { protectAdmin, requirePermission } from '../middleware/authMiddleware.js';
+import { protectStoreManager, requirePermission } from '../middleware/authMiddleware.js';
 import { upload } from '../config/cloudinary.js';
 import { sensitiveAdminActionLimiter, auditAction, idempotencyGuard } from '../middleware/securityMiddleware.js';
 
 const router = express.Router();
 
-// Register the Admin endpoints wrapped in standard authentication checks
+// Helper to check for delivery permission (Admins only, Vendors bypass)
+const deliveryAuth = (req, res, next) => {
+    if (req.vendor) return next();
+    if (req.admin && (req.admin.role === 'Admin' || (req.admin.permissions || []).includes('MANAGE_DELIVERY'))) return next();
+    return res.status(403).json({ message: 'Delivery Management Access Denied' });
+};
+
+// Register the Admin/Vendor endpoints
 router.route('/')
-  .get(protectAdmin, requirePermission('MANAGE_DELIVERY'), getDeliveryPartners)
-  .post(protectAdmin, requirePermission('MANAGE_DELIVERY'), idempotencyGuard(), sensitiveAdminActionLimiter, upload.single('profileImage'), auditAction('DELIVERY_PARTNER_CREATE'), addDeliveryPartner);
+  .get(protectStoreManager, deliveryAuth, getDeliveryPartners)
+  .post(protectStoreManager, deliveryAuth, idempotencyGuard(), sensitiveAdminActionLimiter, upload.single('profileImage'), auditAction('DELIVERY_PARTNER_CREATE'), addDeliveryPartner);
 
 // Dispatch & Settlement routes (Specific paths first)
-router.get('/unassigned-orders', protectAdmin, requirePermission('MANAGE_DELIVERY'), getUnassignedOrders);
-router.get('/available', protectAdmin, requirePermission('MANAGE_DELIVERY'), getAvailablePartners);
-router.post('/assign', protectAdmin, requirePermission('MANAGE_DELIVERY'), idempotencyGuard(), sensitiveAdminActionLimiter, auditAction('ORDER_ASSIGN_MANUAL'), assignOrderToPartner);
-router.post('/auto-assign/:orderId', protectAdmin, requirePermission('MANAGE_DELIVERY'), idempotencyGuard(), sensitiveAdminActionLimiter, auditAction('ORDER_ASSIGN_AUTO'), autoAssignOrder);
-router.post('/unassign', protectAdmin, requirePermission('MANAGE_DELIVERY'), idempotencyGuard(), sensitiveAdminActionLimiter, auditAction('ORDER_UNASSIGN'), unassignOrderFromPartner);
-router.get('/active-tracking', protectAdmin, requirePermission('MANAGE_DELIVERY'), getActiveDeliveries);
-router.get('/cash-settlement', protectAdmin, requirePermission('MANAGE_DELIVERY'), getCashSettlementList);
-router.post('/settle-cash/:id', protectAdmin, requirePermission('MANAGE_DELIVERY'), idempotencyGuard(), sensitiveAdminActionLimiter, auditAction('RIDER_CASH_SETTLE'), settleRiderCash);
+router.get('/unassigned-orders', protectStoreManager, deliveryAuth, getUnassignedOrders);
+router.get('/available', protectStoreManager, deliveryAuth, getAvailablePartners);
+router.post('/assign', protectStoreManager, deliveryAuth, idempotencyGuard(), sensitiveAdminActionLimiter, auditAction('ORDER_ASSIGN_MANUAL'), assignOrderToPartner);
+router.post('/auto-assign/:orderId', protectStoreManager, deliveryAuth, idempotencyGuard(), sensitiveAdminActionLimiter, auditAction('ORDER_ASSIGN_AUTO'), autoAssignOrder);
+router.post('/unassign', protectStoreManager, deliveryAuth, idempotencyGuard(), sensitiveAdminActionLimiter, auditAction('ORDER_UNASSIGN'), unassignOrderFromPartner);
+router.get('/active-tracking', protectStoreManager, deliveryAuth, getActiveDeliveries);
+router.get('/cash-settlement', protectStoreManager, deliveryAuth, getCashSettlementList);
+router.post('/settle-cash/:id', protectStoreManager, deliveryAuth, idempotencyGuard(), sensitiveAdminActionLimiter, auditAction('RIDER_CASH_SETTLE'), settleRiderCash);
 
 // --- Sprint 3: Delivery Run (Multi-order Batch) routes ---
-router.get('/run/orders-by-slot', protectAdmin, requirePermission('MANAGE_DELIVERY'), getOrdersBySlot);
-router.post('/run/create', protectAdmin, requirePermission('MANAGE_DELIVERY'), idempotencyGuard(), sensitiveAdminActionLimiter, auditAction('DELIVERY_RUN_CREATE'), createDeliveryRun);
-router.get('/run', protectAdmin, requirePermission('MANAGE_DELIVERY'), getAllDeliveryRuns);
-router.get('/run/:id', protectAdmin, requirePermission('MANAGE_DELIVERY'), getDeliveryRunById);
-router.delete('/run/:id', protectAdmin, requirePermission('MANAGE_DELIVERY'), idempotencyGuard(), sensitiveAdminActionLimiter, auditAction('DELIVERY_RUN_CANCEL'), cancelDeliveryRun);
+router.get('/run/orders-by-slot', protectStoreManager, deliveryAuth, getOrdersBySlot);
+router.post('/run/create', protectStoreManager, deliveryAuth, idempotencyGuard(), sensitiveAdminActionLimiter, auditAction('DELIVERY_RUN_CREATE'), createDeliveryRun);
+router.get('/run', protectStoreManager, deliveryAuth, getAllDeliveryRuns);
+router.get('/run/:id', protectStoreManager, deliveryAuth, getDeliveryRunById);
+router.delete('/run/:id', protectStoreManager, deliveryAuth, idempotencyGuard(), sensitiveAdminActionLimiter, auditAction('DELIVERY_RUN_CANCEL'), cancelDeliveryRun);
 
 // Parameterized routes (Generic IDs last)
 router.route('/:id/status')
-  .put(protectAdmin, requirePermission('MANAGE_DELIVERY'), idempotencyGuard(), sensitiveAdminActionLimiter, auditAction('DELIVERY_PARTNER_STATUS_UPDATE'), updateDeliveryPartnerStatus);
+  .put(protectStoreManager, deliveryAuth, idempotencyGuard(), sensitiveAdminActionLimiter, auditAction('DELIVERY_PARTNER_STATUS_UPDATE'), updateDeliveryPartnerStatus);
 
 router.route('/:id')
-  .get(protectAdmin, requirePermission('MANAGE_DELIVERY'), getDeliveryPartnerById)
-  .put(protectAdmin, requirePermission('MANAGE_DELIVERY'), idempotencyGuard(), sensitiveAdminActionLimiter, auditAction('DELIVERY_PARTNER_UPDATE'), updateDeliveryPartner)
-  .delete(protectAdmin, requirePermission('MANAGE_DELIVERY'), idempotencyGuard(), sensitiveAdminActionLimiter, auditAction('DELIVERY_PARTNER_DELETE'), deleteDeliveryPartner);
+  .get(protectStoreManager, deliveryAuth, getDeliveryPartnerById)
+  .put(protectStoreManager, deliveryAuth, idempotencyGuard(), sensitiveAdminActionLimiter, auditAction('DELIVERY_PARTNER_UPDATE'), updateDeliveryPartner)
+  .delete(protectStoreManager, deliveryAuth, idempotencyGuard(), sensitiveAdminActionLimiter, auditAction('DELIVERY_PARTNER_DELETE'), deleteDeliveryPartner);
 
 export default router;

@@ -310,7 +310,7 @@ const ProductDetailsPage = () => {
                         </div>
 
                         {/* Thumbnails */}
-                        <div className="relative z-20 flex gap-4 overflow-x-auto py-3 px-2 justify-center mt-2 shrink-0">
+                        <div className="relative z-20 flex gap-4 overflow-x-auto py-3 px-2 justify-center mt-2 shrink-0 scrollbar-hide lg-scrollbar-show">
                             {productImages.map((img, i) => (
                                 <div
                                     key={i}
@@ -373,7 +373,7 @@ const ProductDetailsPage = () => {
                         )}
 
                         {/* Brand & Source Section - Ultra Compact Pills */}
-                        <div className="flex gap-2 mb-6 overflow-x-auto scrollbar-hide no-scrollbar pr-4">
+                        <div className="flex gap-2 mb-6 overflow-x-auto scrollbar-hide lg-scrollbar-show no-scrollbar pr-4">
                             {/* Brand Pill */}
                             {product.brandInfo && (
                                 <Link 
@@ -628,7 +628,7 @@ const ProductDetailsPage = () => {
                         </div>
 
                         {loadingReviews ? (
-                            <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-2">
+                            <div className="flex gap-4 overflow-x-auto scrollbar-hide lg-scrollbar-show pb-2">
                                 {[1, 2, 3].map(i => (
                                     <div key={i} className="animate-pulse bg-white dark:bg-[#18181b] rounded-2xl px-5 py-4 border border-gray-50 dark:border-white/5 min-w-[240px] w-[240px]">
                                         <div className="flex gap-3 mb-3">
@@ -650,7 +650,7 @@ const ProductDetailsPage = () => {
                                 <p className="text-[8px] text-gray-400 font-bold uppercase tracking-widest mt-1">Share your first impression!</p>
                             </div>
                         ) : (
-                            <div className="flex overflow-x-auto gap-3 pb-3 scrollbar-hide -mx-4 px-4 lg:mx-0 lg:px-0">
+                            <div className="flex overflow-x-auto gap-3 pb-3 scrollbar-hide lg-scrollbar-show -mx-4 px-4 lg:mx-0 lg:px-0">
                                 {reviews.slice(0, 3).map((review) => (
                                     <div key={review._id} className="bg-white dark:bg-[#18181b] rounded-2xl px-4 py-3 border border-gray-100 dark:border-white/5 min-w-[240px] w-[240px] flex-shrink-0 shadow-sm transition-all hover:border-[#0c831f]/20">
                                         <div className="flex items-start justify-between mb-2">

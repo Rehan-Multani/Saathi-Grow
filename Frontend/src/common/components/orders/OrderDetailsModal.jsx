@@ -144,7 +144,7 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
                     <h5 className="text-lg font-bold text-slate-900">
                         Order Details: <span className="text-blue-600">#{displayId?.slice(-8).toUpperCase()}</span>
                     </h5>
-                    <button onClick={onHide} className="p-1 rounded-lg hover:bg-slate-50 transition-colors text-slate-400"><X size={20} /></button>
+                    <button onClick={onHide} className="p-1 rounded-lg hover:bg-slate-50 transition-colors text-slate-400 print:hidden"><X size={20} /></button>
                 </div>
 
                 <div className="p-6 overflow-y-auto">
@@ -165,7 +165,7 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
                             </div>
 
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-                                <div className="p-4 bg-blue-50/50 rounded-lg border border-blue-100">
+                                <div className="p-4 bg-blue-50/50 rounded-lg border border-blue-100 print:hidden">
                                     <p className="text-[10px] font-bold text-blue-400 uppercase mb-2">Store / Branch</p>
                                     <p className="font-bold text-blue-900 text-[11px] leading-tight">{displayStore}</p>
                                     <span className="inline-block mt-1 px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded text-[9px] font-bold tracking-wider">{storeType}</span>
@@ -184,7 +184,7 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
                                 <div className="p-4 bg-slate-50 rounded-lg border border-slate-100">
                                     <p className="text-[10px] font-bold text-slate-400 uppercase mb-2">Status</p>
                                     <select 
-                                        className="w-full bg-white border border-slate-200 rounded-lg px-2 py-1 text-[11px] font-bold text-slate-700 outline-none focus:border-blue-500 transition-all cursor-pointer"
+                                        className="w-full bg-white border border-slate-200 rounded-lg px-2 py-1 text-[11px] font-bold text-slate-700 outline-none focus:border-blue-500 transition-all cursor-pointer print:hidden"
                                         value={displayOrder.status}
                                         onChange={(e) => handleStatusUpdate(e.target.value)}
                                         disabled={updatingStatus}
@@ -193,6 +193,9 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
                                             <option key={opt.value} value={opt.value}>{opt.label}</option>
                                         ))}
                                     </select>
+                                    <p className="hidden print:block text-[11px] font-bold text-slate-900 uppercase">
+                                        {displayOrder.status?.replace(/_/g, ' ')}
+                                    </p>
                                 </div>
                             </div>
 
@@ -238,7 +241,7 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
                                     <thead className="bg-slate-50 text-slate-400 font-bold uppercase border-b border-slate-100">
                                         <tr>
                                             <th className="px-4 py-2">Item</th>
-                                            <th className="px-4 py-2 text-center">Location</th>
+                                            <th className="px-4 py-2 text-center print:hidden">Location</th>
                                             <th className="px-4 py-2 text-center">Qty</th>
                                             <th className="px-4 py-2 text-right">Total</th>
                                         </tr>
@@ -252,7 +255,7 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
                                                         <div className="font-bold text-slate-700 truncate max-w-[150px]">{item.name}</div>
                                                     </div>
                                                 </td>
-                                                <td className="px-4 py-3 text-center">
+                                                <td className="px-4 py-3 text-center print:hidden">
                                                     <div className="flex flex-col items-center gap-1">
                                                         <span className="text-[9px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded uppercase">{displayStore.split(' ')[0]}</span>
                                                         {item.physicalLocation ? (
@@ -293,10 +296,10 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
                 </div>
 
                 <div className="p-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
-                    <button onClick={onHide} className="px-4 py-2 text-xs font-bold text-slate-500 hover:text-slate-700 transition-all">Close</button>
+                    <button onClick={onHide} className="px-4 py-2 text-xs font-bold text-slate-500 hover:text-slate-700 transition-all print:hidden">Close</button>
                     <button 
                         onClick={() => window.print()} 
-                        className="px-4 py-2 bg-slate-900 text-white rounded-lg text-xs font-bold flex items-center gap-2"
+                        className="px-4 py-2 bg-slate-900 text-white rounded-lg text-xs font-bold flex items-center gap-2 print:hidden"
                     >
                         <Download size={14} /> Print Receipt
                     </button>

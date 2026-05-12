@@ -67,6 +67,7 @@ const DeliveryTracking = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedDelivery, setSelectedDelivery] = useState(null);
     const [map, setMap] = useState(null);
+    const [currentCenter, setCurrentCenter] = useState(center);
 
     const { isLoaded } = useJsApiLoader({
         id: 'google-map-script',
@@ -110,11 +111,42 @@ const DeliveryTracking = () => {
     const focusOnPartner = (delivery) => {
         setSelectedDelivery(delivery);
         const loc = delivery.deliveryPartnerId?.currentLocation?.coordinates;
-        if (loc && map) {
-            map.panTo({ lat: loc[1], lng: loc[0] });
-            map.setZoom(15);
+        const custLoc = delivery.shippingAddress?.location?.coordinates;
+        
+        if (loc && (loc[0] !== 0 || loc[1] !== 0)) {
+            const position = { lat: loc[1], lng: loc[0] };
+            setCurrentCenter(position);
+            if (map) {
+                map.panTo(position);
+                map.setZoom(16);
+            }
+        } else if (custLoc && (custLoc[0] !== 0 || custLoc[1] !== 0)) {
+            // Fallback to customer location if rider location is missing
+            const position = { lat: custLoc[1], lng: custLoc[0] };
+            setCurrentCenter(position);
+            if (map) {
+                map.panTo(position);
+                map.setZoom(15);
+            }
         }
     };
+
+    // Auto-center on first available rider with VALID location
+    useEffect(() => {
+        if (activeDeliveries.length > 0 && !selectedDelivery && map) {
+            const firstWithLoc = activeDeliveries.find(d => {
+                const loc = d.deliveryPartnerId?.currentLocation?.coordinates;
+                return loc && (loc[0] !== 0 || loc[1] !== 0);
+            });
+            
+            if (firstWithLoc) {
+                const loc = firstWithLoc.deliveryPartnerId.currentLocation.coordinates;
+                const position = { lat: loc[1], lng: loc[0] };
+                setCurrentCenter(position);
+                map.panTo(position);
+            }
+        }
+    }, [activeDeliveries.length, map, selectedDelivery]);
 
     if (!isLoaded || (loading && !refreshing)) {
         return (
@@ -161,20 +193,21 @@ const DeliveryTracking = () => {
                     <div className="bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden h-[650px] relative ring-8 ring-slate-50/50">
                         <GoogleMap
                             mapContainerStyle={mapContainerStyle}
-                            center={center}
+                            center={currentCenter}
                             zoom={12}
                             options={mapOptions}
                             onLoad={onMapLoad}
                         >
                             {filteredDeliveries.map(d => {
                                 const partnerLoc = d.deliveryPartnerId?.currentLocation?.coordinates;
+                                const isLocValid = partnerLoc && (partnerLoc[0] !== 0 || partnerLoc[1] !== 0);
                                 const customerLoc = d.shippingAddress?.location?.coordinates;
                                 
                                 // Polyline from encoded string if available
                                 const runPolyline = d.deliveryRunId?.optimizedRoute?.encodedPolyline;
                                 const polyPoints = runPolyline ? polyline.decode(runPolyline).map(([lat, lng]) => ({ lat, lng })) : [];
 
-                                if (!partnerLoc) return null;
+                                if (!isLocValid) return null;
 
                                 return (
                                     <React.Fragment key={d._id}>
@@ -183,9 +216,10 @@ const DeliveryTracking = () => {
                                             position={{ lat: partnerLoc[1], lng: partnerLoc[0] }}
                                             onClick={() => setSelectedDelivery(d)}
                                             icon={{
-                                                url: d.deliveryPartnerId?.profileImage || '/rider-marker.png',
-                                                scaledSize: new window.google.maps.Size(40, 40),
-                                                className: 'rounded-full border-2 border-blue-500 bg-white p-0.5'
+                                                url: d.deliveryPartnerId?.profileImage || 'https://cdn-icons-png.flaticon.com/512/2972/2972185.png',
+                                                scaledSize: new window.google.maps.Size(45, 45),
+                                                origin: new window.google.maps.Point(0, 0),
+                                                anchor: new window.google.maps.Point(22, 22)
                                             }}
                                         />
 
@@ -209,6 +243,20 @@ const DeliveryTracking = () => {
                                                     strokeOpacity: 0.8,
                                                     strokeWeight: 4,
                                                     geodesic: true,
+                                                }}
+                                            />
+                                        )}
+
+                                        {/* Pickup Location Marker (Branch or Vendor) */}
+                                        {(d.branchId?.address?.location?.coordinates || d.vendor?.address?.location?.coordinates) && (
+                                            <Marker
+                                                position={{ 
+                                                    lat: (d.branchId?.address?.location?.coordinates || d.vendor?.address?.location?.coordinates)[1], 
+                                                    lng: (d.branchId?.address?.location?.coordinates || d.vendor?.address?.location?.coordinates)[0] 
+                                                }}
+                                                icon={{
+                                                    url: 'https://cdn-icons-png.flaticon.com/512/609/609803.png', // Shop/Store icon
+                                                    scaledSize: new window.google.maps.Size(35, 35)
                                                 }}
                                             />
                                         )}

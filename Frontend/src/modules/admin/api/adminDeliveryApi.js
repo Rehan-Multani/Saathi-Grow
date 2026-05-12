@@ -18,9 +18,15 @@ const getAuthDetails = () => {
   const admin = localStorage.getItem('sathiGro_admin');
   const manager = localStorage.getItem('sathiGro_manager') || localStorage.getItem('saathigro_manager');
   const staff = localStorage.getItem('sathiGro_staff') || localStorage.getItem('saathigro_staff');
+  const vendor = localStorage.getItem('sathiGro_vendor_token');
+  
   if (admin) return JSON.parse(admin);
   if (staff) return JSON.parse(staff);
   if (manager) return JSON.parse(manager);
+  if (vendor) {
+      // Vendor token might be stored differently, but we need a similar object structure { token }
+      return { token: vendor };
+  }
   return null;
 };
 

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Upload, FileText, CheckCircle2, Download, ArrowRight, FileSpreadsheet, Info, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import * as XLSX from 'xlsx';
 
 const BulkUpload = () => {
     const navigate = useNavigate();
@@ -9,35 +10,26 @@ const BulkUpload = () => {
     const [step, setStep] = useState(1);
 
     const handleFile = (file) => {
-        if (file.type === "text/csv" || file.name.endsWith('.xlsx')) {
+        if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
             setFile(file);
             setStep(2);
         } else {
-            alert("Please upload a CSV or Excel file");
+            alert("Please upload an Excel file (.xlsx or .xls)");
         }
     };
 
     const downloadTemplate = () => {
-        // Create CSV content with headers and sample data
-        const csvContent = [
-            ['SKU', 'Product Name', 'Category', 'Price', 'Stock', 'Unit Amount', 'Unit Type', 'Description', 'Image URL'],
-            ['SG-001', 'Sample Product 1', 'Groceries', '99.00', '50', '500', 'gm', 'This is a sample product description', 'https://example.com/image1.jpg'],
-            ['SG-002', 'Sample Product 2', 'Dairy', '149.00', '30', '1', 'ltr', 'Another sample product', 'https://example.com/image2.jpg'],
-            ['SG-003', 'Sample Product 3', 'Snacks', '49.00', '100', '250', 'gm', 'Sample snack item', 'https://example.com/image3.jpg']
-        ].map(row => row.join(',')).join('\n');
-
-        // Create blob and download
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        const url = URL.createObjectURL(blob);
-
-        link.setAttribute('href', url);
-        link.setAttribute('download', 'sathiGro_product_template.csv');
-        link.style.visibility = 'hidden';
-
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        const headers = ['SKU', 'Product Name', 'Category', 'Price', 'Stock', 'Unit Amount', 'Unit Type', 'Description', 'Image URL'];
+        const exampleData = [
+            ['SG-001', 'Sample Product 1', 'Groceries', 99.00, 50, 500, 'gm', 'This is a sample product description', 'https://example.com/image1.jpg'],
+            ['SG-002', 'Sample Product 2', 'Dairy', 149.00, 30, 1, 'ltr', 'Another sample product', 'https://example.com/image2.jpg'],
+            ['SG-003', 'Sample Product 3', 'Snacks', 49.00, 100, 250, 'gm', 'Sample snack item', 'https://example.com/image3.jpg']
+        ];
+        
+        const worksheet = XLSX.utils.aoa_to_sheet([headers, ...exampleData]);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Products");
+        XLSX.writeFile(workbook, 'sathiGro_product_template.xlsx');
     };
 
     return (
@@ -50,7 +42,7 @@ const BulkUpload = () => {
                     </button>
                     <div>
                         <h1 className="text-base font-bold text-gray-900 tracking-tight">Bulk upload products</h1>
-                        <p className="text-[10px] text-gray-500 font-medium">Import items quickly via CSV or Excel</p>
+                        <p className="text-[10px] text-gray-500 font-medium">Import items quickly via Excel</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -104,7 +96,7 @@ const BulkUpload = () => {
                                     <FileSpreadsheet size={20} />
                                 </div>
                                 <p className="text-xs font-bold text-gray-800 mb-0.5">Click to browse or drag and drop</p>
-                                <p className="text-[10px] text-gray-400">Supported types: .csv, .xlsx (max 5MB)</p>
+                                <p className="text-[10px] text-gray-400">Supported types: .xlsx, .xls (max 5MB)</p>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">

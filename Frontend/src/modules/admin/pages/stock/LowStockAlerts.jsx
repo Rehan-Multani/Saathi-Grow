@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Search, MapPin, Package, ChevronLeft, ChevronRight, AlertTriangle, RefreshCcw, Filter, Loader2, Store, Activity, Box, Info, CheckCircle } from 'lucide-react';
 import { getLowStockAlerts } from '../../api/productApi';
 import { getBranches } from '../../api/branchApi';
@@ -185,15 +185,15 @@ const LowStockAlerts = () => {
                             ) : alerts.length > 0 ? alerts.map((item, idx) => (
                                 <tr key={`${item.productId}-${idx}`} className="hover:bg-rose-50/10 transition-colors group">
                                     <td className="px-6 py-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 bg-slate-50 rounded-lg border border-slate-100 flex items-center justify-center overflow-hidden shrink-0 group-hover:border-rose-200">
-                                                {item.image ? <img src={item.image} alt="" className="w-full h-full object-cover" /> : <Box size={18} className="text-slate-200" />}
+                                        <Link to={`/admin/products/${item.productId}`} className="flex items-center gap-3 group/item">
+                                            <div className="w-10 h-10 bg-slate-50 rounded-lg border border-slate-100 flex items-center justify-center overflow-hidden shrink-0 group-hover/item:border-rose-200 transition-all">
+                                                {item.image ? <img src={item.image} alt="" className="w-full h-full object-cover group-hover/item:scale-110 transition-transform" /> : <Box size={18} className="text-slate-200" />}
                                             </div>
                                             <div className="min-w-0">
-                                                <div className="text-xs font-bold text-slate-900 leading-tight uppercase tracking-tight">{item.productName}</div>
+                                                <div className="text-xs font-bold text-slate-900 leading-tight uppercase tracking-tight group-hover/item:text-blue-600 transition-colors">{item.productName}</div>
                                                 <div className="text-[10px] text-slate-400 font-bold uppercase">{item.sku}</div>
                                             </div>
-                                        </div>
+                                        </Link>
                                     </td>
                                     <td className="px-4 py-4">
                                         <div className="flex items-center gap-2">

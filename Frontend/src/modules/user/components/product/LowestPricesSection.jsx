@@ -130,7 +130,7 @@ const LowestPricesSection = ({
                 <div
                     ref={sectionRef}
                     onScroll={handleScroll}
-                    className="flex-1 flex overflow-x-auto gap-3 md:gap-4 lg:gap-5 pb-2 md:pb-4 scrollbar-hide px-4 md:px-0 scroll-smooth items-stretch md:snap-x md:snap-mandatory w-full"
+                    className="flex-1 flex overflow-x-auto gap-3 md:gap-4 lg:gap-5 pb-2 md:pb-4 scrollbar-hide lg-scrollbar-show px-4 md:px-0 scroll-smooth items-stretch md:snap-x md:snap-mandatory w-full"
                 >
                     {loading ? (
                         Array.from({ length: 6 }).map((_, i) => (

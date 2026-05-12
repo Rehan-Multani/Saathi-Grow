@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, ShoppingBag, Package, Wallet, User, Menu, X, LogOut, BarChart2, Layers, ChevronDown, ChevronUp, RotateCcw, Shield, Tag, Headphones } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, Package, Wallet, User, Menu, X, LogOut, BarChart2, Layers, ChevronDown, ChevronUp, RotateCcw, Shield, Tag, Headphones, Truck } from 'lucide-react';
 import logo from '../../../assets/logo.png';
 import { useVendor } from '../contexts/VendorContext';
 
@@ -46,6 +46,18 @@ const VendorSidebar = () => {
             ]
         },
         { icon: RotateCcw, label: 'Return Request', path: '/vendor/return-requests' },
+        {
+            icon: Truck,
+            label: 'Delivery Management',
+            path: '/vendor/delivery',
+            subItems: [
+                { label: 'Fleet Tracking', path: '/vendor/delivery/tracking' },
+                { label: 'Riders/Partners', path: '/vendor/delivery/partners' },
+                { label: 'Assign Orders', path: '/vendor/delivery/assign' },
+                { label: 'Time Slots', path: '/vendor/delivery/slots' },
+                { label: 'Cash Settlement', path: '/vendor/delivery/settlement' },
+            ]
+        },
         { icon: Tag, label: 'Offers & Deals', path: '/vendor/offers' },
         { icon: Wallet, label: 'Earnings', path: '/vendor/earnings' },
         { icon: User, label: 'Profile', path: '/vendor/profile' },

@@ -18,7 +18,7 @@ const CategoryBrandStrip = ({ section, accentColor = '#0c831f' }) => {
         </p>
       )}
 
-      <div className="category-landing-scroll category-landing-brand-strip flex gap-3 overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
+      <div className="category-landing-scroll category-landing-brand-strip flex gap-3 overflow-x-auto pb-4 scrollbar-hide lg-scrollbar-show -mx-4 px-4 sm:mx-0 sm:px-0">
         {(section.items || []).map((brand) => (
           <button
             key={brand._id}

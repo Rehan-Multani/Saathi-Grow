@@ -34,7 +34,7 @@ const CategoryProductRail = ({ section, categorySlug, accentColor = '#0c831f' })
         </button>
       </div>
 
-      <div className="category-landing-scroll category-landing-product-strip flex gap-2.5 overflow-x-auto pb-2.5 scrollbar-hide sm:gap-3 sm:pb-3">
+      <div className="category-landing-scroll category-landing-product-strip flex gap-2.5 overflow-x-auto pb-2.5 scrollbar-hide lg-scrollbar-show sm:gap-3 sm:pb-3">
         {products.map((product) => (
           <div key={product.id} className="category-landing-rail-card w-[144px] flex-shrink-0 sm:w-[168px]">
             <ProductCard product={product} isCompact={true} />

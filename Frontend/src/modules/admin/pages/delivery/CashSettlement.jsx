@@ -13,6 +13,9 @@ const CashSettlement = () => {
     const [refreshing, setRefreshing] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
 
+    // Role check
+    const isVendor = window.location.pathname.startsWith('/vendor');
+
     const fetchSettlementData = async (isRefresh = false) => {
         try {
             if (isRefresh) setRefreshing(true);
@@ -187,7 +190,7 @@ const CashSettlement = () => {
                                 <th className="px-6 py-5 text-center">Contact</th>
                                 <th className="px-6 py-5 text-center">Status</th>
                                 <th className="px-6 py-5 text-center text-emerald-600 font-black">Current Balance</th>
-                                <th className="px-8 py-5 text-right uppercase">Actions</th>
+                                {!isVendor && <th className="px-8 py-5 text-right uppercase">Actions</th>}
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 font-medium">
@@ -229,26 +232,28 @@ const CashSettlement = () => {
                                         <td className="px-6 py-6 text-center font-bold">
                                             <span className={`text-sm ${item.cashInHand > 0 ? 'text-emerald-600' : 'text-slate-300'}`}>₹{item.cashInHand.toLocaleString()}</span>
                                         </td>
-                                        <td className="px-8 py-6 text-right">
-                                            <div className="flex justify-end gap-2">
-                                                <button
-                                                    onClick={() => handleSettle(item)}
-                                                    disabled={item.cashInHand <= 0}
-                                                    className={`px-4 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider transition-all flex items-center gap-2 border shadow-sm ${
-                                                        item.cashInHand > 0 
-                                                        ? 'bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-700 active:scale-95 shadow-emerald-100' 
-                                                        : 'bg-slate-50 text-slate-300 border-slate-100 cursor-not-allowed'
-                                                    }`}
-                                                >
-                                                    <CheckCircle size={14} /> {t('settlement.collect_cash')}
-                                                </button>
-                                            </div>
-                                        </td>
+                                        {!isVendor && (
+                                            <td className="px-8 py-6 text-right">
+                                                <div className="flex justify-end gap-2">
+                                                    <button
+                                                        onClick={() => handleSettle(item)}
+                                                        disabled={item.cashInHand <= 0}
+                                                        className={`px-4 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider transition-all flex items-center gap-2 border shadow-sm ${
+                                                            item.cashInHand > 0 
+                                                            ? 'bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-700 active:scale-95 shadow-emerald-100' 
+                                                            : 'bg-slate-50 text-slate-300 border-slate-100 cursor-not-allowed'
+                                                        }`}
+                                                    >
+                                                        <CheckCircle size={14} /> {t('settlement.collect_cash')}
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        )}
                                     </tr>
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan="5" className="py-24 text-center">
+                                    <td colSpan={isVendor ? "4" : "5"} className="py-24 text-center">
                                         <div className="flex flex-col items-center gap-3">
                                             <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center">
                                                 <Wallet size={32} className="text-slate-200" />

@@ -11,6 +11,7 @@ import QRCode from 'qrcode';
 import { sendPushNotification } from '../services/notificationService.js';
 import { syncLocationAssignment } from './physicalLocationController.js';
 import PhysicalLocation from '../models/PhysicalLocation.js';
+import XLSX from 'xlsx';
 
 // Helper to determine status based on total stock
 const determineProductStatus = (branchStocks, vendorStock = null, vendorThreshold = null) => {
@@ -94,6 +95,9 @@ export const getAISuggestions = async (req, res) => {
 // @access  Private (Admin/Staff)
 export const createProduct = async (req, res) => {
   try {
+    console.log('DEBUG: createProduct req.body:', req.body);
+    console.log('DEBUG: createProduct req.files:', req.files);
+
     const {
       name,
       description,
@@ -137,12 +141,16 @@ export const createProduct = async (req, res) => {
 
     let image = '';
     let gallery = [];
+    
+
     if (req.files) {
       if (req.files.image && req.files.image[0]) {
         image = req.files.image[0].path;
+        console.log('DEBUG: Image path found:', image);
       }
       if (req.files.gallery) {
         gallery = req.files.gallery.map(file => file.path);
+        console.log('DEBUG: Gallery paths found:', gallery);
       }
     }
 
@@ -2058,46 +2066,32 @@ export const getLowStockAlerts = async (req, res) => {
   }
 };
 
-// ─── Helper: Parse CSV Buffer ─────────────────────────────────────────────────
-const parseCsvBuffer = (buffer) => {
-  const text = buffer.toString('utf-8');
-  const lines = text.split(/\r?\n/).filter(l => l.trim());
-  if (lines.length < 2) return [];
-
-  const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
-
-  return lines.slice(1).map(line => {
-    // Basic CSV parse — handles quoted fields with commas inside
-    const values = [];
-    let cur = '';
-    let inQuotes = false;
-    for (let i = 0; i < line.length; i++) {
-      const ch = line[i];
-      if (ch === '"') { inQuotes = !inQuotes; }
-      else if (ch === ',' && !inQuotes) { values.push(cur.trim()); cur = ''; }
-      else { cur += ch; }
-    }
-    values.push(cur.trim());
-
-    const obj = {};
-    headers.forEach((h, i) => { obj[h] = (values[i] || '').replace(/^"|"$/g, '').trim(); });
-    return obj;
-  }).filter(r => r.name); // Skip empty rows
+// ─── Helper: Parse Excel Buffer ───────────────────────────────────────────────
+const parseExcelBuffer = (buffer) => {
+  try {
+    const workbook = XLSX.read(buffer, { type: 'buffer' });
+    const sheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[sheetName];
+    return XLSX.utils.sheet_to_json(worksheet);
+  } catch (err) {
+    console.error('Excel parse error:', err);
+    return [];
+  }
 };
 
-// @desc   Bulk upload products from CSV
+// @desc   Bulk upload products from Excel
 // @route  POST /api/admin/products/bulk-upload
 // @access Private (Admin only)
 export const bulkUploadProducts = async (req, res) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ message: 'No CSV file uploaded' });
+      return res.status(400).json({ message: 'No Excel file uploaded' });
     }
 
-    const rows = parseCsvBuffer(req.file.buffer);
+    const rows = parseExcelBuffer(req.file.buffer);
 
     if (rows.length === 0) {
-      return res.status(400).json({ message: 'CSV is empty or has no valid rows' });
+      return res.status(400).json({ message: 'Excel is empty or has no valid rows' });
     }
 
     let created = 0, updated = 0, skipped = 0;
@@ -2134,7 +2128,18 @@ export const bulkUploadProducts = async (req, res) => {
           tags: row.tags ? row.tags.split('|').map(t => t.trim()).filter(Boolean) : [],
           sku,
           stock: Number(row.stock) || 0,
-          status: row.status || 'Draft',
+          status: (() => {
+            const raw = (row.status || 'Active').toString().toLowerCase().trim();
+            const statusMap = {
+              'active': 'Active',
+              'draft': 'Draft',
+              'out of stock': 'Out of Stock',
+              'low stock': 'Low Stock',
+              'pending approval': 'Pending Approval',
+              'rejected': 'Rejected'
+            };
+            return statusMap[raw] || 'Active';
+          })(),
           isVeg: row.isVeg === 'false' ? false : true,
           branchStocks: [],
           isAllBranches: false,

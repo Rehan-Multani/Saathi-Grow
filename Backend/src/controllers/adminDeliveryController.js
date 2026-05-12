@@ -259,12 +259,15 @@ export const getUnassignedOrders = async (req, res) => {
   try {
     const { hasPagination, pageNumber, limitNumber } = getPaginationParams(req.query);
     const admin = req.admin;
+    const vendor = req.vendor;
     const query = {
       status: { $in: ['confirmed', 'preparing', 'pending', 'ready_for_pickup'] },
       deliveryPartnerId: null
     };
 
-    if (admin.role !== 'Admin') {
+    if (vendor) {
+      query.vendor = vendor._id;
+    } else if (admin && admin.role !== 'Admin') {
       if (!admin.branchId) return res.status(403).json({ message: 'No branch assigned' });
       query.branchId = admin.branchId;
     }
@@ -673,12 +676,15 @@ export const getActiveDeliveries = async (req, res) => {
   try {
     const { hasPagination, pageNumber, limitNumber } = getPaginationParams(req.query);
     const admin = req.admin;
+    const vendor = req.vendor;
     const query = {
       deliveryPartnerId: { $ne: null },
       status: { $in: ['preparing', 'ready_for_pickup', 'out_for_delivery'] }
     };
 
-    if (admin.role !== 'Admin') {
+    if (vendor) {
+      query.vendor = vendor._id;
+    } else if (admin && admin.role !== 'Admin') {
       if (!admin.branchId) return res.status(403).json({ message: 'No branch assigned' });
       query.branchId = admin.branchId;
     }

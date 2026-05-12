@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Package, Plus, Filter, LayoutGrid, List, ArrowUpRight, TrendingUp, Star, MoreVertical, RefreshCw, Store, Loader2, ArrowRight } from 'lucide-react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getProducts } from '../../api/productApi';
 import { getVendors } from '../../api/vendorApi';
@@ -133,15 +133,15 @@ const VendorProducts = () => {
                                 filteredProducts.map((p, idx) => (
                                     <tr key={idx} className="hover:bg-slate-50/30 transition-colors group">
                                         <td className="px-8 py-6">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-12 h-12 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center overflow-hidden shrink-0 group-hover:scale-105 transition-transform shadow-inner">
+                                            <Link to={`/admin/products/${p._id}`} className="flex items-center gap-4 group/item">
+                                                <div className="w-12 h-12 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center overflow-hidden shrink-0 group-hover/item:scale-105 transition-transform shadow-inner">
                                                     {(p.image || p.images?.[0]) ? <img src={p.image || p.images[0]} className="w-full h-full object-cover" /> : <Package size={22} className="text-slate-200" />}
                                                 </div>
                                                 <div className="min-w-0">
-                                                    <div className="text-sm font-bold text-slate-900 leading-none uppercase tracking-tight truncate group-hover:text-blue-600 transition-colors">{p.name}</div>
+                                                    <div className="text-sm font-bold text-slate-900 leading-none uppercase tracking-tight truncate group-hover/item:text-blue-600 transition-colors">{p.name}</div>
                                                     <div className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-tighter leading-none opacity-60">ID: {p._id.slice(-6)}</div>
                                                 </div>
-                                            </div>
+                                            </Link>
                                         </td>
                                         <td className="px-6 py-6 font-bold text-slate-600 text-xs uppercase tracking-tight">
                                             <div className="flex items-center gap-3">

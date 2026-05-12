@@ -23,6 +23,10 @@ const DeliveryPartners = () => {
     const limit = 10;
     const [pagination, setPagination] = useState({ total: 0, totalPages: 1, page: 1, limit });
 
+    // Role check - hide sensitive actions from vendors
+    const isVendor = window.location.pathname.startsWith('/vendor');
+    const portalPrefix = isVendor ? '/vendor' : '/admin';
+
     const fetchPartners = async (isRefresh = false) => {
         try {
             if (isRefresh) setRefreshing(true);
@@ -137,13 +141,15 @@ const DeliveryPartners = () => {
                     >
                         <RefreshCw size={18} className={`${refreshing ? 'animate-spin' : ''}`} />
                     </button>
-                    <Link
-                        to="/admin/delivery/partners/add"
-                        className="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-sm transition-all shadow-blue-100"
-                    >
-                        <Plus size={16} />
-                        <span>{t('partners.add_new')}</span>
-                    </Link>
+                    {!isVendor && (
+                        <Link
+                            to={`${portalPrefix}/delivery/partners/add`}
+                            className="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-sm transition-all shadow-blue-100"
+                        >
+                            <Plus size={16} />
+                            <span>{t('partners.add_new')}</span>
+                        </Link>
+                    )}
                 </div>
             </div>
 
@@ -159,7 +165,7 @@ const DeliveryPartners = () => {
                                 <th className="px-4 py-4 text-[11px] font-bold text-slate-500 uppercase text-center">{t('partners.table.duty')}</th>
                                 <th className="px-4 py-4 text-[11px] font-bold text-slate-500 uppercase text-center">{t('partners.table.assignment')}</th>
                                 <th className="px-4 py-4 text-[11px] font-bold text-slate-500 uppercase text-center">{t('partners.table.status')}</th>
-                                <th className="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase text-right">{t('partners.table.actions')}</th>
+                                {!isVendor && <th className="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase text-right">{t('partners.table.actions')}</th>}
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 font-medium">
@@ -189,7 +195,7 @@ const DeliveryPartners = () => {
                                                 </div>
                                                 <div className="min-w-0">
                                                     <Link
-                                                        to={`/admin/delivery/partners/${p._id}`}
+                                                        to={`${portalPrefix}/delivery/partners/${p._id}`}
                                                         className="text-xs font-bold text-slate-900 hover:text-blue-600 transition-colors block leading-tight uppercase tracking-tight"
                                                     >
                                                         {p.name}
@@ -230,29 +236,31 @@ const DeliveryPartners = () => {
                                                 {p.authStatus}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 text-right">
-                                            <div className="flex justify-end gap-1.5">
-                                                <button
-                                                    onClick={() => handleEdit(p)}
-                                                    className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all active:scale-95"
-                                                    title="Edit Rider"
-                                                >
-                                                    <Edit size={16} />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDelete(p._id, p.name)}
-                                                    className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all active:scale-95"
-                                                    title="Delete Rider"
-                                                >
-                                                    <Trash2 size={16} />
-                                                </button>
-                                            </div>
-                                        </td>
+                                        {!isVendor && (
+                                            <td className="px-6 py-4 text-right">
+                                                <div className="flex justify-end gap-1.5">
+                                                    <button
+                                                        onClick={() => handleEdit(p)}
+                                                        className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all active:scale-95"
+                                                        title="Edit Rider"
+                                                    >
+                                                        <Edit size={16} />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDelete(p._id, p.name)}
+                                                        className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all active:scale-95"
+                                                        title="Delete Rider"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        )}
                                     </tr>
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan="7" className="py-20 text-center">
+                                    <td colSpan={isVendor ? "6" : "7"} className="py-20 text-center">
                                         <div className="flex flex-col items-center justify-center gap-3">
                                             <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center">
                                                 <Truck size={32} className="text-slate-200" />

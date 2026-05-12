@@ -108,7 +108,7 @@ const AddStaff = () => {
             toast.success(t('add.alerts.success'));
             navigate('/admin/staff');
         } catch (error) {
-            toast.error(error.response?.data?.message || t('add.alerts.error'));
+            toast.error(error.message || t('add.alerts.error'));
         } finally {
             setLoading(false);
         }

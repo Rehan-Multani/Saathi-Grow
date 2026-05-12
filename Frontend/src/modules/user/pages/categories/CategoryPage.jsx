@@ -378,7 +378,7 @@ const CategoryPage = () => {
                     {/* Subcategories Horizontal Scroll Row (Force Scroll with Flow) */}
                     {availableSubCategories.length > 0 && (
                         <div className="mt-4 mb-4" style={{ position: 'relative', zIndex: 5 }}>
-                            <div className="category-products-subcategories flex items-center gap-3 overflow-x-auto scrollbar-hide px-1 py-1">
+                            <div className="category-products-subcategories flex items-center gap-3 overflow-x-auto scrollbar-hide lg-scrollbar-show px-1 py-1">
                                 {/* "All" as a compact card */}
                                     <button
                                         onClick={() => setSelectedSubCat('all')}
@@ -450,7 +450,7 @@ const CategoryPage = () => {
                     )}
 
                     {/* Combined Filter Row (Force Normal Flow) */}
-                    <div className="category-products-filter-row mt-3 flex items-center gap-2 overflow-x-auto scrollbar-hide pb-0.5" style={{ position: 'relative', zIndex: 4 }}>
+                    <div className="category-products-filter-row mt-3 flex items-center gap-2 overflow-x-auto scrollbar-hide lg-scrollbar-show pb-0.5" style={{ position: 'relative', zIndex: 4 }}>
                         <button
                             onClick={() => setIsVegOnly(!isVegOnly)}
                             className={`shop-pill-btn flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[11px] font-bold whitespace-nowrap border transition-all ${isVegOnly ? 'bg-[#0c831f] border-[#0c831f] text-white' : 'bg-gray-50 dark:bg-white/5 border-transparent text-gray-600 dark:text-gray-400'}`}

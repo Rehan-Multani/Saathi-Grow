@@ -14,7 +14,8 @@ import SearchOverlay from '../components/search/SearchOverlay';
 import { useTheme } from '../context/ThemeContext';
 import { ShopProvider, useShop } from '../context/ShopContext';
 import { useStore } from '../context/StoreContext';
-import StoreSelector from '../components/location/StoreSelector';
+// import StoreSelector from '../components/location/StoreSelector';
+
 import PullToRefresh from '../../../common/components/PullToRefresh';
 import FirebaseNotificationHandler from '../../../common/components/FirebaseNotificationHandler';
 import { useState } from 'react';
@@ -144,7 +145,8 @@ const UserLayout = () => {
 
     const { token, isWebView, loading, refreshProfile } = useAuth();
     const { refreshShopData } = useShop();
-    const { isStoreSelectorOpen, setIsStoreSelectorOpen } = useStore();
+    // const { isStoreSelectorOpen, setIsStoreSelectorOpen } = useStore();
+
     const isAuthPath = ['/login', '/register', '/logout-confirmation'].includes(location.pathname);
 
     const handleRefresh = async () => {
@@ -206,7 +208,6 @@ const UserLayout = () => {
             )}
             <CartSidebar />
             <LocationModal />
-            <StoreSelector isOpen={isStoreSelectorOpen} onClose={() => setIsStoreSelectorOpen(false)} />
             <FloatingCartStrip />
             <LoginModal />
             <SearchOverlay />

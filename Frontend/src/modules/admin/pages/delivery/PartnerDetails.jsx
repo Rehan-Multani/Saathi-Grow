@@ -18,6 +18,10 @@ const PartnerDetails = () => {
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
 
+    // Role check
+    const isVendor = window.location.pathname.startsWith('/vendor');
+    const portalPrefix = isVendor ? '/vendor' : '/admin';
+
     const fetchDetails = async (isRefresh = false) => {
         try {
             if (isRefresh) setRefreshing(true);
@@ -26,7 +30,7 @@ const PartnerDetails = () => {
             setPartner(data);
         } catch (error) {
             Swal.fire({ title: 'Error', text: 'Failed to find rider details', icon: 'error' });
-            navigate('/admin/delivery/partners');
+            navigate(`${portalPrefix}/delivery/partners`);
         } finally {
             setLoading(false);
             setRefreshing(false);
@@ -80,9 +84,11 @@ const PartnerDetails = () => {
                     >
                         <RefreshCw size={18} className={`${refreshing ? 'animate-spin' : ''}`} />
                     </button>
-                    <button className="flex-1 md:flex-none bg-blue-600 hover:bg-blue-700 active:scale-95 text-white px-6 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-sm transition-all shadow-blue-100 border-none">
-                        <Edit size={16} /> Edit Profile
-                    </button>
+                    {!isVendor && (
+                        <button className="flex-1 md:flex-none bg-blue-600 hover:bg-blue-700 active:scale-95 text-white px-6 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-sm transition-all shadow-blue-100 border-none">
+                            <Edit size={16} /> Edit Profile
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -197,7 +203,7 @@ const PartnerDetails = () => {
                                     <div className="flex-1">
                                         <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 italic">Tracking History</span>
                                         <button 
-                                            onClick={() => navigate('/admin/delivery/tracking', { state: { riderId: partner._id }})}
+                                            onClick={() => navigate(`${portalPrefix}/delivery/tracking`, { state: { riderId: partner._id }})}
                                             className="w-full text-left bg-slate-50 border border-slate-200 p-4 rounded-2xl hover:border-blue-500 hover:bg-blue-50/30 transition-all group flex items-center justify-between"
                                         >
                                             <span className="text-xs font-bold text-slate-700">Open Map Tracker</span>

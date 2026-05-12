@@ -119,13 +119,15 @@ const ManageOffer = () => {
                         displayOrder: offer.displayOrder !== undefined ? offer.displayOrder : 0
                     });
                     setImagePreview(offer.bannerImage);
-                    setSelectedProducts(offer.products.map(p => ({
-                        productId: p.productId?._id || p.productId,
-                        name: p.productId?.name,
-                        image: p.productId?.image,
-                        mrp: p.productId?.mrp || p.productId?.basePrice,
-                        basePrice: p.basePrice || p.productId?.basePrice
-                    })));
+                    setSelectedProducts(offer.products
+                        .filter(p => p.productId)
+                        .map(p => ({
+                            productId: p.productId?._id || p.productId,
+                            name: p.productId?.name,
+                            image: p.productId?.image,
+                            mrp: p.productId?.mrp || p.productId?.basePrice,
+                            basePrice: p.basePrice || p.productId?.basePrice
+                        })));
                 }
             } catch (error) {
                 // toast.error(t('messages.fetch_error'));
@@ -417,7 +419,7 @@ const ManageOffer = () => {
                                                         </div>
                                                         <div className="min-w-0">
                                                             <div className="text-[11px] font-black text-slate-800 uppercase truncate max-w-[240px] tracking-tight">{p.name}</div>
-                                                            <div className="text-[9px] text-slate-300 font-black mt-1">Ref ID: {p.productId.slice(-10)}</div>
+                                                            <div className="text-[9px] text-slate-300 font-black mt-1">Ref ID: {p.productId?.slice?.(-10) || 'N/A'}</div>
                                                         </div>
                                                     </div>
                                                 </td>

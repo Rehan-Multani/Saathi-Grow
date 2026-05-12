@@ -324,7 +324,7 @@ const HomePage = ({ }) => {
                     <div className="relative group/nav">
                         <div
                             ref={scrollContainerRef}
-                            className="flex overflow-x-auto gap-2 sm:gap-8 pt-1 pb-2 md:pb-8 scrollbar-hide -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 scroll-smooth items-start md:snap-x md:snap-mandatory"
+                            className="flex overflow-x-auto gap-2 sm:gap-8 pt-1 pb-2 md:pb-8 scrollbar-hide lg-scrollbar-show -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 scroll-smooth items-start md:snap-x md:snap-mandatory"
                             onScroll={handleCategoryScroll}
                         >
                             {loading ? (
@@ -602,7 +602,7 @@ const ProductRow = ({ category, loading: globalLoading }) => {
                 <div
                     ref={sectionRef}
                     onScroll={handleScroll}
-                    className="flex-1 flex overflow-x-auto gap-3 md:gap-4 lg:gap-5 pb-2 md:pb-4 scrollbar-hide px-4 md:px-0 scroll-smooth items-stretch md:snap-x md:snap-mandatory w-full"
+                    className="flex-1 flex overflow-x-auto gap-3 md:gap-4 lg:gap-5 pb-2 md:pb-4 scrollbar-hide lg-scrollbar-show px-4 md:px-0 scroll-smooth items-stretch md:snap-x md:snap-mandatory w-full"
                 >
                     {localProducts.map((product) => (
                         <div key={product._id || product.id} className="flex-shrink-0 w-[128px] sm:w-[170px] md:w-[calc(25%-12px)] lg:w-[calc(20%-16px)] xl:w-[calc(16.666667%-16.666667px)] md:snap-start">
@@ -809,7 +809,7 @@ const OccasionSection = ({
                 <div
                     ref={sectionRef}
                     onScroll={handleScroll}
-                    className="flex-1 flex overflow-x-auto gap-3 md:gap-4 lg:gap-5 pb-2 md:pb-4 scrollbar-hide px-4 md:px-0 scroll-smooth items-stretch md:snap-x md:snap-mandatory w-full"
+                    className="flex-1 flex overflow-x-auto gap-3 md:gap-4 lg:gap-5 pb-2 md:pb-4 scrollbar-hide lg-scrollbar-show px-4 md:px-0 scroll-smooth items-stretch md:snap-x md:snap-mandatory w-full"
                 >
                     {localProducts.map((product) => (
                         <div key={product._id || product.id} className="flex-shrink-0 w-[128px] sm:w-[170px] md:w-[calc(25%-12px)] lg:w-[calc(20%-16px)] xl:w-[calc(16.666667%-16.666667px)] md:snap-start">

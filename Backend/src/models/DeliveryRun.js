@@ -69,6 +69,13 @@ const deliveryRunSchema = new mongoose.Schema({
     default: null
   },
 
+  // Vendor this run belongs to
+  vendor: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Vendor',
+    default: null
+  },
+
   // Ordered list of delivery stops
   orders: [
     {

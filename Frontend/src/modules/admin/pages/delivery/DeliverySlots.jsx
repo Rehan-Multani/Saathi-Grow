@@ -19,6 +19,9 @@ const DeliverySlots = () => {
         isActive: true
     });
 
+    // Role check
+    const isVendor = window.location.pathname.startsWith('/vendor');
+
     const fetchSlots = async (isRefresh = false) => {
         try {
             if (isRefresh) setRefreshing(true);
@@ -124,17 +127,19 @@ const DeliverySlots = () => {
                     >
                         <RefreshCw size={18} className={`${refreshing ? 'animate-spin' : ''}`} />
                     </button>
-                    <button 
-                        onClick={() => {
-                            setSelectedSlot(null);
-                            setFormData({ label: '', startTime: '06:00', endTime: '08:00', maxOrders: 50, isActive: true });
-                            setShowModal(true);
-                        }}
-                        className="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-sm transition-all shadow-blue-100 border-none"
-                    >
-                        <Plus size={16} />
-                        <span>{t('slots.add_new')}</span>
-                    </button>
+                    {!isVendor && (
+                        <button 
+                            onClick={() => {
+                                setSelectedSlot(null);
+                                setFormData({ label: '', startTime: '06:00', endTime: '08:00', maxOrders: 50, isActive: true });
+                                setShowModal(true);
+                            }}
+                            className="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-sm transition-all shadow-blue-100 border-none"
+                        >
+                            <Plus size={16} />
+                            <span>{t('slots.add_new')}</span>
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -149,7 +154,7 @@ const DeliverySlots = () => {
                                 <th className="px-6 py-5 text-center">End Time</th>
                                 <th className="px-6 py-5 text-center">Limit</th>
                                 <th className="px-6 py-5 text-center">Status</th>
-                                <th className="px-8 py-5 text-right uppercase">Actions</th>
+                                {!isVendor && <th className="px-8 py-5 text-right uppercase">Actions</th>}
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 font-medium">
@@ -181,29 +186,31 @@ const DeliverySlots = () => {
                                                 {slot.isActive ? 'Active' : 'Disabled'}
                                             </span>
                                         </td>
-                                        <td className="px-8 py-6 text-right">
-                                            <div className="flex justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <button
-                                                    onClick={() => handleEdit(slot)}
-                                                    className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all active:scale-95"
-                                                    title="Edit Slot"
-                                                >
-                                                    <Edit size={16} />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDelete(slot._id)}
-                                                    className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all active:scale-95"
-                                                    title="Delete Slot"
-                                                >
-                                                    <Trash2 size={16} />
-                                                </button>
-                                            </div>
-                                        </td>
+                                        {!isVendor && (
+                                            <td className="px-8 py-6 text-right">
+                                                <div className="flex justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <button
+                                                        onClick={() => handleEdit(slot)}
+                                                        className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all active:scale-95"
+                                                        title="Edit Slot"
+                                                    >
+                                                        <Edit size={16} />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDelete(slot._id)}
+                                                        className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all active:scale-95"
+                                                        title="Delete Slot"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        )}
                                     </tr>
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan="6" className="py-24 text-center">
+                                    <td colSpan={isVendor ? "5" : "6"} className="py-24 text-center">
                                         <div className="flex flex-col items-center gap-3">
                                             <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center">
                                                 <Clock size={32} className="text-slate-200" />

@@ -42,6 +42,15 @@ import VendorPOS from '../pages/VendorPOS';
 import VendorLocations from '../pages/VendorLocations';
 import { useVendor } from '../contexts/VendorContext';
 
+// Delivery Management (Reusing Admin Components)
+import DeliveryPartners from '../../admin/pages/delivery/DeliveryPartners';
+import AddDeliveryPartner from '../../admin/pages/delivery/AddDeliveryPartner';
+import AssignDeliveries from '../../admin/pages/delivery/AssignDeliveries';
+import DeliveryTracking from '../../admin/pages/delivery/DeliveryTracking';
+import PartnerDetails from '../../admin/pages/delivery/PartnerDetails';
+import DeliverySlots from '../../admin/pages/delivery/DeliverySlots';
+import CashSettlement from '../../admin/pages/delivery/CashSettlement';
+
 const VendorLayout = () => {
     const location = useLocation();
     const vendorToken = localStorage.getItem('sathiGro_vendor_token');
@@ -109,6 +118,15 @@ const VendorRoutes = () => {
                     <Route path="offers" element={<VendorAllOffers />} />
                     <Route path="offers/create" element={<VendorManageOffer />} />
                     <Route path="offers/edit/:id" element={<VendorManageOffer />} />
+
+                    {/* Delivery Management */}
+                    <Route path="delivery/partners" element={<DeliveryPartners />} />
+                    <Route path="delivery/partners/:id" element={<PartnerDetails />} />
+                    <Route path="delivery/partners/add" element={<AddDeliveryPartner />} />
+                    <Route path="delivery/assign" element={<AssignDeliveries />} />
+                    <Route path="delivery/tracking" element={<DeliveryTracking />} />
+                    <Route path="delivery/slots" element={<DeliverySlots />} />
+                    <Route path="delivery/settlement" element={<CashSettlement />} />
 
                     {/* Default Redirect */}
                     <Route path="" element={<Navigate to="dashboard" replace />} />

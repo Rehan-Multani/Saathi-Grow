@@ -279,25 +279,52 @@ const AddProduct = () => {
     }, []);
 
     const handleCropComplete = useCallback(async (croppedImage) => {
-        setImagePreview(croppedImage);
-        setShowCropper(false);
-        setTempImage(null);
-        const res = await fetch(croppedImage);
-        const blob = await res.blob();
-        setImageFile(new File([blob], 'product.jpg', { type: 'image/jpeg' }));
+        try {
+            setImagePreview(croppedImage);
+            
+            // Direct Base64 to Blob conversion (more robust than fetch for data URLs)
+            const base64ToBlob = (base64) => {
+                const parts = base64.split(';base64,');
+                const contentType = parts[0].split(':')[1];
+                const raw = window.atob(parts[1]);
+                const rawLength = raw.length;
+                const uInt8Array = new Uint8Array(rawLength);
+                for (let i = 0; i < rawLength; ++i) {
+                    uInt8Array[i] = raw.charCodeAt(i);
+                }
+                return new Blob([uInt8Array], { type: contentType });
+            };
+
+            const blob = base64ToBlob(croppedImage);
+            const file = new File([blob], 'product.jpg', { type: 'image/jpeg' });
+            
+            setImageFile(file);
+            setShowCropper(false);
+            setTempImage(null);
+            
+            console.log('DEBUG: Image file ready:', file.size, 'bytes');
+        } catch (error) {
+            console.error('Error processing cropped image:', error);
+            toast.error('Failed to process image');
+            setShowCropper(false);
+        }
     }, []);
 
-    const handleGalleryChange = useCallback((e) => {
+    const handleGalleryChange = (e) => {
         const files = Array.from(e.target.files);
-        setGalleryFiles(prev => {
-            if (prev.length + files.length > 10) {
-                toast.warning('Max 10 images');
-                return prev;
-            }
-            setGalleryPreviews(old => [...old, ...files.map(f => URL.createObjectURL(f))]);
-            return [...prev, ...files];
-        });
-    }, []);
+        if (files.length === 0) return;
+
+        if (galleryFiles.length + files.length > 10) {
+            toast.warning('Max 10 images');
+            return;
+        }
+
+        const newPreviews = files.map(f => URL.createObjectURL(f));
+        setGalleryPreviews(prev => [...prev, ...newPreviews]);
+        setGalleryFiles(prev => [...prev, ...files]);
+        
+        e.target.value = '';
+    };
 
     const removeGalleryImage = useCallback((index) => {
         setGalleryPreviews(prev => prev.filter((_, i) => i !== index));
@@ -331,9 +358,23 @@ const AddProduct = () => {
         setLoading(true);
         try {
             const data = new FormData();
+            
+            // Append files FIRST (best practice for some multer configs)
+            if (imageFile) {
+                data.append('image', imageFile);
+                console.log('DEBUG: Appending image file to FormData');
+            }
+            galleryFiles.forEach((f, i) => {
+                data.append('gallery', f);
+                console.log(`DEBUG: Appending gallery file ${i} to FormData`);
+            });
+
             const isAll = !isVendorProduct && formData.specificBranches.length === branches.length;
             
             Object.keys(formData).forEach(key => {
+                // Skip file fields as they are handled separately
+                if (key === 'image' || key === 'gallery') return;
+                
                 if (key === 'tags') data.append(key, formData.tags.join(','));
                 else if (key === 'specificBranches') data.append(key, formData.specificBranches.join(','));
                 else if (key === 'isAllBranches') data.append(key, isAll);
@@ -347,10 +388,9 @@ const AddProduct = () => {
                 data.append('isAllBranches', false); 
             }
             
-            if (imageFile) data.append('image', imageFile);
-            galleryFiles.forEach(f => data.append('gallery', f));
+            const response = await createProduct(adminUser.token, data);
+            console.log('DEBUG: Product creation response:', response);
             
-            await createProduct(adminUser.token, data);
             toast.success(t('messages.save_success'));
             navigate('/admin/products');
         } catch (error) { toast.error(error.message); }
@@ -758,7 +798,7 @@ const AddProduct = () => {
                         {/* Featured Image */}
                         <div className="bg-white rounded-3xl border border-slate-200 p-8 shadow-sm text-center space-y-4">
                             <label className="text-sm font-semibold text-slate-700 block text-left">Featured Image</label>
-                            <div className="relative group w-full aspect-square bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl overflow-hidden flex items-center justify-center cursor-pointer hover:border-blue-400 transition-all">
+                            <div className="relative group w-full max-w-[280px] mx-auto aspect-square bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl overflow-hidden flex items-center justify-center cursor-pointer hover:border-blue-400 transition-all">
                                 {imagePreview ? <img src={imagePreview} className="w-full h-full object-cover" /> : <Camera size={40} className="text-slate-300" />}
                                 <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleImageChange} accept="image/*" />
                                 {imagePreview && <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-xs font-bold">Replace Main Photo</div>}

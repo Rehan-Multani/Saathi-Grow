@@ -209,7 +209,7 @@ const CampaignProductsPage = () => {
         </div>
 
         {/* Compact Filter Chips */}
-        <div className="px-4 pb-3 flex items-center gap-2 overflow-x-auto scrollbar-hide">
+        <div className="px-4 pb-3 flex items-center gap-2 overflow-x-auto scrollbar-hide lg-scrollbar-show">
           <button
             onClick={() => setShowFilters(!showFilters)}
             className={`shop-pill-btn flex items-center gap-1.5 px-4 py-2 rounded-full text-[11px] font-black tracking-wide border transition-all whitespace-nowrap ${showFilters ? 'bg-black text-white border-black' : 'bg-white dark:bg-zinc-900 border-gray-100 dark:border-white/10 text-gray-700 dark:text-gray-300 shadow-sm'}`}

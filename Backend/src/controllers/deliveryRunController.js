@@ -15,6 +15,7 @@ import axios from 'axios';
 export const getOrdersBySlot = async (req, res) => {
   try {
     const admin = req.admin;
+    const vendor = req.vendor;
     const { date, branchId } = req.query;
 
     // Default to today if no date provided
@@ -32,7 +33,9 @@ export const getOrdersBySlot = async (req, res) => {
       deliveryPartnerId: null, // Unassigned
     };
 
-    if (admin.role !== 'Admin') {
+    if (vendor) {
+      orderQuery.vendor = vendor._id;
+    } else if (admin && admin.role !== 'Admin') {
       if (!admin.branchId) return res.status(403).json({ message: 'No branch assigned' });
       orderQuery.branchId = admin.branchId;
     } else if (branchId) {
@@ -52,6 +55,7 @@ export const getOrdersBySlot = async (req, res) => {
     const runQuery = {
       slotDate: { $gte: startOfDay, $lte: endOfDay }
     };
+    if (orderQuery.vendor) runQuery.vendor = orderQuery.vendor;
     if (orderQuery.branchId) runQuery.branchId = orderQuery.branchId;
 
     const existingRuns = await DeliveryRun.find(runQuery)
@@ -213,6 +217,7 @@ export const createDeliveryRun = async (req, res) => {
       slotDate: slotDate ? new Date(slotDate) : new Date(),
       isImmediate: !slotId,
       branchId: branchId || null,
+      vendor: vendor ? vendor._id : null,
       orders: orderedStops,
       status: 'assigned',
       assignedAt: new Date(),
@@ -270,10 +275,13 @@ export const createDeliveryRun = async (req, res) => {
 export const getAllDeliveryRuns = async (req, res) => {
   try {
     const admin = req.admin;
+    const vendor = req.vendor;
     const { status, date } = req.query;
 
     let query = {};
-    if (admin.role !== 'Admin') {
+    if (vendor) {
+      query.vendor = vendor._id;
+    } else if (admin && admin.role !== 'Admin') {
       if (admin.branchId) query.branchId = admin.branchId;
     }
 

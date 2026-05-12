@@ -65,7 +65,7 @@ const AllStaff = () => {
                 fetchStaffData();
                 showSuccessAlert(t('all.alerts.delete_success'));
             } catch (error) {
-                showErrorAlert(error.response?.data?.message || 'Failed to remove staff');
+                showErrorAlert(error.message || 'Failed to remove staff');
             }
         }
     };
@@ -82,7 +82,7 @@ const AllStaff = () => {
             fetchStaffData();
             setShowEditModal(false);
         } catch (error) {
-            toast.error(error.response?.data?.message || t('edit.alerts.error'));
+            toast.error(error.message || t('edit.alerts.error'));
         }
     };
 
@@ -102,7 +102,7 @@ const AllStaff = () => {
             fetchStaffData();
             setShowPermissionModal(false);
         } catch (error) {
-            toast.error(error.response?.data?.message || 'Failed to update permissions');
+            toast.error(error.message || 'Failed to update permissions');
         }
     };
 

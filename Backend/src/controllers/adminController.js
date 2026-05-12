@@ -198,9 +198,10 @@ export const createAdmin = async (req, res) => {
   try {
     const { name, email, phone, password, role, permissions, branchId } = req.body;
 
-    const adminExists = await Admin.findOne({ email });
+    const adminExists = await Admin.findOne({ $or: [{ email }, { phone }] });
     if (adminExists) {
-      return res.status(400).json({ message: 'User with this email already exists' });
+      const field = adminExists.email === email ? 'Email' : 'Phone number';
+      return res.status(400).json({ message: `${field} is already registered with another staff member` });
     }
 
     let finalRole = role;

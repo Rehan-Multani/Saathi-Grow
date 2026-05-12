@@ -46,7 +46,9 @@
     },
     "alerts": {
       "success": "Staff member added successfully",
-      "error": "Failed to add staff member"
+      "error": "Failed to add staff member",
+      "email_exists": "Email is already registered with another member",
+      "phone_exists": "Phone number is already registered with another member"
     }
   },
   "edit": {

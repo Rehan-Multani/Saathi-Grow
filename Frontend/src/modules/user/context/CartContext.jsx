@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { useAuth } from './AuthContext';
 import { useStore } from './StoreContext';
 import { useNavigate } from 'react-router-dom';
@@ -73,6 +73,19 @@ export const CartProvider = ({ children }) => {
         };
         fetchSettingsAndCart();
     }, [token]);
+
+    // Automatically clear cart if activeStore changes (due to automatic store selection on location change)
+    const prevStoreIdRef = useRef(activeStore?.id);
+    useEffect(() => {
+        if (prevStoreIdRef.current && activeStore?.id && prevStoreIdRef.current !== activeStore.id) {
+            if (cart.length > 0) {
+                setCart([]);
+                localStorage.removeItem('sathiGro_cart');
+                toast.info("Your cart was cleared as the nearest store changed.", { toastId: 'cart-cleared-store-change' });
+            }
+        }
+        prevStoreIdRef.current = activeStore?.id;
+    }, [activeStore?.id, cart.length]);
 
     // Continually backup to Local Storage and optionally Sync to Cloud if authenticated
     // IMPORTANT: only sync AFTER cartReady=true to avoid overwriting the server cart with the initial []

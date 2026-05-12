@@ -8,6 +8,7 @@ import OnlineOrders from '../pages/orders/OnlineOrders';
 import POSHistory from '../pages/orders/POSHistory';
 import ReturnRequests from '../pages/orders/ReturnRequests';
 import AllProducts from '../pages/products/AllProducts';
+import ProductDetails from '../pages/products/ProductDetails';
 import AddProduct from '../pages/products/AddProduct';
 import ProductInventoryLogs from '../pages/products/ProductInventoryLogs';
 import AllCategories from '../pages/categories/AllCategories';
@@ -152,10 +153,14 @@ const AdminRoutes = () => {
                         <Route path="orders/pos" element={<POSHistory />} />
                         <Route path="orders/returns" element={<ReturnRequests />} />
 
-                        <Route path="products" element={<AllProducts />} />
-                        <Route path="products/add" element={<AddProduct />} />
-                        <Route path="products/:id/inventory-logs" element={<ProductInventoryLogs />} />
-                        <Route path="products/locations/management" element={<LocationManagement />} />
+                        {/* Products */}
+                        <Route path="products">
+                            <Route index element={<AllProducts />} />
+                            <Route path="add" element={<AddProduct />} />
+                            <Route path="locations/management" element={<LocationManagement />} />
+                            <Route path=":id" element={<ProductDetails />} />
+                            <Route path=":id/inventory-logs" element={<ProductInventoryLogs />} />
+                        </Route>
 
                         {/* Categories */}
                         <Route path="categories" element={<AllCategories />} />
