@@ -23,7 +23,15 @@ const DeliveryPartnerEditModal = ({ show, onHide, partner, onSave }) => {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
+        if (name === 'name') {
+            const cleanedValue = value.replace(/[^a-zA-Z\s]/g, '');
+            setFormData(prev => ({ ...prev, [name]: cleanedValue }));
+        } else if (name === 'phone') {
+            const cleanedValue = value.replace(/\D/g, '').slice(0, 10);
+            setFormData(prev => ({ ...prev, [name]: cleanedValue }));
+        } else {
+            setFormData(prev => ({ ...prev, [name]: value }));
+        }
     };
 
     const handleSubmit = (e) => {
@@ -76,8 +84,9 @@ const DeliveryPartnerEditModal = ({ show, onHide, partner, onSave }) => {
                                 name="phone"
                                 value={formData.phone}
                                 onChange={handleChange}
+                                maxLength={10}
                                 className="bg-light-subtle border-light-subtle py-3 shadow-none rounded-2xl font-black text-sm"
-                                placeholder="+91 00000 00000"
+                                placeholder="10-digit mobile number"
                                 required
                             />
                         </Col>

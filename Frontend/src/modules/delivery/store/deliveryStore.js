@@ -14,8 +14,23 @@ import {
 } from '../services/deliveryService';
 
 const useDeliveryStore = create((set, get) => ({
-    profile: JSON.parse(localStorage.getItem('sg_delivery_user')) || null,
-    token: localStorage.getItem('sg_delivery_token') || null,
+    profile: (() => {
+        try {
+            const saved = localStorage.getItem('sg_delivery_user');
+            return saved ? JSON.parse(saved) : null;
+        } catch (e) {
+            console.error('Error parsing sg_delivery_user from localStorage:', e);
+            return null;
+        }
+    })(),
+    token: (() => {
+        try {
+            return localStorage.getItem('sg_delivery_token') || null;
+        } catch (e) {
+            console.error('Error getting sg_delivery_token from localStorage:', e);
+            return null;
+        }
+    })(),
     stats: null,
     orders: [],
     history: [],

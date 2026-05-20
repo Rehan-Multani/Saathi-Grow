@@ -36,7 +36,15 @@ const AddVendor = () => {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
+        if (name === 'ownerName') {
+            const cleanedValue = value.replace(/[^a-zA-Z\s]/g, '');
+            setFormData(prev => ({ ...prev, [name]: cleanedValue }));
+        } else if (name === 'phone') {
+            const cleanedValue = value.replace(/\D/g, '').slice(0, 10);
+            setFormData(prev => ({ ...prev, [name]: cleanedValue }));
+        } else {
+            setFormData(prev => ({ ...prev, [name]: value }));
+        }
     };
 
     const handleLocationSelect = React.useCallback((locData) => {
@@ -185,6 +193,7 @@ const AddVendor = () => {
                                         placeholder={t('form.phone_placeholder')}
                                         value={formData.phone}
                                         onChange={handleChange}
+                                        maxLength={10}
                                         className="w-full pl-11 pr-4 py-3 bg-slate-50/50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-blue-500/50 focus:bg-white transition-all shadow-inner"
                                         required
                                     />

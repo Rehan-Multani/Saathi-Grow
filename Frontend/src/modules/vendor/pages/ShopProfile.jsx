@@ -303,7 +303,10 @@ const ShopProfile = () => {
                                     disabled={!isEditing}
                                     name="ownerName"
                                     value={formData.ownerName}
-                                    onChange={(e) => setFormData({ ...formData, ownerName: e.target.value })}
+                                    onChange={(e) => {
+                                        const val = e.target.value.replace(/[^a-zA-Z\s]/g, '');
+                                        setFormData(prev => ({ ...prev, ownerName: val }));
+                                    }}
                                     className={`w-full px-3 py-2 border rounded-lg text-sm font-medium outline-none transition-colors ${isEditing ? 'border-gray-300 focus:border-[#0c831f] bg-white' : 'border-transparent bg-transparent pl-0'}`}
                                 />
                             </div>

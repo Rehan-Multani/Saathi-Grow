@@ -30,6 +30,10 @@ try {
 export const generateToken = async () => {
   if (!messaging) return null;
   try {
+    if (typeof Notification === 'undefined') {
+      console.log('Notification API not supported in this environment');
+      return null;
+    }
     const permission = await Notification.requestPermission();
     if (permission !== 'granted') {
       console.log('Notification permission denied');
@@ -65,7 +69,7 @@ export const onMessageListener = (callback) => {
 
 // ✅ Show native Notification in foreground (Firebase suppresses these by default)
 export const setupForegroundNotification = () => {
-  if (!messaging) return;
+  if (!messaging || typeof Notification === 'undefined') return;
   onMessage(messaging, (payload) => {
     console.log('Foreground message received:', payload);
     if (Notification.permission === 'granted') {

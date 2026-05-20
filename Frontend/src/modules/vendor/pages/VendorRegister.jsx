@@ -115,7 +115,16 @@ const VendorRegister = () => {
     };
 
     const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+        const { name, value } = e.target;
+        if (name === 'ownerName') {
+            const cleanedValue = value.replace(/[^a-zA-Z\s]/g, '');
+            setFormData(prev => ({ ...prev, [name]: cleanedValue }));
+        } else if (name === 'phone') {
+            const cleanedValue = value.replace(/\D/g, '').slice(0, 10);
+            setFormData(prev => ({ ...prev, [name]: cleanedValue }));
+        } else {
+            setFormData(prev => ({ ...prev, [name]: value }));
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -164,7 +173,7 @@ const VendorRegister = () => {
                                 <label className="text-xs font-bold text-gray-700">Mobile Number</label>
                                 <div className="flex items-center gap-2 border border-gray-200 rounded-xl bg-gray-50 px-3 py-2.5 focus-within:border-[#0c831f] focus-within:bg-white transition-colors">
                                     <Phone size={15} className="text-gray-400 shrink-0 min-w-[15px]" />
-                                    <input name="phone" required onChange={handleChange} value={formData.phone} type="tel" className="flex-1 min-w-0 bg-transparent outline-none text-sm font-medium text-gray-900 placeholder:text-gray-400" placeholder="+91 98765 43210" />
+                                    <input name="phone" required onChange={handleChange} value={formData.phone} maxLength={10} type="tel" className="flex-1 min-w-0 bg-transparent outline-none text-sm font-medium text-gray-900 placeholder:text-gray-400" placeholder="10-digit mobile number" />
                                 </div>
                             </div>
                             <div className="space-y-1">

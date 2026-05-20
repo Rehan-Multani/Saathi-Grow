@@ -29,7 +29,31 @@ const AddDeliveryPartner = () => {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
+        if (name === 'name') {
+            const cleanedValue = value.replace(/[^a-zA-Z\s]/g, '');
+            setFormData(prev => ({ ...prev, [name]: cleanedValue }));
+        } else if (name === 'phone') {
+            const cleanedValue = value.replace(/\D/g, '').slice(0, 10);
+            setFormData(prev => ({ ...prev, [name]: cleanedValue }));
+        } else if (name === 'vehicleNumber') {
+            let val = value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+            let cleaned = '';
+            for (let i = 0; i < val.length && i < 10; i++) {
+                const char = val[i];
+                if (i === 0 || i === 1) {
+                    if (/[A-Z]/.test(char)) cleaned += char;
+                } else if (i === 2 || i === 3) {
+                    if (/[0-9]/.test(char)) cleaned += char;
+                } else if (i === 4 || i === 5) {
+                    if (/[A-Z]/.test(char)) cleaned += char;
+                } else if (i >= 6 && i <= 9) {
+                    if (/[0-9]/.test(char)) cleaned += char;
+                }
+            }
+            setFormData(prev => ({ ...prev, [name]: cleaned }));
+        } else {
+            setFormData(prev => ({ ...prev, [name]: value }));
+        }
     };
 
     const handleImageChange = (e) => {
@@ -153,6 +177,7 @@ const AddDeliveryPartner = () => {
                                                 value={formData.phone}
                                                 onChange={handleChange}
                                                 required
+                                                maxLength={10}
                                                 placeholder={t('add_partner.mobile_placeholder')}
                                                 className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 transition-all text-xs font-bold text-slate-700 shadow-sm"
                                             />
@@ -259,6 +284,7 @@ const AddDeliveryPartner = () => {
                                         name="vehicleNumber"
                                         value={formData.vehicleNumber}
                                         onChange={handleChange}
+                                        maxLength={10}
                                         placeholder={t('add_partner.license_plate_placeholder')}
                                         className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:border-blue-500 focus:bg-white transition-all text-xs font-bold text-slate-700 shadow-sm"
                                     />

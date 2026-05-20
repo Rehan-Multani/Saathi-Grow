@@ -84,8 +84,7 @@ const AdminLogin = () => {
                             <input
                                 type="email"
                                 required
-                                className="flex-1 text-sm font-semibold text-gray-800 placeholder:text-gray-400 w-full py-3.5"
-                                style={{ backgroundColor: 'transparent', border: 'none', boxShadow: 'none', outline: 'none', padding: '14px 0', fontSize: '14px', lineHeight: '24px', height: '52px' }}
+                                className="flex-1 text-sm font-semibold text-gray-800 placeholder:text-gray-400 w-full py-3.5 admin-login-input"
                                 placeholder="admin@gmail.com"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
@@ -101,8 +100,7 @@ const AdminLogin = () => {
                             <input
                                 type={showPassword ? 'text' : 'password'}
                                 required
-                                className="flex-1 text-sm font-semibold text-gray-800 placeholder:text-gray-400 w-full"
-                                style={{ backgroundColor: 'transparent', border: 'none', boxShadow: 'none', outline: 'none', padding: '14px 0', fontSize: '14px', lineHeight: '24px', height: '52px' }}
+                                className="flex-1 text-sm font-semibold text-gray-800 placeholder:text-gray-400 w-full admin-login-input"
                                 placeholder="••••••••••"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
@@ -187,6 +185,29 @@ const AdminLogin = () => {
                     &copy; 2026 SATHIGRO. ALL RIGHTS RESERVED.
                 </p>
             </div>
+
+            <style>{`
+                input[type="email"].admin-login-input, 
+                input[type="password"].admin-login-input, 
+                input[type="text"].admin-login-input {
+                    background-color: transparent !important;
+                    border: none !important;
+                    box-shadow: none !important;
+                    outline: none !important;
+                    padding: 14px 0 !important;
+                    font-size: 14px !important;
+                    line-height: 24px !important;
+                    height: 52px !important;
+                }
+                input[type="email"].admin-login-input:focus, 
+                input[type="password"].admin-login-input:focus, 
+                input[type="text"].admin-login-input:focus {
+                    background-color: transparent !important;
+                    border: none !important;
+                    box-shadow: none !important;
+                    outline: none !important;
+                }
+            `}</style>
         </div>
     );
 };
