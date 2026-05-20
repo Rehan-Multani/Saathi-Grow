@@ -20,44 +20,87 @@ const OrderDetailsPage = () => {
     const [tagLoading, setTagLoading] = useState(false);
 
     useEffect(() => {
-        const loadOrder = async () => {
+        const processOrderData = (data) => {
+            const d = new Date(data.createdAt);
+            const formattedDate = d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) + ", " + d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+
+            return {
+                id: data._id,
+                status: data.status,
+                date: formattedDate,
+                subTotal: data.subTotal || 0,
+                deliveryFee: data.deliveryFee || 0,
+                taxAmount: data.taxAmount || 0,
+                handlingFee: data.handlingFee || 0,
+                discountAmount: data.discountAmount || 0,
+                total: data.totalAmount,
+                items: data.items.map(item => ({
+                    name: item.name || item.product?.name || "Unknown Product",
+                    qty: item.quantity,
+                    price: '₹' + item.price,
+                    img: item.image || (item.product?.image && item.product.image) || 'https://via.placeholder.com/150'
+                }))
+            };
+        };
+
+        const loadOrder = async (isFirstLoad = true) => {
             if (token && id) {
                 try {
-                    setIsLoading(true);
+                    if (isFirstLoad) setIsLoading(true);
                     const data = await orderApi.fetchOrderDetails(token, id);
-
-                    const d = new Date(data.createdAt);
-                    const formattedDate = d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) + ", " + d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
-
-                    const processedOrder = {
-                        id: data._id,
-                        status: data.status,
-                        date: formattedDate,
-                        subTotal: data.subTotal || 0,
-                        deliveryFee: data.deliveryFee || 0,
-                        taxAmount: data.taxAmount || 0,
-                        handlingFee: data.handlingFee || 0,
-                        discountAmount: data.discountAmount || 0,
-                        total: data.totalAmount,
-                        items: data.items.map(item => ({
-                            name: item.name || item.product?.name || "Unknown Product",
-                            qty: item.quantity,
-                            price: '₹' + item.price,
-                            img: item.image || (item.product?.image && item.product.image) || 'https://via.placeholder.com/150'
-                        }))
-                    };
-                    setRawOrder(data); // preserve raw for guards
-                    setOrder(processedOrder);
+                    const processed = processOrderData(data);
+                    
+                    setRawOrder(data);
+                    setOrder(processed);
                     setCurrentTag(data.tag || null);
                 } catch (err) {
-                    toast.error("Failed to load secure order details.");
-                    navigate('/orders');
+                    if (isFirstLoad) {
+                        toast.error("Failed to load secure order details.");
+                        navigate('/orders');
+                    }
                 } finally {
-                    setIsLoading(false);
+                    if (isFirstLoad) setIsLoading(false);
                 }
             }
         };
-        loadOrder();
+
+        loadOrder(true);
+
+        // Polling every 5 seconds for real-time status updates
+        const intervalId = setInterval(async () => {
+            if (token && id) {
+                try {
+                    const data = await orderApi.fetchOrderDetails(token, id);
+                    
+                    setRawOrder((prevRaw) => {
+                        if (!prevRaw) return data;
+                        // Check if status or critical tracking fields have updated
+                        if (
+                            prevRaw.status !== data.status || 
+                            prevRaw.deliveryOTP !== data.deliveryOTP || 
+                            prevRaw.deliveryPartnerId?._id !== data.deliveryPartnerId?._id ||
+                            prevRaw.returnRequest?.status !== data.returnRequest?.status ||
+                            prevRaw.returnRequest?.returnOTP !== data.returnRequest?.returnOTP
+                        ) {
+                            const processed = processOrderData(data);
+                            setOrder(processed);
+                            setCurrentTag(data.tag || null);
+                            
+                            // If order reached a final/terminal state, clear interval
+                            if (['delivered', 'cancelled', 'returned'].includes(data.status)) {
+                                clearInterval(intervalId);
+                            }
+                            return data;
+                        }
+                        return prevRaw;
+                    });
+                } catch (err) {
+                    console.warn('[ORDER_DETAILS] Realtime polling update failed:', err);
+                }
+            }
+        }, 5000);
+
+        return () => clearInterval(intervalId);
     }, [token, id, navigate]);
 
     useEffect(() => {

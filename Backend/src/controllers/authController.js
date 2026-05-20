@@ -29,9 +29,9 @@ export const requestOTP = async (req, res) => {
 
     // SECURITY SHIELD: Prevent blocked users from requesting OTP
     if (user && user.isActive === false) {
-        return res.status(403).json({ 
-            message: 'Your account has been deactivated. Please contact support to re-activate your account.' 
-        });
+      return res.status(403).json({
+        message: 'Your account has been deactivated. Please contact support to re-activate your account.'
+      });
     }
 
     if (type === 'register' && user) {
@@ -118,6 +118,13 @@ export const verifyOTP = async (req, res) => {
         return res.status(401).json({ message: 'OTP has expired' });
       }
 
+      if (name) {
+        const nameRegex = /^[a-zA-Z\s]+$/;
+        if (!nameRegex.test(name.trim())) {
+          return res.status(400).json({ message: 'Full name should only contain letters and spaces, without numbers or special characters' });
+        }
+      }
+
       // Create user
       user = new User({
         phone,
@@ -132,7 +139,7 @@ export const verifyOTP = async (req, res) => {
       // --- Production Welcome Flow ---
       const welcomeTitle = 'Welcome to Saathi-Grow! 🏮';
       const welcomeBody = `Hi ${user.name}, thank you for joining us. Enjoy fresh products delivered to your doorstep.`;
-      
+
       // 1. Send Push Notification
       sendPushNotification(user._id, 'User', {
         title: welcomeTitle,
@@ -244,6 +251,12 @@ export const updateProfile = async (req, res) => {
     const user = await User.findById(req.user._id);
 
     if (user) {
+      if (req.body.name) {
+        const nameRegex = /^[a-zA-Z\s]+$/;
+        if (!nameRegex.test(req.body.name.trim())) {
+          return res.status(400).json({ message: 'Full name should only contain letters and spaces, without numbers or special characters' });
+        }
+      }
       user.name = req.body.name || user.name;
       user.email = req.body.email || user.email;
 

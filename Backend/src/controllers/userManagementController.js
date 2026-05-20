@@ -127,8 +127,8 @@ export const getUserById = async (req, res) => {
       .select('orderId totalAmount status createdAt')
       .lean();
 
-    res.json({ 
-      success: true, 
+    res.json({
+      success: true,
       user: {
         ...user,
         stats: {
@@ -136,7 +136,7 @@ export const getUserById = async (req, res) => {
           totalOrders: totalOrdersCount || 0
         },
         recentOrders
-      } 
+      }
     });
   } catch (error) {
     console.error('Error fetching user profile:', error);
@@ -153,6 +153,13 @@ export const createUser = async (req, res) => {
 
     const userExists = await User.findOne({ phone });
     if (userExists) return res.status(400).json({ message: 'User already exists with this phone number' });
+
+    if (name) {
+      const nameRegex = /^[a-zA-Z\s]+$/;
+      if (!nameRegex.test(name.trim())) {
+        return res.status(400).json({ message: 'Full name should only contain letters and spaces, without numbers or special characters' });
+      }
+    }
 
     const user = new User({
       name,
@@ -182,6 +189,13 @@ export const updateUser = async (req, res) => {
     const user = await User.findById(req.params.id);
     if (!user) return res.status(404).json({ message: 'User not found' });
 
+    if (req.body.name) {
+      const nameRegex = /^[a-zA-Z\s]+$/;
+      if (!nameRegex.test(req.body.name.trim())) {
+        return res.status(400).json({ message: 'Full name should only contain letters and spaces, without numbers or special characters' });
+      }
+    }
+
     user.name = req.body.name || user.name;
     user.email = req.body.email || user.email;
     user.phone = req.body.phone || user.phone;
@@ -203,7 +217,7 @@ export const updateUser = async (req, res) => {
     if (req.body.isActive !== undefined) {
       const title = 'Account Status Updated';
       const body = `Your user account has been ${updatedUser.isActive ? 'activated' : 'deactivated'}. Please contact support for any queries.`;
-      
+
       await sendSystemNotificationEmail(updatedUser.email, `Account Notice: ${updatedUser.isActive ? 'Activated' : 'Deactivated'}`, title, body);
       await sendPushNotification(updatedUser._id, 'User', { title, body }, { type: 'account_status', status: updatedUser.isActive ? 'active' : 'inactive' });
     }

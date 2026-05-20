@@ -29,8 +29,14 @@ const LoginModal = () => {
         if (phoneNumber.length !== 10) {
             return toast.error('Please enter a valid 10-digit number');
         }
-        if (loginView === 'register' && !name) {
-            return toast.error('Please enter your name');
+        if (loginView === 'register') {
+            if (!name) {
+                return toast.error('Please enter your name');
+            }
+            const nameRegex = /^[a-zA-Z\s]+$/;
+            if (!nameRegex.test(name.trim())) {
+                return toast.error('Full name should only contain letters and spaces, without numbers or special characters');
+            }
         }
 
         setLoading(true);
@@ -110,7 +116,7 @@ const LoginModal = () => {
                                     <div>
                                         <label className="block text-[10px] font-bold text-gray-700 mb-1 uppercase tracking-wider">Full Name</label>
                                         <input
-                                            type="text" value={name} onChange={(e) => setName(e.target.value)}
+                                            type="text" value={name} onChange={(e) => setName(e.target.value.replace(/[^a-zA-Z\s]/g, ''))}
                                             className="block w-full px-3 py-3 border border-gray-200 rounded-xl focus:ring-1 focus:ring-[var(--saathi-green)] focus:border-[var(--saathi-green)] outline-none bg-gray-50 text-sm font-bold"
                                             placeholder="Your Name" required />
                                     </div>

@@ -63,7 +63,7 @@ const DeliveryLogin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 font-sans">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#0f172a] flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 font-sans transition-colors duration-300">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         {/* Logo / Icon */}
         <div className="flex justify-center mb-6">
@@ -71,16 +71,16 @@ const DeliveryLogin = () => {
             <Zap size={40} className="text-white fill-white" />
           </div>
         </div>
-        <h2 className="text-center text-3xl font-black text-gray-900 tracking-tight">
+        <h2 className="text-center text-3xl font-black text-gray-900 dark:text-white tracking-tight">
           Saathi<span className="text-[#028A0F]">Gro</span> Delivery
         </h2>
-        <p className="mt-2 text-center text-sm text-gray-600 font-medium">
+        <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400 font-medium">
           {step === 1 ? 'Enter phone number to get started' : 'Verify your identity to login'}
         </p>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-6 shadow-2xl shadow-gray-200/50 rounded-3xl border border-gray-100">
+        <div className="bg-white dark:bg-[#1e293b] py-8 px-6 shadow-2xl shadow-gray-200/50 dark:shadow-none rounded-3xl border border-gray-100 dark:border-white/5 transition-all duration-300">
           <AnimatePresence mode="wait">
             {step === 1 ? (
               <motion.form
@@ -92,11 +92,11 @@ const DeliveryLogin = () => {
                 onSubmit={handleSendOTP}
               >
                 <div>
-                  <label htmlFor="phone" className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 px-1">
+                  <label htmlFor="phone" className="block text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2 px-1">
                     Registered Phone Number
                   </label>
                   <div className="relative group">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
                       <Phone size={18} className="text-gray-400 group-focus-within:text-[#028A0F] transition-colors" />
                     </div>
                     <input
@@ -107,7 +107,7 @@ const DeliveryLogin = () => {
                       required
                       value={phone}
                       onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
-                      className="block w-full pl-11 pr-4 py-4 bg-gray-50 border-2 border-gray-50 rounded-2xl text-gray-900 font-bold placeholder-gray-400 focus:outline-none focus:ring-0 focus:border-[#028A0F] focus:bg-white transition-all shadow-inner"
+                      className="block w-full pl-11 pr-4 py-4 rounded-2xl font-bold transition-all delivery-input outline-none"
                       placeholder="9876543210"
                     />
                   </div>
@@ -117,10 +117,10 @@ const DeliveryLogin = () => {
                   <button
                     disabled={loading || phone.length !== 10}
                     type="submit"
-                    className="w-full flex justify-center items-center py-4 px-6 border border-transparent rounded-2xl shadow-lg text-sm font-black text-white bg-black hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black transition-all transform active:scale-95 disabled:opacity-50 disabled:grayscale"
+                    className="w-full flex justify-center items-center py-4 px-6 border border-transparent rounded-2xl shadow-lg text-sm font-black text-white dark:text-black bg-black dark:bg-white hover:bg-gray-900 dark:hover:bg-gray-100 focus:outline-none transition-all transform active:scale-95 disabled:opacity-50 disabled:grayscale"
                   >
                     {loading ? (
-                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <div className="w-5 h-5 border-2 border-white dark:border-black border-t-transparent rounded-full animate-spin"></div>
                     ) : (
                       <>Get OTP <ArrowRight size={18} className="ml-2" /></>
                     )}
@@ -137,22 +137,22 @@ const DeliveryLogin = () => {
                 onSubmit={handleVerifyOTP}
               >
                 <div className="text-center mb-4">
-                  <p className="text-sm text-gray-500">OTP sent to <span className="font-bold text-gray-900">+91 {phone}</span></p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">OTP sent to <span className="font-bold text-gray-900 dark:text-white">+91 {phone}</span></p>
                   <button
                     type="button"
                     onClick={() => setStep(1)}
-                    className="text-xs font-bold text-[#028A0F] hover:text-[#035a0a] underline"
+                    className="text-xs font-bold text-[#028A0F] hover:text-[#035a0a] underline mt-1"
                   >
                     Change Number
                   </button>
                 </div>
 
                 <div>
-                  <label htmlFor="otp" className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 px-1 text-center">
+                  <label htmlFor="otp" className="block text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2 px-1 text-center">
                     Enter 6-Digit OTP
                   </label>
                   <div className="relative group">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
                       <Lock size={18} className="text-gray-400 group-focus-within:text-[#028A0F] transition-colors" />
                     </div>
                     <input
@@ -163,7 +163,7 @@ const DeliveryLogin = () => {
                       required
                       value={otp}
                       onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                      className="block w-full pl-11 pr-4 py-4 bg-gray-50 border-2 border-gray-50 rounded-2xl text-center text-2xl tracking-[0.5em] font-black text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 focus:border-[#028A0F] focus:bg-white transition-all shadow-inner"
+                      className="block w-full pl-11 pr-4 py-4 rounded-2xl text-center text-2xl tracking-[0.5em] font-black outline-none delivery-input"
                       placeholder="------"
                     />
                   </div>
@@ -173,10 +173,10 @@ const DeliveryLogin = () => {
                   <button
                     disabled={loading || otp.length !== 6}
                     type="submit"
-                    className="w-full flex justify-center items-center py-4 px-6 border border-transparent rounded-2xl shadow-lg text-sm font-black text-white bg-black hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black transition-all transform active:scale-95 disabled:opacity-50"
+                    className="w-full flex justify-center items-center py-4 px-6 border border-transparent rounded-2xl shadow-lg text-sm font-black text-white dark:text-black bg-black dark:bg-white hover:bg-gray-900 dark:hover:bg-gray-100 focus:outline-none transition-all transform active:scale-95 disabled:opacity-50"
                   >
                     {loading ? (
-                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <div className="w-5 h-5 border-2 border-white dark:border-black border-t-transparent rounded-full animate-spin"></div>
                     ) : (
                       'Verify & Sign In'
                     )}
@@ -186,7 +186,7 @@ const DeliveryLogin = () => {
                     type="button"
                     disabled={timer > 0 || loading}
                     onClick={handleSendOTP}
-                    className="w-full py-2 text-sm font-bold text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50"
+                    className="w-full py-2 text-sm font-bold text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors disabled:opacity-50"
                   >
                     {timer > 0 ? `Resend OTP in ${timer}s` : 'Resend OTP'}
                   </button>
@@ -196,13 +196,13 @@ const DeliveryLogin = () => {
           </AnimatePresence>
         </div>
 
-        <div className="mt-8 flex justify-center items-center gap-2 text-gray-400">
+        <div className="mt-8 flex justify-center items-center gap-2 text-gray-400 dark:text-gray-500">
           <ShieldCheck size={16} />
           <span className="text-[10px] uppercase font-bold tracking-widest">Secure Rider Access Only</span>
         </div>
 
         <div className="mt-4 text-center">
-          <p className="text-sm text-gray-500 font-medium">
+          <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
             New rider?{' '}
             <button
               onClick={() => navigate('/delivery/signup')}
@@ -213,6 +213,40 @@ const DeliveryLogin = () => {
           </p>
         </div>
       </div>
+
+      {/* Bulletproof WebView Overlay Style Tag */}
+      <style>{`
+        .delivery-input {
+          color: #0f172a !important;
+          background-color: #f8fafc !important;
+          border: 1.5px solid #cbd5e1 !important;
+          border-radius: 1rem !important;
+        }
+        .delivery-input::placeholder {
+          color: #94a3b8 !important;
+          opacity: 1 !important;
+        }
+        .delivery-input:focus {
+          background-color: #ffffff !important;
+          border-color: #028A0F !important;
+          box-shadow: 0 0 0 1px #028A0F !important;
+        }
+        
+        /* Dynamic transition support for standard native dark-mode class */
+        .dark .delivery-input {
+          color: #ffffff !important;
+          background-color: #0f172a !important;
+          border-color: #334155 !important;
+        }
+        .dark .delivery-input::placeholder {
+          color: #64748b !important;
+          opacity: 1 !important;
+        }
+        .dark .delivery-input:focus {
+          background-color: #0f172a !important;
+          border-color: #028A0F !important;
+        }
+      `}</style>
     </div>
   );
 };

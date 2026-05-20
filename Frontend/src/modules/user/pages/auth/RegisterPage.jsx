@@ -47,6 +47,11 @@ const RegisterPage = () => {
             return toast.error('Please enter your name');
         }
 
+        const nameRegex = /^[a-zA-Z\s]+$/;
+        if (!nameRegex.test(formData.name.trim())) {
+            return toast.error('Full name should only contain letters and spaces, without numbers or special characters');
+        }
+
         setLoading(true);
         try {
             await authApi.requestOTP(formData.phone, 'register');
@@ -127,7 +132,7 @@ const RegisterPage = () => {
                                         type="text"
                                         required
                                         value={formData.name}
-                                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                        onChange={(e) => setFormData({ ...formData, name: e.target.value.replace(/[^a-zA-Z\s]/g, '') })}
                                         placeholder="John Doe"
                                         className="w-full pl-[56px] pr-3.5 py-2.5 bg-gray-50/50 dark:bg-white/5 border border-gray-100 dark:border-gray-800 rounded-xl focus:border-[#0c831f] focus:ring-1 focus:ring-[#0c831f] outline-none transition-all text-gray-900 dark:text-white text-[13px] font-bold placeholder:text-gray-400"
                                         disabled={loading}

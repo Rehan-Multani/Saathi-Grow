@@ -157,12 +157,12 @@ body {
 /* Form Elements */
 input[type="text"], input[type="number"], input[type="email"], input[type="password"], input[type="tel"], select, textarea {
     width: 100%;
-    background-color: #f8fafc;
-    border: 1px solid #e2e8f0;
+    background-color: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
     border-radius: 0.75rem;
     font-size: 0.875rem;
     font-weight: 600;
-    color: #0f172a;
+    color: #0f172a !important;
     transition: all 0.2s;
 }
 
@@ -174,9 +174,9 @@ input[type="text"], input[type="number"], input[type="email"], input[type="passw
 .dark input[type="tel"],
 .dark select,
 .dark textarea {
-    background-color: rgba(255, 255, 255, 0.05);
-    border-color: rgba(255, 255, 255, 0.1);
-    color: #ffffff;
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
 }
 
 .dark input::placeholder,
@@ -188,21 +188,23 @@ input[type="text"], input[type="number"], input[type="email"], input[type="passw
 .dark input:-webkit-autofill,
 .dark input:-webkit-autofill:hover,
 .dark input:-webkit-autofill:focus {
-    -webkit-text-fill-color: #ffffff;
-    -webkit-box-shadow: 0 0 0px 1000px rgba(255,255,255,0.05) inset;
-    box-shadow: 0 0 0px 1000px rgba(255,255,255,0.05) inset;
+    -webkit-text-fill-color: #ffffff !important;
+    -webkit-box-shadow: 0 0 0px 1000px rgba(255,255,255,0.05) inset !important;
+    box-shadow: 0 0 0px 1000px rgba(255,255,255,0.05) inset !important;
     transition: background-color 5000s ease-in-out 0s;
 }
 
 input:focus, select:focus, textarea:focus {
-    background-color: white;
-    border-color: #3b82f6;
-    outline: none;
+    background-color: white !important;
+    border-color: #0c831f !important;
+    color: #0f172a !important;
+    outline: none !important;
 }
 
 .dark input:focus, .dark select:focus, .dark textarea:focus {
-    background-color: rgba(255, 255, 255, 0.08);
-    border-color: #10b981;
+    background-color: rgba(255, 255, 255, 0.08) !important;
+    border-color: #0c831f !important;
+    color: #ffffff !important;
 }
 
 /* Tables */

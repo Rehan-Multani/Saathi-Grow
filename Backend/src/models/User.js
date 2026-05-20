@@ -5,7 +5,14 @@ const userSchema = new mongoose.Schema({
     name: {
         type: String,
         trim: true,
-        default: 'New Saathi'
+        default: 'New Saathi',
+        validate: {
+            validator: function(v) {
+                if (!v || v === 'New Saathi') return true;
+                return /^[a-zA-Z\s]+$/.test(v);
+            },
+            message: 'Full name must only contain letters and spaces'
+        }
     },
     email: {
         type: String,

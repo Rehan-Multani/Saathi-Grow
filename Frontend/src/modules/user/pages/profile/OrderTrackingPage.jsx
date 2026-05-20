@@ -89,23 +89,52 @@ const OrderTrackingPage = () => {
     return getDistanceInMeters(last.location, loc) > 150 || now - last.time > 90_000;
   }
 
-  // ── Load order ─────────────────────────────────────────────────────────────
+  // ── Load order & Realtime Polling ──────────────────────────────────────────
   useEffect(() => {
     if (!token || !id) return;
+    
     const load = async () => {
       try {
         const data = await orderApi.fetchOrderDetails(token, id);
+        setOrder(data);
         if (NON_TRACKABLE.includes(data.status)) {
           setTrackingError(`Tracking not available for status: ${data.status.replace(/_/g, ' ')}`);
         }
-        setOrder(data);
       } catch (err) {
         setTrackingError('Failed to load order details.');
       } finally {
         setIsLoading(false);
       }
     };
+
     load();
+
+    // Realtime polling every 5 seconds for order status updates
+    const intervalId = setInterval(async () => {
+      try {
+        const data = await orderApi.fetchOrderDetails(token, id);
+        setOrder((prev) => {
+          if (!prev) return data;
+          // Trigger state update only if status, deliveryRunId, or deliveryPartnerId changed
+          if (
+            prev.status !== data.status ||
+            prev.deliveryRunId !== data.deliveryRunId ||
+            prev.deliveryPartnerId?._id !== data.deliveryPartnerId?._id
+          ) {
+            if (NON_TRACKABLE.includes(data.status)) {
+              clearInterval(intervalId);
+              setTrackingError(`Tracking not available for status: ${data.status.replace(/_/g, ' ')}`);
+            }
+            return data;
+          }
+          return prev;
+        });
+      } catch (err) {
+        console.warn('[TRACKING] Realtime poll update failed:', err);
+      }
+    }, 5000);
+
+    return () => clearInterval(intervalId);
   }, [token, id]);
 
   // ── Firebase real-time listener ────────────────────────────────────────────
