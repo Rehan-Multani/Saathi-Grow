@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useEffect } from 'react';
+import React, { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import DeliveryLayout from '../hooks/components/DeliveryLayout';
 import { NotificationProvider } from '../hooks/components/NotificationProvider';
@@ -32,38 +32,6 @@ const DeliveryGuard = ({ children }) => {
 
 const DeliveryRoutes = () => {
     const { token } = useDeliveryStore();
-
-    // Theme Management: Enforce light theme inside delivery module
-    useEffect(() => {
-        const root = window.document.documentElement;
-        const body = window.document.body;
-
-        const forceLight = () => {
-            root.classList.remove('dark');
-            body.classList.remove('dark');
-        };
-
-        forceLight();
-
-        // MutationObserver to keep light theme active even if toggled globally
-        const observer = new MutationObserver((mutations) => {
-            mutations.forEach((mutation) => {
-                if (mutation.attributeName === 'class') {
-                    if (root.classList.contains('dark') || body.classList.contains('dark')) {
-                        forceLight();
-                    }
-                }
-            });
-        });
-
-        observer.observe(root, { attributes: true });
-        observer.observe(body, { attributes: true });
-
-        return () => {
-            observer.disconnect();
-        };
-    }, []);
-
     return (
         <div className="delivery-module-root min-h-screen">
             <FirebaseNotificationHandler token={token} role="delivery" isApp={isWebView()} />
