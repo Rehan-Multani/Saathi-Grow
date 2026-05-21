@@ -217,14 +217,20 @@ const AddVendor = () => {
                                     type="text" 
                                     placeholder={t('form.street')} 
                                     value={formData.address.street} 
-                                    onChange={(e) => setFormData({...formData, address: {...formData.address, street: e.target.value}})}
+                                    onChange={(e) => {
+                                        const val = e.target.value.replace(/[^a-zA-Z\s]/g, '');
+                                        setFormData({...formData, address: {...formData.address, street: val}});
+                                    }}
                                     className="w-full bg-white border border-slate-200 rounded-xl py-2.5 px-4 text-xs font-bold text-slate-700 outline-none focus:border-blue-500 transition-all shadow-sm"
                                 />
                                 <input 
                                     type="text" 
                                     placeholder={t('form.city')} 
                                     value={formData.address.city} 
-                                    onChange={(e) => setFormData({...formData, address: {...formData.address, city: e.target.value}})}
+                                    onChange={(e) => {
+                                        const val = e.target.value.replace(/[^a-zA-Z\s]/g, '');
+                                        setFormData({...formData, address: {...formData.address, city: val}});
+                                    }}
                                     className="w-full bg-white border border-slate-200 rounded-xl py-2.5 px-4 text-xs font-bold text-slate-700 outline-none focus:border-blue-500 transition-all shadow-sm"
                                 />
                             </div>

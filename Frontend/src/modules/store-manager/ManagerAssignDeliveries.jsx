@@ -106,9 +106,11 @@ const ManagerAssignDeliveries = () => {
         else setActiveDropdown(id);
     };
 
+    const trimmedSearchTerm = searchTerm.trim().toLowerCase();
+
     const filtered = orders.filter(o =>
-        (o.orderId || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (o.user?.name || '').toLowerCase().includes(searchTerm.toLowerCase())
+        (o.orderId || '').toLowerCase().includes(trimmedSearchTerm) ||
+        (o.user?.name || '').toLowerCase().includes(trimmedSearchTerm)
     );
 
     return (
@@ -156,7 +158,7 @@ const ManagerAssignDeliveries = () => {
                             placeholder="Find by Order ID or customer..."
                             className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100/50 font-medium shadow-sm transition-all"
                             value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
+                            onChange={(e) => setSearchTerm(e.target.value.trimStart())}
                         />
                     </div>
                 </div>

@@ -44,7 +44,7 @@ const AdminProfile = () => {
     const validateForm = () => {
         const newErrors = {};
         
-        const nameRegex = /^[a-zA-Z\s]{2,50}$/;
+        const nameRegex = /^[a-zA-Z\s\u0900-\u097F]{2,50}$/;
         if (!nameRegex.test(formData.name)) {
             newErrors.name = 'Please enter a valid name (2-50 characters, letters only)';
         }
@@ -64,9 +64,14 @@ const AdminProfile = () => {
     };
 
     const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
-        if (errors[e.target.name]) {
-            setErrors({ ...errors, [e.target.name]: null });
+        const { name, value } = e.target;
+        let finalValue = value;
+        if (name === 'name') {
+            finalValue = value.replace(/[^a-zA-Z\s\u0900-\u097F]/g, ''); // keep only English/Hindi letters and spaces
+        }
+        setFormData({ ...formData, [name]: finalValue });
+        if (errors[name]) {
+            setErrors({ ...errors, [name]: null });
         }
     };
 

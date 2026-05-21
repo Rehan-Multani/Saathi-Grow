@@ -13,7 +13,7 @@ const StoreManagerDashboard = () => {
 
     const hasPermission = (permission) => {
         if (!managerUser) return false;
-        if (managerUser.role === 'Admin') return true;
+        if (managerUser.role === 'Admin' || managerUser.role === 'Branch Manager') return true;
         return managerUser.permissions?.includes(permission);
     };
 
@@ -67,7 +67,7 @@ const StoreManagerDashboard = () => {
                 label: 'Pending Orders', 
                 value: (pendingOrders !== undefined && pendingOrders !== null) ? pendingOrders.toLocaleString() : '0', 
                 icon: 'Clock', 
-                path: '/store-manager/orders' 
+                path: '/store-manager/orders?status=pending' 
             });
         }
 
@@ -202,7 +202,7 @@ const StoreManagerDashboard = () => {
                         </h3>
                         <div className="space-y-4 relative z-10">
                             {hasPermission('MANAGE_POS_BILLING') && (
-                                <button onClick={() => navigate('/store-manager/pos')} className="w-full flex items-center justify-between p-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl transition-all shadow-lg active:scale-95 group/btn">
+                                <button onClick={() => navigate('/store-manager/pos-billing')} className="w-full flex items-center justify-between p-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl transition-all shadow-lg active:scale-95 group/btn">
                                     <span className="text-sm font-bold uppercase tracking-widest">New POS Sale</span>
                                     <Icons.Monitor size={18} className="text-white/70 group-hover/btn:scale-110 transition-transform" />
                                 </button>

@@ -257,7 +257,10 @@ const EditBranchModal = ({ show, onHide, branch, onSave }) => {
                                     <input
                                         type="text"
                                         value={formData.address.city}
-                                        onChange={(e) => setFormData({ ...formData, address: { ...formData.address, city: e.target.value } })}
+                                        onChange={(e) => {
+                                            const val = e.target.value.replace(/[^a-zA-Z\s]/g, '');
+                                            setFormData({ ...formData, address: { ...formData.address, city: val } });
+                                        }}
                                         className="w-full px-4 py-2 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 transition-all text-xs font-bold text-slate-700"
                                         required
                                     />
@@ -267,7 +270,10 @@ const EditBranchModal = ({ show, onHide, branch, onSave }) => {
                                     <input
                                         type="text"
                                         value={formData.address.state}
-                                        onChange={(e) => setFormData({ ...formData, address: { ...formData.address, state: e.target.value } })}
+                                        onChange={(e) => {
+                                            const val = e.target.value.replace(/[^a-zA-Z\s]/g, '');
+                                            setFormData({ ...formData, address: { ...formData.address, state: val } });
+                                        }}
                                         className="w-full px-4 py-2 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 transition-all text-xs font-bold text-slate-700"
                                         required
                                     />

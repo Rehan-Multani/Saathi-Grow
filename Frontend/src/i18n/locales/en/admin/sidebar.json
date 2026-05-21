@@ -1,5 +1,6 @@
 {
   "all_orders": "All Orders",
+  "pos_billing": "POS Billing",
   "pos_history": "POS History",
   "online_orders": "Online Orders",
   "return_requests": "Return Requests",

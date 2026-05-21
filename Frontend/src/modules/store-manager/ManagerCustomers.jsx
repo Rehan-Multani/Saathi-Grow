@@ -37,10 +37,12 @@ const ManagerCustomers = () => {
         fetchCustomers();
     }, [managerUser?.token]);
 
+    const trimmedSearchTerm = searchTerm.trim().toLowerCase();
+
     const filtered = customers.filter(c =>
-        (c.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (c.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (c.phone || '').includes(searchTerm)
+        (c.name || '').toLowerCase().includes(trimmedSearchTerm) ||
+        (c.email || '').toLowerCase().includes(trimmedSearchTerm) ||
+        (c.phone || '').includes(searchTerm.trim())
     );
 
     const toggleDropdown = (id) => {
@@ -98,7 +100,7 @@ const ManagerCustomers = () => {
                             placeholder="Find by name, email or mobile..."
                             className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100/50 font-medium shadow-sm transition-all"
                             value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
+                            onChange={(e) => setSearchTerm(e.target.value.trimStart())}
                         />
                     </div>
                 </div>

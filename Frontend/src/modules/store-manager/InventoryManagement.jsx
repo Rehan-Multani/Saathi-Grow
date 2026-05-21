@@ -48,10 +48,11 @@ const InventoryManagement = () => {
     useEffect(() => {
         let result = products;
 
-        if (searchTerm) {
+        const trimmedSearch = searchTerm.trim().toLowerCase();
+        if (trimmedSearch) {
             result = result.filter(p =>
-                p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                p.sku.toLowerCase().includes(searchTerm.toLowerCase())
+                p.name.toLowerCase().includes(trimmedSearch) ||
+                p.sku.toLowerCase().includes(trimmedSearch)
             );
         }
 

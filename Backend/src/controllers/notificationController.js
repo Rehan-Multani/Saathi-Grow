@@ -93,6 +93,7 @@ export const getMyNotifications = async (req, res) => {
     const query = {
       $or: [
         { recipient: recipientId, recipientModel: { $in: [recipientModel, 'Staff'] } },
+        { recipient: recipientId.toString(), recipientModel: { $in: [recipientModel, 'Staff'] } },
         { isBroadcast: true, targetGroup: { $in: broadcastGroups } }
       ]
     };

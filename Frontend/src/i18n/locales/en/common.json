@@ -14,5 +14,39 @@
   "search": "Search",
   "language": "Language",
   "english": "English",
-  "hindi": "हिन्दी"
+  "hindi": "हिन्दी",
+  "orders": {
+    "pos": {
+      "title": "Point of Sale (POS) Billing",
+      "search_placeholder": "Search products by name or brand...",
+      "store_id": "Active Register",
+      "stock": "Stock",
+      "billing": {
+        "title": "Checkout Cart",
+        "item_count": "Items",
+        "empty_cart": "Your Cart is Empty"
+      },
+      "customer": {
+        "walk_in": "Walk-in Customer details",
+        "name_placeholder": "Name",
+        "mobile_placeholder": "Mobile"
+      },
+      "totals": {
+        "subtotal": "Subtotal",
+        "tax": "Tax",
+        "total": "Grand Total",
+        "cash_only": "Instant Delivery (Cash payment only)"
+      },
+      "buttons": {
+        "complete": "Complete Checkout & Bill"
+      },
+      "alerts": {
+        "cart_empty": "Please add items to your cart first!",
+        "no_email_confirm": "No customer email provided. An invoice email won't be sent. Do you wish to continue?",
+        "success_title": "Checkout Successful!",
+        "success_msg": "The POS transaction was placed successfully and inventory updated.",
+        "order_failed": "Checkout transaction failed."
+      }
+    }
+  }
 }

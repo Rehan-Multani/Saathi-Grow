@@ -74,6 +74,18 @@ const StaffManagement = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        // Validate Full Name: must not contain digits or special characters
+        if (/[^a-zA-Z\s\u0900-\u097F]/.test(formData.name)) {
+            Swal.fire('Error', 'Full name must only contain English or Hindi letters and spaces.', 'error');
+            return;
+        }
+
+        // Validate Phone Number: must be exactly 10 digits if provided
+        if (formData.phone && formData.phone.length !== 10) {
+            Swal.fire('Error', 'Phone number must be exactly 10 digits.', 'error');
+            return;
+        }
+
         if (!editingStaff && formData.password.length < 8) {
             Swal.fire('Error', 'Password must be at least 8 characters.', 'error');
             return;
@@ -139,10 +151,12 @@ const StaffManagement = () => {
         setShowModal(true);
     };
 
+    const trimmedSearchTerm = searchTerm.trim().toLowerCase();
+
     const filteredStaff = (Array.isArray(staff) ? staff : [])
         .filter(s =>
-            (s?.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-            (s?.email || '').toLowerCase().includes(searchTerm.toLowerCase())
+            (s?.name || '').toLowerCase().includes(trimmedSearchTerm) ||
+            (s?.email || '').toLowerCase().includes(trimmedSearchTerm)
         );
 
     if (!hasPermission) {
@@ -185,7 +199,7 @@ const StaffManagement = () => {
                             placeholder="Search by name or email..."
                             className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100/50 font-medium shadow-sm transition-all"
                             value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
+                            onChange={(e) => setSearchTerm(e.target.value.trimStart())}
                         />
                     </div>
                     <div className="px-4 py-2 bg-white border border-slate-200 rounded-xl flex items-center gap-2.5 shadow-sm">
@@ -353,7 +367,16 @@ const StaffManagement = () => {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="space-y-1.5">
                                         <label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Full Name</label>
-                                        <input required className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm font-medium focus:bg-white focus:border-blue-400 transition-all outline-none" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} placeholder="Ex: Rahul Sharma" />
+                                        <input 
+                                            required 
+                                            className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm font-medium focus:bg-white focus:border-blue-400 transition-all outline-none" 
+                                            value={formData.name} 
+                                            onChange={e => {
+                                                const cleanValue = e.target.value.replace(/[^a-zA-Z\s\u0900-\u097F]/g, ''); // keep only English/Hindi letters and spaces
+                                                setFormData({ ...formData, name: cleanValue });
+                                            }} 
+                                            placeholder="Ex: Rahul Sharma" 
+                                        />
                                     </div>
                                      <div className="space-y-1.5">
                                         <label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Work Email</label>
@@ -361,7 +384,17 @@ const StaffManagement = () => {
                                     </div>
                                     <div className="space-y-1.5">
                                         <label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Phone Number</label>
-                                        <input className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm font-medium focus:bg-white focus:border-blue-400 transition-all outline-none" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} placeholder="Internal phone" />
+                                        <input 
+                                            className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm font-medium focus:bg-white focus:border-blue-400 transition-all outline-none" 
+                                            value={formData.phone} 
+                                            onChange={e => {
+                                                const cleanValue = e.target.value.replace(/\D/g, ''); // keep only numbers
+                                                if (cleanValue.length <= 10) {
+                                                    setFormData({ ...formData, phone: cleanValue });
+                                                }
+                                            }} 
+                                            placeholder="Internal phone" 
+                                        />
                                     </div>
                                     <div className="space-y-1.5">
                                         <label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Password {editingStaff && '(Optional)'}</label>

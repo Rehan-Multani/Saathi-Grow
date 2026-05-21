@@ -198,7 +198,7 @@ export const notifyUsers = async (userIds, notification, data = {}) => {
  */
 export const notifyAllUsers = async (notification, data = {}) => {
   try {
-    const users = await User.find({ status: 'Active' }, '_id');
+    const users = await User.find({ isActive: { $ne: false } }, '_id');
     for (const user of users) {
       await sendPushNotification(user._id, 'User', notification, data, true);
     }

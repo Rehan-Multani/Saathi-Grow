@@ -380,7 +380,10 @@ const ShopProfile = () => {
                                                     type="text"
                                                     placeholder="Street / Area / Landmark"
                                                     value={formData.address.street}
-                                                    onChange={(e) => setFormData({ ...formData, address: { ...formData.address, street: e.target.value } })}
+                                                    onChange={(e) => {
+                                                        const val = e.target.value.replace(/[^a-zA-Z\s]/g, '');
+                                                        setFormData({ ...formData, address: { ...formData.address, street: val } });
+                                                    }}
                                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium focus:border-[#0c831f] outline-none"
                                                 />
                                             </div>
@@ -388,7 +391,10 @@ const ShopProfile = () => {
                                                 type="text"
                                                 placeholder="City"
                                                 value={formData.address.city}
-                                                onChange={(e) => setFormData({ ...formData, address: { ...formData.address, city: e.target.value } })}
+                                                onChange={(e) => {
+                                                    const val = e.target.value.replace(/[^a-zA-Z\s]/g, '');
+                                                    setFormData({ ...formData, address: { ...formData.address, city: val } });
+                                                }}
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium focus:border-[#0c831f] outline-none"
                                             />
                                             <input

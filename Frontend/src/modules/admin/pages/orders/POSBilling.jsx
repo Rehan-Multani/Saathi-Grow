@@ -101,7 +101,9 @@ const POSBilling = ({ storeId, storeType = 'branch', onExit }) => {
 
   const handleCompleteOrder = async () => {
     if (cart.length === 0) return toast.warning(t('orders.pos.alerts.cart_empty'));
-    if (!customerDetails.email && !confirm(t('orders.pos.alerts.no_email_confirm'))) return;
+    if (customerDetails.phone && customerDetails.phone.length !== 10) {
+      return toast.warning('Customer phone number must be exactly 10 digits');
+    }
 
     setIsProcessing(true);
     try {
@@ -252,34 +254,44 @@ const POSBilling = ({ storeId, storeType = 'branch', onExit }) => {
             </div>
 
             {/* Customer Form */}
-            <div className="bg-violet-50/50 p-4 rounded-2xl mb-6 space-y-3 border border-violet-100">
-              <h3 className="text-[10px] font-black text-violet-600 uppercase tracking-widest mb-1 flex items-center gap-2">
-                <User size={12} /> {t('orders.pos.customer.walk_in')}
-              </h3>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-violet-400" size={14} />
-                <input
-                  type="email"
-                  placeholder={t('orders.pos.customer.email_placeholder')}
-                  className="w-full bg-white border-none rounded-xl py-2 pl-9 pr-3 text-xs focus:ring-1 focus:ring-violet-400"
-                  value={customerDetails.email}
-                  onChange={(e) => setCustomerDetails({ ...customerDetails, email: e.target.value })}
-                />
+            <div className="bg-violet-50/30 p-3 rounded-2xl mb-4 border border-violet-100/60 shadow-sm shadow-violet-50/40">
+              <div className="text-[10px] font-black text-violet-600 uppercase tracking-widest mb-2 flex items-center gap-1.5 opacity-90">
+                <User size={12} className="fill-violet-100" /> {t('orders.pos.customer.walk_in')}
               </div>
-              <div className="relative">
-                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-violet-400" size={14} />
-                <input
-                  type="tel"
-                  placeholder={t('orders.pos.customer.phone_placeholder')}
-                  className="w-full bg-white border-none rounded-xl py-2 pl-9 pr-3 text-xs focus:ring-1 focus:ring-violet-400"
-                  value={customerDetails.phone}
-                  onChange={(e) => setCustomerDetails({ ...customerDetails, phone: e.target.value })}
-                />
+              <div className="grid grid-cols-2 gap-2.5">
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 text-violet-400" size={13} />
+                  <input
+                    type="text"
+                    placeholder={t('orders.pos.customer.name_placeholder')}
+                    className="w-full bg-white border border-violet-100/80 hover:border-violet-200 focus:border-violet-500 rounded-xl py-2 pl-9 pr-3 text-xs focus:ring-1 focus:ring-violet-500 transition-all font-semibold text-slate-700 placeholder-slate-400"
+                    value={customerDetails.name}
+                    onChange={(e) => {
+                      const cleanValue = e.target.value.replace(/[^a-zA-Z\s\u0900-\u097F]/g, ''); // keep only English/Hindi alphabets and spaces
+                      setCustomerDetails({ ...customerDetails, name: cleanValue });
+                    }}
+                  />
+                </div>
+                <div className="relative">
+                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-violet-400" size={13} />
+                  <input
+                    type="tel"
+                    placeholder={t('orders.pos.customer.mobile_placeholder')}
+                    className="w-full bg-white border border-violet-100/80 hover:border-violet-200 focus:border-violet-500 rounded-xl py-2 pl-9 pr-3 text-xs focus:ring-1 focus:ring-violet-500 transition-all font-semibold text-slate-700 placeholder-slate-400"
+                    value={customerDetails.phone}
+                    onChange={(e) => {
+                      const cleanValue = e.target.value.replace(/\D/g, ''); // keep only numbers
+                      if (cleanValue.length <= 10) {
+                        setCustomerDetails({ ...customerDetails, phone: cleanValue });
+                      }
+                    }}
+                  />
+                </div>
               </div>
             </div>
 
             {/* Totals */}
-            <div className="space-y-3 mb-6 pt-4 border-t border-gray-100">
+            <div className="space-y-2 mb-3 pt-3 border-t border-gray-100">
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500 font-bold uppercase tracking-widest text-[10px]">{t('orders.pos.totals.subtotal')}</span>
                 <span className="text-gray-800 font-bold">₹{subTotal.toFixed(2)}</span>
@@ -288,18 +300,9 @@ const POSBilling = ({ storeId, storeType = 'branch', onExit }) => {
                 <span className="text-gray-500 font-bold uppercase tracking-widest text-[10px]">{t('orders.pos.totals.tax')} ({taxRate}%)</span>
                 <span className="text-gray-800 font-bold">₹{taxAmount.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between items-center pt-2 mt-2 border-t-2 border-dashed border-gray-200">
+              <div className="flex justify-between items-center pt-1.5 mt-1 border-t-2 border-dashed border-gray-200">
                 <span className="text-lg font-black text-gray-900 leading-none uppercase">{t('orders.pos.totals.total')}</span>
                 <span className="text-2xl font-black text-violet-700">₹{totalAmount.toFixed(2)}</span>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 mb-6">
-              <div
-                className={`flex flex-col items-center gap-2 p-3 rounded-2xl border-2 border-violet-600 bg-violet-50 text-violet-700`}
-              >
-                <Banknote size={20} />
-                <span className="text-[10px] font-black uppercase tracking-widest">{t('orders.pos.totals.cash_only')}</span>
               </div>
             </div>
 

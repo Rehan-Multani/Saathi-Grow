@@ -152,9 +152,14 @@ export const createVendor = async (req, res) => {
       }
     }
 
-    const vendorExists = await Vendor.findOne({ email });
+    const vendorExists = await Vendor.findOne({ $or: [{ email }, { phone }] });
     if (vendorExists) {
-      return res.status(400).json({ message: 'Vendor with this email already exists' });
+      if (vendorExists.email === email) {
+        return res.status(400).json({ message: 'Vendor with this email already exists' });
+      }
+      if (vendorExists.phone === phone) {
+        return res.status(400).json({ message: 'Vendor with this phone number already exists' });
+      }
     }
 
     // Cross-check with Admin/Staff model to ensure unique credentials across the platform
@@ -224,6 +229,26 @@ export const updateVendor = async (req, res) => {
     if (!vendor) return res.status(404).json({ message: 'Vendor not found' });
 
     const { storeName, ownerName, email, phone, address, description, status } = req.body;
+
+    // Check unique email and phone
+    if (email && email !== vendor.email) {
+      const emailExists = await Vendor.findOne({ email, _id: { $ne: vendor._id } });
+      if (emailExists) {
+        return res.status(400).json({ message: 'Another vendor with this email already exists' });
+      }
+      const Admin = (await import('../models/Admin.js')).default;
+      const adminExists = await Admin.findOne({ email });
+      if (adminExists) {
+        return res.status(400).json({ message: 'This email is already registered as a Staff or Store Manager' });
+      }
+    }
+
+    if (phone && phone !== vendor.phone) {
+      const phoneExists = await Vendor.findOne({ phone, _id: { $ne: vendor._id } });
+      if (phoneExists) {
+        return res.status(400).json({ message: 'Another vendor with this phone number already exists' });
+      }
+    }
 
     let parsedAddress = address;
     if (address && typeof address === 'string') {

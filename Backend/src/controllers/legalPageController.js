@@ -93,7 +93,14 @@ export const getLegalPageBySlug = async (req, res) => {
 
     const query = { slug, isActive: true };
     if (audience) {
-      query.targetAudience = audience;
+      // Decode audience if URL encoded, e.g. 'Store%20Manager' -> 'Store Manager'
+      const decodedAudience = decodeURIComponent(audience);
+      query.targetAudience = {
+        $in: [
+          new RegExp(`^${decodedAudience.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}$`, 'i'),
+          decodedAudience
+        ]
+      };
     }
 
     const page = await LegalPage.findOne(query);
@@ -113,8 +120,15 @@ export const getLegalPageBySlug = async (req, res) => {
 export const getLegalPagesByAudience = async (req, res) => {
   try {
     const { audience } = req.params;
+    const decodedAudience = decodeURIComponent(audience);
+
     const pages = await LegalPage.find({
-      targetAudience: audience,
+      targetAudience: {
+        $in: [
+          new RegExp(`^${decodedAudience.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}$`, 'i'),
+          decodedAudience
+        ]
+      },
       isActive: true
     }).select('title slug updatedAt');
 

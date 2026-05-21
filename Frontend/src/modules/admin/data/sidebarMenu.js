@@ -13,6 +13,7 @@ export const adminSidebarMenu = [
         permission: 'VIEW_ORDERS',
         submenu: [
             { title: 'All Orders', key: 'all_orders', path: '/admin/orders' },
+            { title: 'POS Billing', key: 'pos_billing', path: '/admin/orders/pos-billing' },
             { title: 'POS History', key: 'pos_history', path: '/admin/orders/pos' },
             { title: 'Online Orders', key: 'online_orders', path: '/admin/orders/online' },
             { title: 'Return Requests', key: 'return_requests', path: '/admin/orders/returns' },
@@ -103,8 +104,8 @@ export const adminSidebarMenu = [
         ],
     },
     {
-        title: 'Locations',
-        key: 'locations',
+        title: 'Branches',
+        key: 'branches',
         icon: 'MapPin',
         permission: null,
         submenu: [

@@ -44,7 +44,7 @@ const ManagerPOS = () => {
     if (!storeId) return;
     setLoading(true);
     try {
-      const data = await searchProductsPOS(query, { storeId, storeType }, managerUser?.token);
+      const data = await searchProductsPOS(query.trim(), { storeId, storeType }, managerUser?.token);
       setProducts((data.products || []).map(p => ({
         ...p,
         price: p.basePrice || 0,
@@ -359,7 +359,7 @@ const ManagerPOS = () => {
               placeholder="Search products by name or scan barcode..."
               className="flex-1 bg-transparent outline-none text-sm font-semibold text-slate-800 placeholder:text-slate-400"
               value={searchTerm}
-              onChange={e => { setSearchTerm(e.target.value); fetchProducts(e.target.value); }}
+              onChange={e => { const val = e.target.value.trimStart(); setSearchTerm(val); fetchProducts(val); }}
             />
             {searchTerm && (
               <button onClick={() => { setSearchTerm(''); fetchProducts(''); }} className="text-slate-400 hover:text-slate-600">

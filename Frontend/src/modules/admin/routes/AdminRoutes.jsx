@@ -6,6 +6,7 @@ import Dashboard from '../pages/Dashboard';
 import AllOrders from '../pages/orders/AllOrders';
 import OnlineOrders from '../pages/orders/OnlineOrders';
 import POSHistory from '../pages/orders/POSHistory';
+import AdminPOSBillingPage from '../pages/orders/AdminPOSBillingPage';
 import ReturnRequests from '../pages/orders/ReturnRequests';
 import AllProducts from '../pages/products/AllProducts';
 import ProductDetails from '../pages/products/ProductDetails';
@@ -151,6 +152,7 @@ const AdminRoutes = () => {
                         <Route path="orders" element={<AllOrders />} />
                         <Route path="orders/online" element={<OnlineOrders />} />
                         <Route path="orders/pos" element={<POSHistory />} />
+                        <Route path="orders/pos-billing" element={<AdminPOSBillingPage />} />
                         <Route path="orders/returns" element={<ReturnRequests />} />
 
                         {/* Products */}

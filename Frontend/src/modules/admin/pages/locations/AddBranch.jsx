@@ -236,7 +236,10 @@ const AddBranch = () => {
                                             type="text"
                                             className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 transition-all text-sm font-bold text-slate-700 shadow-sm"
                                             value={formData.address.city}
-                                            onChange={(e) => setFormData({...formData, address: {...formData.address, city: e.target.value}})}
+                                            onChange={(e) => {
+                                                const val = e.target.value.replace(/[^a-zA-Z\s]/g, '');
+                                                setFormData({...formData, address: {...formData.address, city: val}});
+                                            }}
                                             required
                                         />
                                     </div>
@@ -246,7 +249,10 @@ const AddBranch = () => {
                                             type="text"
                                             className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 transition-all text-sm font-bold text-slate-700 shadow-sm"
                                             value={formData.address.state}
-                                            onChange={(e) => setFormData({...formData, address: {...formData.address, state: e.target.value}})}
+                                            onChange={(e) => {
+                                                const val = e.target.value.replace(/[^a-zA-Z\s]/g, '');
+                                                setFormData({...formData, address: {...formData.address, state: val}});
+                                            }}
                                             required
                                         />
                                     </div>

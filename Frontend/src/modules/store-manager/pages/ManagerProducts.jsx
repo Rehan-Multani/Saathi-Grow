@@ -60,7 +60,7 @@ const ManagerProducts = () => {
             const params = {
                 page,
                 limit,
-                search: searchTerm,
+                search: searchTerm.trim(),
                 category: selectedCategory,
                 brand: selectedBrand,
                 source: sourceFilter === 'all' ? '' : sourceFilter
@@ -89,8 +89,8 @@ const ManagerProducts = () => {
 
     useEffect(() => {
         const timeout = setTimeout(() => {
-            if (localSearch !== searchTerm) {
-                updateParams({ search: localSearch });
+            if (localSearch.trim() !== searchTerm) {
+                updateParams({ search: localSearch.trim() });
             }
         }, 500);
         return () => clearTimeout(timeout);
@@ -188,7 +188,7 @@ const ManagerProducts = () => {
                         placeholder="Search product name or SKU..."
                         className="w-full bg-slate-50 border-none rounded-2xl py-4 pl-14 pr-6 text-sm font-bold text-slate-700 outline-none focus:ring-4 focus:ring-blue-100/50 transition-all placeholder:text-slate-300 shadow-inner"
                         value={localSearch}
-                        onChange={(e) => setLocalSearch(e.target.value)}
+                        onChange={(e) => setLocalSearch(e.target.value.trimStart())}
                     />
                 </div>
 

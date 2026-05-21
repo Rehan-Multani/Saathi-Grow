@@ -44,7 +44,7 @@ const ReturnsApproval = () => {
                 {
                     page,
                     limit,
-                    search: searchTerm,
+                    search: searchTerm.trim(),
                     status: tabStatusMap[activeTab],
                     includeStats: true
                 },
@@ -124,7 +124,7 @@ const ReturnsApproval = () => {
                         placeholder="Search by Order ID or Customer..."
                         className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl outline-none text-sm font-medium transition-all focus:border-blue-400 focus:ring-4 focus:ring-blue-100/50 shadow-sm"
                         value={searchTerm}
-                        onChange={e => { setSearchTerm(e.target.value); setPage(1); }}
+                        onChange={e => { setSearchTerm(e.target.value.trimStart()); setPage(1); }}
                     />
                 </div>
             </div>

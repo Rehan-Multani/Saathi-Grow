@@ -49,7 +49,7 @@ const ProfileSettings = ({ type = 'staff' }) => {
 
   const validateField = (name, value) => {
     let error = '';
-    const nameRegex = /^[a-zA-Z\s]{2,50}$/;
+    const nameRegex = /^[a-zA-Z\s\u0900-\u097F]{2,50}$/;
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const phoneRegex = /^[6789]\d{9}$/;
 
@@ -71,8 +71,12 @@ const ProfileSettings = ({ type = 'staff' }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-    validateField(name, value);
+    let finalValue = value;
+    if (name === 'name') {
+      finalValue = value.replace(/[^a-zA-Z\s\u0900-\u097F]/g, ''); // keep only English/Hindi letters and spaces
+    }
+    setFormData({ ...formData, [name]: finalValue });
+    validateField(name, finalValue);
   };
 
   const handleFileChange = (e) => {

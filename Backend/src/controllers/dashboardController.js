@@ -57,7 +57,7 @@ export const getDashboardStats = async (req, res) => {
       // Prev Total Orders
       Order.countDocuments({ ...query, createdAt: { $gte: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000), $lt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) } }),
       // Pending Orders
-      Order.countDocuments({ ...query, status: { $in: ['pending', 'confirmed', 'preparing', 'out_for_delivery'] } }),
+      Order.countDocuments({ ...query, status: 'pending' }),
       // Total Products
       role === 'Admin' ? Product.countDocuments() : Product.countDocuments({ 'branchStocks.branchId': branchObjectId }),
       // Users (Scoped to branch customers if not Admin)
@@ -186,12 +186,13 @@ export const getDashboardStats = async (req, res) => {
 
     const permissions = req.admin.permissions || [];
     const isSuperAdmin = role === 'Admin';
+    const isBranchManager = role === 'Branch Manager';
 
-    const canViewOrders = isSuperAdmin || permissions.includes('VIEW_ORDERS');
-    const canViewRevenue = isSuperAdmin || permissions.includes('MANAGE_POS_BILLING');
-    const canViewProducts = isSuperAdmin || permissions.includes('VIEW_PRODUCTS');
-    const canViewInventory = isSuperAdmin || permissions.includes('MANAGE_INVENTORY');
-    const canViewCustomers = isSuperAdmin || permissions.includes('VIEW_CUSTOMERS');
+    const canViewOrders = isSuperAdmin || isBranchManager || permissions.includes('VIEW_ORDERS');
+    const canViewRevenue = isSuperAdmin || isBranchManager || permissions.includes('MANAGE_POS_BILLING');
+    const canViewProducts = isSuperAdmin || isBranchManager || permissions.includes('VIEW_PRODUCTS');
+    const canViewInventory = isSuperAdmin || isBranchManager || permissions.includes('MANAGE_INVENTORY');
+    const canViewCustomers = isSuperAdmin || isBranchManager || permissions.includes('VIEW_CUSTOMERS');
 
     const supportStats = pendingTickets[0] || { actionRequired: 0, totalActive: 0 };
 

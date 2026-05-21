@@ -226,7 +226,10 @@ const VendorRegister = () => {
                                         required
                                         placeholder="Street / Area / Landmark"
                                         value={formData.address.street}
-                                        onChange={(e) => setFormData({ ...formData, address: { ...formData.address, street: e.target.value } })}
+                                        onChange={(e) => {
+                                            const val = e.target.value.replace(/[^a-zA-Z\s]/g, '');
+                                            setFormData({ ...formData, address: { ...formData.address, street: val } });
+                                        }}
                                         className="w-full px-4 py-2 bg-gray-50 text-gray-900 placeholder:text-gray-400 border border-gray-200 rounded-xl focus:bg-white focus:border-[#0c831f] outline-none text-sm font-medium"
                                     />
                                 </div>
@@ -235,7 +238,10 @@ const VendorRegister = () => {
                                     required
                                     placeholder="City"
                                     value={formData.address.city}
-                                    onChange={(e) => setFormData({ ...formData, address: { ...formData.address, city: e.target.value } })}
+                                    onChange={(e) => {
+                                        const val = e.target.value.replace(/[^a-zA-Z\s]/g, '');
+                                        setFormData({ ...formData, address: { ...formData.address, city: val } });
+                                    }}
                                     className="w-full px-4 py-2 bg-gray-50 text-gray-900 placeholder:text-gray-400 border border-gray-200 rounded-xl focus:bg-white focus:border-[#0c831f] outline-none text-sm font-medium"
                                 />
                                 <input

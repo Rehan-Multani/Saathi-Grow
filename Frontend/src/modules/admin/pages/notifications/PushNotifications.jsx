@@ -212,11 +212,11 @@ const PushNotifications = () => {
                                                 }}
                                                 className="w-full px-4 py-2 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 text-xs font-bold text-slate-700 shadow-sm"
                                             >
-                                                <option value="User">{t('common.customers', { ns: 'common' })}</option>
-                                                <option value="Vendor">{t('common.vendors', { ns: 'common' })}</option>
-                                                <option value="DeliveryPartner">{t('sidebar.delivery_partners', { ns: 'admin_sidebar' })}</option>
-                                                <option value="Staff">{t('common.staff', { ns: 'common' })}</option>
-                                                <option value="Branch Manager">{t('sidebar.branches', { ns: 'admin_sidebar' })}</option>
+                                                <option value="User">{t('push.premium_users', { defaultValue: 'Customers' })}</option>
+                                                <option value="Vendor">{t('push.vendor_network', { defaultValue: 'Vendors' })}</option>
+                                                <option value="DeliveryPartner">{t('push.logistics_partners', { defaultValue: 'Delivery Partners' })}</option>
+                                                <option value="Staff">{t('push.internal_staff', { defaultValue: 'Staff Members' })}</option>
+                                                <option value="Branch Manager">{t('push.regional_managers', { defaultValue: 'Branch Managers' })}</option>
                                             </select>
                                         </div>
 
@@ -226,7 +226,7 @@ const PushNotifications = () => {
                                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                                                 <input
                                                     type="text"
-                                                    placeholder={t('common.search', { ns: 'common' })}
+                                                    placeholder={t('push.locate_recipient', { defaultValue: 'Find User' })}
                                                     value={selectedRecipient ? selectedRecipient.name : searchQuery}
                                                     onChange={(e) => handleSearch(e.target.value)}
                                                     readOnly={!!selectedRecipient}

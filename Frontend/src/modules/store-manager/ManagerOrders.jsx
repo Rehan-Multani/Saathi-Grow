@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Search, Filter, Eye, Box, Truck, CheckCircle, RefreshCcw, DollarSign, Loader2, ChevronDown, Check, XCircle, ArrowRight, ShoppingBag } from 'lucide-react';
 import Swal from 'sweetalert2';
 import OrderDetailsModal from '../../common/components/orders/OrderDetailsModal';
@@ -6,10 +7,12 @@ import { getAllOrdersAdmin, updateOrderStatus } from '../../common/api/orderApi'
 import { useStoreManagerAuth } from './context/StoreManagerAuthContext';
 
 const ManagerOrders = () => {
+    const [searchParams] = useSearchParams();
+    const initialStatus = searchParams.get('status') || 'All';
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
-    const [statusFilter, setStatusFilter] = useState('All');
+    const [statusFilter, setStatusFilter] = useState(initialStatus);
     const [showModal, setShowModal] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState(null);
     const [activeDropdown, setActiveDropdown] = useState(null);
@@ -70,12 +73,14 @@ const ManagerOrders = () => {
         else setActiveDropdown(id);
     };
 
+    const trimmedSearchTerm = searchTerm.trim().toLowerCase();
+
     const filteredOrders = Array.isArray(orders)
         ? orders.filter(order => {
             const orderId = order.orderId || order._id;
             const customerName = order.user?.name || 'Guest';
-            return (orderId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                customerName.toLowerCase().includes(searchTerm.toLowerCase())) &&
+            return (orderId.toLowerCase().includes(trimmedSearchTerm) ||
+                customerName.toLowerCase().includes(trimmedSearchTerm)) &&
                 (statusFilter === 'All' || order.status === statusFilter);
         })
         : [];
@@ -107,7 +112,7 @@ const ManagerOrders = () => {
                             placeholder="Search by Order ID or Customer..."
                             className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100/50 font-medium transition-all shadow-sm"
                             value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
+                            onChange={(e) => setSearchTerm(e.target.value.trimStart())}
                         />
                     </div>
                     

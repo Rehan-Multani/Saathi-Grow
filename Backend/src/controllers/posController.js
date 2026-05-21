@@ -23,15 +23,15 @@ export const createPOSOrder = async (req, res) => {
     }
 
     // Role check: Only branch managers/staff or vendors can create POS orders.
-    // Super Admins/Admin role is restricted to history only.
-    if (req.admin && req.admin.role === 'Admin') {
+    // Super Admins/Admin role is allowed only if they select/provide a valid branch/storeId.
+    if (req.admin && req.admin.role === 'Admin' && !storeId) {
       return res.status(403).json({
-        message: 'Admin role is restricted to viewing status/history only. POS billing is disabled for this role.'
+        message: 'Admin role is restricted to viewing status/history only unless a store/branch is explicitly selected.'
       });
     }
 
     // POS Permission Check for Staff/Branch Managers
-    if (req.admin && req.admin.role !== 'Admin' && (!req.admin.permissions || !req.admin.permissions.includes('MANAGE_POS_BILLING'))) {
+    if (req.admin && !['Admin', 'Branch Manager'].includes(req.admin.role) && (!req.admin.permissions || !req.admin.permissions.includes('MANAGE_POS_BILLING'))) {
       return res.status(403).json({
         message: 'Access Denied: You do not have permission to handle POS billing.'
       });
@@ -221,11 +221,13 @@ export const getPOSOrders = async (req, res) => {
     // If not Super Admin, strictly filter by branch/vendor
     if (req.vendor) {
       query.vendor = req.vendor._id;
-    } else if (req.admin && req.admin.role !== 'Admin') {
+    } else if (req.admin && !['Admin', 'Branch Manager'].includes(req.admin.role)) {
       // Check Permission for Staff/Store Manager
       if (!req.admin.permissions || !req.admin.permissions.includes('MANAGE_POS_BILLING')) {
         return res.status(403).json({ message: 'Access Denied: You do not have permission to view POS history.' });
       }
+      query.branchId = req.admin.branchId;
+    } else if (req.admin && req.admin.role === 'Branch Manager') {
       query.branchId = req.admin.branchId;
     } else if (storeId) {
       // Super Admin manual filtering

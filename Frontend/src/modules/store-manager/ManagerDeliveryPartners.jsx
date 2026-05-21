@@ -29,10 +29,12 @@ const ManagerDeliveryPartners = () => {
         fetchPartners();
     }, []);
 
+    const trimmedSearchTerm = searchTerm.trim().toLowerCase();
+
     const filtered = partners.filter(p =>
-        p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.phone.includes(searchTerm) ||
-        p.uniqueId.toLowerCase().includes(searchTerm.toLowerCase())
+        p.name.toLowerCase().includes(trimmedSearchTerm) ||
+        p.phone.includes(searchTerm.trim()) ||
+        p.uniqueId.toLowerCase().includes(trimmedSearchTerm)
     );
 
     const handleEdit = (partner) => {
@@ -85,7 +87,7 @@ const ManagerDeliveryPartners = () => {
                             placeholder="Find partners by name, ID or phone..."
                             className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100/50 font-medium shadow-sm transition-all"
                             value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
+                            onChange={(e) => setSearchTerm(e.target.value.trimStart())}
                         />
                     </div>
                     <div className="px-4 py-2 bg-white border border-slate-200 rounded-xl flex items-center gap-2.5 shadow-sm">

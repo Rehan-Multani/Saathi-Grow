@@ -81,14 +81,14 @@ const Dashboard = () => {
             {/* Metrics Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                 {[
-                    { label: t('revenue'), value: `₹${apiStats?.totalRevenue?.toLocaleString() || 0}`, icon: IndianRupee, trend: apiStats?.revenueGrowth, color: 'text-blue-600', bg: 'bg-blue-50' },
-                    { label: t('order_flow'), value: apiStats?.totalOrders || 0, icon: ShoppingCart, trend: apiStats?.orderGrowth, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-                    { label: t('processing'), value: apiStats?.pendingOrders || 0, icon: Package, color: 'text-amber-600', bg: 'bg-amber-50' },
-                    { label: t('active_market'), value: apiStats?.totalUsers || 0, icon: Users, color: 'text-slate-600', bg: 'bg-slate-100' }
+                    { label: t('revenue'), value: `₹${apiStats?.totalRevenue?.toLocaleString() || 0}`, icon: IndianRupee, trend: apiStats?.revenueGrowth, color: 'text-blue-600', bg: 'bg-blue-50', to: '/admin/analytics/revenue' },
+                    { label: t('order_flow'), value: apiStats?.totalOrders || 0, icon: ShoppingCart, trend: apiStats?.orderGrowth, color: 'text-emerald-600', bg: 'bg-emerald-50', to: '/admin/orders' },
+                    { label: t('processing'), value: apiStats?.pendingOrders || 0, icon: Package, color: 'text-amber-600', bg: 'bg-amber-50', to: '/admin/orders', state: { statusFilter: 'pending' } },
+                    { label: t('active_market'), value: apiStats?.totalUsers || 0, icon: Users, color: 'text-slate-600', bg: 'bg-slate-100', to: '/admin/customers' }
                 ].map((item, i) => (
-                    <div key={i} className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm transition-hover hover:shadow-md">
+                    <Link key={i} to={item.to} state={item.state} className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm transition-all hover:shadow-md hover:border-blue-500/30 group block no-underline">
                         <div className="flex justify-between items-center mb-4">
-                            <div className={`p-2 rounded-lg ${item.bg} ${item.color}`}>
+                            <div className={`p-2 rounded-lg ${item.bg} ${item.color} group-hover:scale-110 transition-transform duration-300`}>
                                 <item.icon size={20} />
                             </div>
                             {item.trend !== undefined && (
@@ -98,9 +98,9 @@ const Dashboard = () => {
                                 </div>
                             )}
                         </div>
-                        <h3 className="text-xl font-bold text-slate-900">{item.value}</h3>
+                        <h3 className="text-xl font-bold text-slate-900 group-hover:text-blue-600 transition-colors">{item.value}</h3>
                         <p className="text-slate-400 text-xs font-semibold uppercase mt-1 tracking-wide">{item.label}</p>
-                    </div>
+                    </Link>
                 ))}
             </div>
 
