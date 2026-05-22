@@ -94,8 +94,19 @@ export const fetchOfferProducts = async (id, params = {}) => {
   return data;
 };
 export const searchProducts = async (query = '', page = 1, storeParams = {}, signal = null) => {
-  const params = new URLSearchParams({ search: query, page, status: 'Active', ...storeParams }).toString();
-  const response = await fetch(`${API_BASE_URL}/admin/products?${params}`, { signal });
+  const params = new URLSearchParams();
+  params.append('search', query);
+  params.append('page', page);
+  params.append('status', 'Active');
+  params.append('status', 'Low Stock');
+  params.append('status', 'Out of Stock');
+  Object.entries(storeParams).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      params.append(key, value);
+    }
+  });
+  
+  const response = await fetch(`${API_BASE_URL}/admin/products?${params.toString()}`, { signal });
   const data = await response.json();
   if (!response.ok) throw new Error(data.message || 'Failed to search products');
   return data;

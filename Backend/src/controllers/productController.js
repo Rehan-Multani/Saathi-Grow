@@ -549,6 +549,11 @@ export const getProducts = async (req, res) => {
             availableStock = branchStock.stock || 0;
             lowStockThreshold = branchStock.lowStockThreshold || 10;
             if (availableStock > 0) isDeliverable = true;
+          } else if (pObj.vendor) {
+            inStore = true;
+            availableStock = pObj.stock || 0;
+            lowStockThreshold = pObj.lowStockThreshold || 10;
+            if (availableStock > 0) isDeliverable = true;
           } else if (pObj.isAllBranches) {
             inStore = true;
             availableStock = 0;
@@ -837,6 +842,13 @@ export const getProductById = async (req, res) => {
           inStore = true;
           availableStock = branchStock.stock || 0;
           lowStockThreshold = branchStock.lowStockThreshold || 10;
+          if (availableStock > 0) {
+            isDeliverable = true;
+          }
+        } else if (pObj.vendor) {
+          inStore = true;
+          availableStock = pObj.stock || 0;
+          lowStockThreshold = pObj.lowStockThreshold || 10;
           if (availableStock > 0) {
             isDeliverable = true;
           }

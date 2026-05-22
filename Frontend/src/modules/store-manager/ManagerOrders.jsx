@@ -36,6 +36,22 @@ const ManagerOrders = () => {
         fetchOrders();
     }, []);
 
+    useEffect(() => {
+        const handleFirebaseMessage = (event) => {
+            const payload = event.detail;
+            const type = payload?.data?.type || '';
+            const title = payload?.notification?.title || payload?.data?.title || '';
+            
+            // If it's related to an order update, a new order, or delivery status change, refresh the list
+            if (type.includes('order') || title.toLowerCase().includes('order') || type === 'delivery_status_update') {
+                fetchOrders();
+            }
+        };
+
+        window.addEventListener('firebaseMessage', handleFirebaseMessage);
+        return () => window.removeEventListener('firebaseMessage', handleFirebaseMessage);
+    }, [statusFilter, searchTerm]);
+
     const handleStatusUpdate = async (id, newStatus) => {
         setActiveDropdown(null);
         try {

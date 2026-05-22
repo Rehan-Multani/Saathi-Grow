@@ -98,6 +98,7 @@ const AddProduct = () => {
     const [loading, setLoading] = useState(false);
     const [initialLoading, setInitialLoading] = useState(true);
     const [aiLoading, setAiLoading] = useState({ description: false, tags: false });
+    const [errors, setErrors] = useState({});
 
     // Master Data
     const [categories, setCategories] = useState([]);
@@ -356,8 +357,35 @@ const AddProduct = () => {
         finally { setAiLoading(prev => ({ ...prev, [type]: false })); }
     }, [adminUser.token, formData.name]);
 
+    const validateForm = () => {
+        const newErrors = {};
+        if (!formData.name?.trim()) newErrors.name = t('fields.name') + ' is required';
+        if (!formData.category) newErrors.category = t('fields.category') + ' is required';
+        if (!formData.brandName) newErrors.brandName = t('fields.brand') + ' is required';
+        if (!formData.description?.trim()) newErrors.description = t('fields.description') + ' is required';
+        if (formData.basePrice === '' || Number(formData.basePrice) < 0) newErrors.basePrice = 'Price cannot be less than 0';
+        if (formData.mrp === '' || Number(formData.mrp) < 0) newErrors.mrp = 'MRP cannot be less than 0';
+        if (Number(formData.basePrice) > Number(formData.mrp)) {
+            newErrors.basePrice = 'Price cannot be greater than MRP';
+            newErrors.mrp = 'MRP must be greater than or equal to Price';
+        }
+        
+        branchStocks.forEach(bs => {
+            if (Number(bs.stock) < 0) {
+                newErrors[`stock_${bs.branchId}`] = 'Stock cannot be < 0';
+            }
+        });
+        
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (!validateForm()) {
+            toast.error('Please fix the errors before submitting');
+            return;
+        }
         setLoading(true);
         try {
             const data = new FormData();
@@ -429,7 +457,7 @@ const AddProduct = () => {
                     </div>
                 </header>
 
-                <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <form onSubmit={handleSubmit} noValidate className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div className="lg:col-span-2 space-y-8">
                         {/* Section 1: Core Information */}
                         <div className="bg-white rounded-3xl border border-slate-200 p-8 space-y-6 shadow-sm">
@@ -440,18 +468,22 @@ const AddProduct = () => {
 
                             <div className="space-y-2">
                                 <label className="text-sm font-semibold text-black">{t('fields.name')}<span className="text-red-500 ml-1">*</span></label>
-                                <input type="text" name="name" value={formData.name} onChange={handleChange} required placeholder={t('fields.name_placeholder')} className="form-input-simple" />
+                                <input type="text" name="name" value={formData.name} onChange={handleChange} required placeholder={t('fields.name_placeholder')} className={`form-input-simple ${errors.name ? 'border-red-500' : ''}`} />
+                                {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                                 <div className="space-y-2">
                                     <label className="text-sm font-semibold text-black">{t('fields.category')}<span className="text-red-500 ml-1">*</span></label>
-                                    <DownDropdown
-                                        value={formData.category}
-                                        onChange={val => handleChange({ target: { name: 'category', value: val } })}
-                                        options={categories.map(c => ({ value: c.name, label: c.name }))}
-                                        placeholder="Select Category"
-                                    />
+                                    <div className={errors.category ? 'border border-red-500 rounded-xl' : ''}>
+                                        <DownDropdown
+                                            value={formData.category}
+                                            onChange={val => handleChange({ target: { name: 'category', value: val } })}
+                                            options={categories.map(c => ({ value: c.name, label: c.name }))}
+                                            placeholder="Select Category"
+                                        />
+                                    </div>
+                                    {errors.category && <p className="text-red-500 text-xs mt-1">{errors.category}</p>}
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-sm font-semibold text-slate-700">{t('fields.sub_category')}</label>
@@ -465,13 +497,16 @@ const AddProduct = () => {
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-sm font-semibold text-slate-700">{t('fields.brand')}<span className="text-red-500 ml-1">*</span></label>
-                                    <DownDropdown
-                                        value={formData.brandName}
-                                        onChange={val => handleChange({ target: { name: 'brandName', value: val } })}
-                                        options={filteredBrands.map(b => ({ value: b.name, label: b.name }))}
-                                        placeholder="Select Brand"
-                                        disabled={!formData.category}
-                                    />
+                                    <div className={errors.brandName ? 'border border-red-500 rounded-xl' : ''}>
+                                        <DownDropdown
+                                            value={formData.brandName}
+                                            onChange={val => handleChange({ target: { name: 'brandName', value: val } })}
+                                            options={filteredBrands.map(b => ({ value: b.name, label: b.name }))}
+                                            placeholder="Select Brand"
+                                            disabled={!formData.category}
+                                        />
+                                    </div>
+                                    {errors.brandName && <p className="text-red-500 text-xs mt-1">{errors.brandName}</p>}
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-sm font-semibold text-slate-700">Vendor (Optional)</label>
@@ -491,7 +526,8 @@ const AddProduct = () => {
                                         {aiLoading.description ? '...' : <><Sparkles size={14} /> {t('form.ai_write')}</>}
                                     </button>
                                 </div>
-                                <textarea name="description" value={formData.description} onChange={handleChange} rows={4} className="form-input-simple" required />
+                                <textarea name="description" value={formData.description} onChange={handleChange} rows={4} className={`form-input-simple ${errors.description ? 'border-red-500' : ''}`} required />
+                                {errors.description && <p className="text-red-500 text-xs mt-1">{errors.description}</p>}
                             </div>
 
                             <div className="space-y-3">
@@ -529,11 +565,13 @@ const AddProduct = () => {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
                                     <label className="text-sm font-semibold text-slate-700">{t('fields.base_price')}<span className="text-red-500 ml-1">*</span></label>
-                                    <input type="number" onWheel={(e) => e.target.blur()} name="basePrice" value={formData.basePrice} onChange={handleChange} required className="form-input-simple font-bold text-lg" />
+                                    <input type="number" onWheel={(e) => e.target.blur()} name="basePrice" value={formData.basePrice} onChange={handleChange} required className={`form-input-simple font-bold text-lg ${errors.basePrice ? 'border-red-500' : ''}`} />
+                                    {errors.basePrice && <p className="text-red-500 text-xs mt-1">{errors.basePrice}</p>}
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-sm font-semibold text-slate-700">{t('fields.mrp')}<span className="text-red-500 ml-1">*</span></label>
-                                    <input type="number" onWheel={(e) => e.target.blur()} name="mrp" value={formData.mrp} onChange={handleChange} required className="form-input-simple font-bold text-slate-500" />
+                                    <input type="number" onWheel={(e) => e.target.blur()} name="mrp" value={formData.mrp} onChange={handleChange} required className={`form-input-simple font-bold text-slate-500 ${errors.mrp ? 'border-red-500' : ''}`} />
+                                    {errors.mrp && <p className="text-red-500 text-xs mt-1">{errors.mrp}</p>}
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-sm font-semibold text-slate-700">Purchase Price</label>
@@ -591,7 +629,8 @@ const AddProduct = () => {
                                                         <div className="flex gap-4">
                                                             <div className="space-y-1">
                                                                  <span className="text-[9px] font-bold text-slate-400 uppercase ml-1">Stock</span>
-                                                                 <input type="number" onWheel={(e) => e.target.blur()} value={bs.stock} onChange={e => handleBranchStockChange(bs.branchId, 'stock', e.target.value)} className="w-24 bg-white border border-slate-200 rounded-lg py-1.5 px-3 text-sm outline-none" />
+                                                                 <input type="number" onWheel={(e) => e.target.blur()} value={bs.stock} onChange={e => handleBranchStockChange(bs.branchId, 'stock', e.target.value)} className={`w-24 bg-white border rounded-lg py-1.5 px-3 text-sm outline-none ${errors['stock_'+bs.branchId] ? 'border-red-500' : 'border-slate-200'}`} />
+                                                                 {errors['stock_'+bs.branchId] && <p className="text-red-500 text-[10px] m-0 leading-tight">{errors['stock_'+bs.branchId]}</p>}
                                                             </div>
                                                             <div className="space-y-1">
                                                                  <span className="text-[9px] font-bold text-slate-400 uppercase ml-1">Alert Limit</span>

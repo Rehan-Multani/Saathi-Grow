@@ -128,8 +128,7 @@ export const CartProvider = ({ children }) => {
         }
 
         const availableStock = product.availableStock ?? 999;
-        const threshold = product.lowStockThreshold || 0;
-        const maxAllowed = Math.max(0, availableStock - threshold);
+        const maxAllowed = product.maxAllowed ?? availableStock;
         const prodId = product.id || product._id;
 
         if (maxAllowed <= 0) {
@@ -164,8 +163,7 @@ export const CartProvider = ({ children }) => {
             const item = cart.find(i => i.id === id);
             if (item) {
                 const availableStock = item.availableStock ?? 999;
-                const threshold = item.lowStockThreshold || 0;
-                const maxAllowed = Math.max(0, availableStock - threshold);
+                const maxAllowed = item.maxAllowed ?? availableStock;
                 if (item.quantity + delta > maxAllowed) {
                     toast.warning(`Max ${maxAllowed} units allowed`, { toastId: `stock-limit-${id}` });
                     return;

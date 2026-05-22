@@ -293,16 +293,16 @@ const ManagerProducts = () => {
                                             </td>
                                             <td className="px-8 py-5">
                                                 <div className="space-y-1">
-                                                    <div className="flex items-center gap-2 text-[10px] font-bold text-slate-500 uppercase truncate max-w-[120px]">
+                                                    <div className="flex items-center gap-2 text-[10px] font-bold text-slate-500 uppercase truncate max-w-[150px]">
                                                         <Tag size={12} className="text-blue-400 shrink-0" /> {p.category}
                                                     </div>
-                                                    <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase truncate max-w-[120px]">
+                                                    <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase truncate max-w-[150px]">
                                                         <Layers size={12} className="text-slate-300 shrink-0" /> {p.brandName}
                                                     </div>
                                                 </div>
                                             </td>
                                             <td className="px-8 py-5">
-                                                <div className="space-y-0.5">
+                                                <div className="space-y-0.5 whitespace-nowrap">
                                                     <div className="text-base font-black text-slate-900 tracking-tight italic">₹{p.basePrice?.toLocaleString()}</div>
                                                     {p.mrp > p.basePrice && (
                                                         <div className="text-[10px] text-slate-300 font-black line-through italic">₹{p.mrp.toLocaleString()} MRP</div>
@@ -317,20 +317,20 @@ const ManagerProducts = () => {
                                             </td>
                                             <td className="px-8 py-5 text-center">
                                                 {p.physicalLocation ? (
-                                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-violet-50 text-violet-700 border border-violet-100 rounded-lg text-[10px] font-black uppercase tracking-wider">
-                                                        <Store size={11} /> {p.physicalLocation}
+                                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-violet-50 text-violet-700 border border-violet-100 rounded-lg text-[10px] font-black uppercase tracking-wider whitespace-nowrap">
+                                                        <Store size={11} className="shrink-0" /> {p.physicalLocation}
                                                     </span>
                                                 ) : (
                                                     <span className="text-[10px] text-slate-300 font-bold">—</span>
                                                 )}
                                             </td>
                                             <td className="px-8 py-5 text-center">
-                                                <span className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-[0.15em] border ${p.status === 'Active' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-slate-50 text-slate-400 border-slate-100'}`}>
+                                                <span className={`inline-block whitespace-nowrap px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-[0.15em] border ${p.status === 'Active' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-slate-50 text-slate-400 border-slate-100'}`}>
                                                     {p.status}
                                                 </span>
                                             </td>
                                             <td className="px-8 py-5 text-right relative">
-                                                <div className="flex justify-end gap-2">
+                                                <div className="flex justify-end gap-2 flex-nowrap">
                                                     <button
                                                         onClick={() => setShowQR(showQR === p._id ? null : p._id)}
                                                         className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all border ${showQR === p._id ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-400 border-slate-200 hover:text-blue-600 hover:border-blue-400'}`}

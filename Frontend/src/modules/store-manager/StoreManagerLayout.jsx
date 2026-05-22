@@ -7,6 +7,7 @@ import FirebaseNotificationHandler from '../../common/components/FirebaseNotific
 import axios from 'axios';
 import { API_BASE_URL } from '../../config/apiConfig';
 import Swal from 'sweetalert2';
+import NewOrderPopup from '../admin/components/NewOrderPopup';
 
 const StoreManagerLayout = () => {
     const [showMobileSidebar, setShowMobileSidebar] = useState(false);
@@ -90,6 +91,7 @@ const StoreManagerLayout = () => {
     return (
         <div className="min-h-screen bg-[#f8fafc] flex font-sans selection:bg-blue-100 selection:text-blue-900 animate-in fade-in duration-500">
             <FirebaseNotificationHandler token={managerToken} role="store-manager" />
+            <NewOrderPopup baseRoute="/store-manager/orders" />
             
             <StoreManagerSidebar
                 showMobile={showMobileSidebar}

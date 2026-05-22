@@ -63,7 +63,7 @@ const CampaignProductsPage = () => {
         sort: sortBy,
         storeId: activeStore?.id,
         storeType: activeStore?.type,
-        status: 'Active'
+        status: ['Active', 'Low Stock', 'Out of Stock']
       };
 
       if (isVegOnly) params.isVeg = true;

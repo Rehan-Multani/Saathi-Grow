@@ -56,6 +56,8 @@ const EditProduct = () => {
     const [tempImage, setTempImage] = useState(null);
     const [tagInput, setTagInput] = useState('');
 
+    const [errors, setErrors] = useState({});
+
     useEffect(() => {
         const product = products.find(p => p._id === productId);
         if (product) {
@@ -190,6 +192,7 @@ const EditProduct = () => {
             ...prev,
             [name]: finalValue
         }));
+        setErrors(prev => ({ ...prev, [name]: undefined }));
     };
 
     const addTag = (newTag) => {
@@ -210,6 +213,7 @@ const EditProduct = () => {
             const data = await getVendorAISuggestions(vendor.token, formData.name, type);
             if (type === 'description') {
                 setFormData(prev => ({ ...prev, description: data.suggestion }));
+                setErrors(prev => ({ ...prev, description: undefined }));
             } else {
                 const newTags = data.suggestion.split(',').map(t => t.trim()).filter(t => t);
                 setFormData(prev => ({ ...prev, tags: [...new Set([...prev.tags, ...newTags])] }));
@@ -221,38 +225,46 @@ const EditProduct = () => {
         }
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    const validateForm = () => {
+        const newErrors = {};
+        
+        if (!formData.name) newErrors.name = 'Product name is required';
+        if (!formData.category) newErrors.category = 'Category is required';
+        if (!formData.description) newErrors.description = 'Description is required';
+        
         const isBrandRequired = formData.category && filteredBrands.length > 0;
-        if (!formData.name || !formData.category || (isBrandRequired && !formData.brandName) || !formData.basePrice) {
-            return toast.error('Please fill all required fields');
-        }
+        if (isBrandRequired && !formData.brandName) newErrors.brandName = 'Brand is required';
+        if (!formData.basePrice) newErrors.basePrice = 'Price is required';
 
-        // Pricing & Units Validations
         const price = parseFloat(formData.basePrice);
         const mrp = formData.mrp ? parseFloat(formData.mrp) : price;
         const stock = parseInt(formData.stock, 10);
         const lowStock = parseInt(formData.lowStockThreshold, 10);
 
-        if (isNaN(price) || price <= 0) {
-            return toast.error('Price must be greater than 0');
+        if (formData.basePrice && (isNaN(price) || price < 0)) {
+            newErrors.basePrice = 'Price cannot be less than 0';
         }
-
-        if (formData.mrp && (isNaN(mrp) || mrp <= 0)) {
-            return toast.error('MRP must be greater than 0');
+        if (formData.mrp && (isNaN(mrp) || mrp < 0)) {
+            newErrors.mrp = 'MRP cannot be less than 0';
         }
-
-        if (mrp < price) {
-            return toast.error('MRP cannot be less than Price');
-        }
-
         if (isNaN(stock) || stock < 0) {
-            return toast.error('Stock must be a non-negative integer (0 or more)');
+            newErrors.stock = 'Stock must be 0 or more';
+        }
+        if (isNaN(lowStock) || lowStock < 0) {
+            newErrors.lowStockThreshold = 'Must be 0 or more';
         }
 
-        if (isNaN(lowStock) || lowStock < 0) {
-            return toast.error('Low Stock Alert must be a non-negative integer (0 or more)');
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        if (!validateForm()) {
+            return toast.error('Please fix the validation errors before submitting');
         }
+
         setLoading(true);
         try {
             const data = new FormData();
@@ -300,7 +312,7 @@ const EditProduct = () => {
                 </div>
             </div>
 
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} noValidate>
                 <div className="flex flex-col lg:flex-row gap-6">
                     <div className="flex-1 space-y-6">
                         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
@@ -309,7 +321,8 @@ const EditProduct = () => {
                             <div className="space-y-4">
                                 <div>
                                     <label className="block text-xs font-bold text-gray-700 mb-1.5">Product Name</label>
-                                    <input type="text" name="name" value={formData.name} onChange={handleChange} required className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:border-[#0c831f] focus:ring-1 focus:ring-[#0c831f] outline-none transition-all" />
+                                    <input type="text" name="name" value={formData.name} onChange={handleChange} required className={`w-full px-4 py-2 border ${errors.name ? 'border-red-500 focus:ring-red-500' : 'border-gray-200 focus:border-[#0c831f] focus:ring-[#0c831f]'} rounded-lg text-sm focus:ring-1 outline-none transition-all`} />
+                                    {errors.name && <p className="text-red-500 text-[10px] mt-1 font-bold">{errors.name}</p>}
                                 </div>
                                 
                                 <div>
@@ -320,7 +333,8 @@ const EditProduct = () => {
                                             AI Write
                                         </button>
                                     </div>
-                                    <textarea rows={4} name="description" value={formData.description} onChange={handleChange} required className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:border-[#0c831f] focus:ring-1 focus:ring-[#0c831f] outline-none transition-all resize-none" />
+                                    <textarea rows={4} name="description" value={formData.description} onChange={handleChange} required className={`w-full px-4 py-2 border ${errors.description ? 'border-red-500 focus:ring-red-500' : 'border-gray-200 focus:border-[#0c831f] focus:ring-[#0c831f]'} rounded-lg text-sm focus:ring-1 outline-none transition-all resize-none`} />
+                                    {errors.description && <p className="text-red-500 text-[10px] mt-1 font-bold">{errors.description}</p>}
                                 </div>
                             </div>
                         </div>
@@ -331,11 +345,13 @@ const EditProduct = () => {
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                 <div>
                                     <label className="block text-xs font-bold text-gray-700 mb-1.5">Price (₹)</label>
-                                    <input type="number" name="basePrice" min="0.01" step="any" value={formData.basePrice} onChange={handleChange} required className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm font-bold focus:border-[#0c831f] outline-none transition-all" />
+                                    <input type="number" name="basePrice" min="0.01" step="any" value={formData.basePrice} onChange={handleChange} required className={`w-full px-4 py-2 border ${errors.basePrice ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-[#0c831f]'} rounded-lg text-sm font-bold outline-none transition-all`} />
+                                    {errors.basePrice && <p className="text-red-500 text-[10px] mt-1 font-bold">{errors.basePrice}</p>}
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold text-gray-700 mb-1.5">MRP (₹)</label>
-                                    <input type="number" name="mrp" min="0.01" step="any" value={formData.mrp} onChange={handleChange} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium focus:border-[#0c831f] outline-none transition-all" />
+                                    <input type="number" name="mrp" min="0.01" step="any" value={formData.mrp} onChange={handleChange} className={`w-full px-4 py-2 border ${errors.mrp ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-[#0c831f]'} rounded-lg text-sm font-medium outline-none transition-all`} />
+                                    {errors.mrp && <p className="text-red-500 text-[10px] mt-1 font-bold">{errors.mrp}</p>}
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold text-gray-700 mb-1.5">Unit Type</label>
@@ -345,11 +361,13 @@ const EditProduct = () => {
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold text-gray-700 mb-1.5">Stock</label>
-                                    <input type="number" name="stock" min="0" step="1" value={formData.stock} onChange={handleChange} required className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm font-bold focus:border-[#0c831f] outline-none transition-all" />
+                                    <input type="number" name="stock" min="0" step="1" value={formData.stock} onChange={handleChange} required className={`w-full px-4 py-2 border ${errors.stock ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-[#0c831f]'} rounded-lg text-sm font-bold outline-none transition-all`} />
+                                    {errors.stock && <p className="text-red-500 text-[10px] mt-1 font-bold">{errors.stock}</p>}
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold text-gray-700 mb-1.5">Low Stock Alert at</label>
-                                    <input type="number" name="lowStockThreshold" min="0" step="1" value={formData.lowStockThreshold} onChange={handleChange} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium focus:border-[#0c831f] outline-none transition-all" />
+                                    <input type="number" name="lowStockThreshold" min="0" step="1" value={formData.lowStockThreshold} onChange={handleChange} className={`w-full px-4 py-2 border ${errors.lowStockThreshold ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-[#0c831f]'} rounded-lg text-sm font-medium outline-none transition-all`} />
+                                    {errors.lowStockThreshold && <p className="text-red-500 text-[10px] mt-1 font-bold">{errors.lowStockThreshold}</p>}
                                 </div>
                                 <div className="col-span-2">
                                     <label className="block text-xs font-bold text-gray-700 mb-1.5">Physical Location</label>
@@ -382,10 +400,11 @@ const EditProduct = () => {
                             <div className="space-y-4">
                                 <div>
                                     <label className="block text-xs font-bold text-gray-700 mb-1.5">Category</label>
-                                    <select name="category" value={formData.category} onChange={handleChange} required className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium focus:border-[#0c831f] outline-none transition-all bg-white">
+                                    <select name="category" value={formData.category} onChange={handleChange} required className={`w-full px-4 py-2 border ${errors.category ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-[#0c831f]'} rounded-lg text-sm font-medium outline-none transition-all bg-white`}>
                                         <option value="">Select Category...</option>
                                         {categories.map(c => <option key={c._id} value={c.name}>{c.name}</option>)}
                                     </select>
+                                    {errors.category && <p className="text-red-500 text-[10px] mt-1 font-bold">{errors.category}</p>}
                                 </div>
 
                                 <div>
@@ -400,10 +419,11 @@ const EditProduct = () => {
                                     <label className="block text-xs font-bold text-gray-700 mb-1.5 flex items-center gap-1">
                                         Brand {formData.category && filteredBrands.length > 0 && <span className="text-red-500">*</span>}
                                     </label>
-                                    <select name="brandName" value={formData.brandName} onChange={handleChange} required={formData.category && filteredBrands.length > 0} disabled={!formData.category || (formData.category && filteredBrands.length === 0)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium focus:border-[#0c831f] outline-none transition-all bg-white disabled:bg-gray-50 disabled:text-gray-400">
+                                    <select name="brandName" value={formData.brandName} onChange={handleChange} required={formData.category && filteredBrands.length > 0} disabled={!formData.category || (formData.category && filteredBrands.length === 0)} className={`w-full px-4 py-2 border ${errors.brandName ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-[#0c831f]'} rounded-lg text-sm font-medium outline-none transition-all bg-white disabled:bg-gray-50 disabled:text-gray-400`}>
                                         <option value="">{formData.category && filteredBrands.length === 0 ? 'No Brands Available' : 'Select Brand...'}</option>
                                         {filteredBrands.map(b => <option key={b._id} value={b.name}>{b.name}</option>)}
                                     </select>
+                                    {errors.brandName && <p className="text-red-500 text-[10px] mt-1 font-bold">{errors.brandName}</p>}
                                     {formData.category && filteredBrands.length === 0 && (
                                         <p className="text-[10px] text-yellow-600 flex items-center gap-1 mt-1.5 font-medium"><AlertCircle size={10} /> No brands found in category. Skip.</p>
                                     )}

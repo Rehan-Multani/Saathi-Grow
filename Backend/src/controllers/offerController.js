@@ -254,6 +254,13 @@ export const getActiveOfferDeals = async (req, res) => {
               if (availableStock > 0) {
                 isDeliverable = true;
               }
+            } else if (pObj.vendor) {
+              inStore = true;
+              availableStock = pObj.stock || 0;
+              lowStockThreshold = pObj.lowStockThreshold || 10;
+              if (availableStock > 0) {
+                isDeliverable = true;
+              }
             }
           } else if (storeType === 'vendor') {
             const vId = pObj.vendor?._id || pObj.vendor;
@@ -321,8 +328,13 @@ export const getOfferProducts = async (req, res) => {
         
         if (storeType === 'branch') {
           const bs = pObj.branchStocks?.find(s => (s.branchId?._id || s.branchId)?.toString() === storeId.toString());
-          if (bs && bs.stock > 0) isDeliverable = true;
-          availableStock = bs?.stock || 0;
+          if (bs) {
+            if (bs.stock > 0) isDeliverable = true;
+            availableStock = bs.stock || 0;
+          } else if (pObj.vendor) {
+            if (pObj.stock > 0) isDeliverable = true;
+            availableStock = pObj.stock || 0;
+          }
         } else if (storeType === 'vendor') {
           if ((pObj.vendor?._id || pObj.vendor)?.toString() === storeId.toString() && pObj.stock > 0) isDeliverable = true;
           availableStock = pObj.stock || 0;

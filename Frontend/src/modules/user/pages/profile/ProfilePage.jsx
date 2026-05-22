@@ -110,6 +110,17 @@ const ProfilePage = () => {
                     </button>
                 </div>
 
+                {/* Mobile top-left back button */}
+                <button
+                    onClick={() => {
+                        const from = location.state?.from || '/';
+                        navigate(from);
+                    }}
+                    className="fixed top-4 left-4 z-50 md:hidden flex items-center justify-center w-8 h-8 bg-white dark:bg-[#141414] text-gray-800 dark:text-gray-200 rounded-full shadow-lg border border-gray-100 dark:border-white/10 active:scale-95 transition-transform"
+                >
+                    <ArrowLeft size={18} />
+                </button>
+
                 {/* Mobile top-right test notification button */}
                 <button
                     onClick={sendTestNotification}

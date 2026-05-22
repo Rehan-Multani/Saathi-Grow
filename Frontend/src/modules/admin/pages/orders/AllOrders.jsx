@@ -277,6 +277,22 @@ const AllOrders = () => {
         fetchOrders();
     }, [page, limit, debouncedSearch, statusFilter, paymentMethodFilter, paymentStatusFilter, startDate, endDate, deliverySlotFilter, orderSourceFilter]);
 
+    useEffect(() => {
+        const handleFirebaseMessage = (event) => {
+            const payload = event.detail;
+            const type = payload?.data?.type || '';
+            const title = payload?.notification?.title || payload?.data?.title || '';
+            
+            // If it's related to an order update or a new order, refresh the list
+            if (type.includes('order') || title.toLowerCase().includes('order') || type === 'delivery_status_update') {
+                fetchOrders();
+            }
+        };
+
+        window.addEventListener('onFirebaseMessage', handleFirebaseMessage);
+        return () => window.removeEventListener('onFirebaseMessage', handleFirebaseMessage);
+    }, [page, limit, debouncedSearch, statusFilter, paymentMethodFilter, paymentStatusFilter, startDate, endDate, deliverySlotFilter, orderSourceFilter]);
+
     const handleFilterChange = (setter) => (e) => {
         setter(e.target.value);
         setPage(1);

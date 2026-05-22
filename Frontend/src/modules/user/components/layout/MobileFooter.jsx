@@ -6,11 +6,33 @@ import { useAuth } from '../../context/AuthContext';
 const MobileFooter = ({ setIsMenuOpen, isBottomSheetOpen }) => {
     const { user } = useAuth();
     const location = useLocation();
+    const [isKeyboardOpen, setIsKeyboardOpen] = React.useState(false);
+
+    React.useEffect(() => {
+        const handleResize = () => {
+            if (window.visualViewport) {
+                // If visual viewport height is significantly less than window innerHeight, keyboard is open
+                setIsKeyboardOpen(window.visualViewport.height < window.innerHeight - 150);
+            }
+        };
+
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', handleResize);
+            return () => window.visualViewport.removeEventListener('resize', handleResize);
+        } else {
+            const initialHeight = window.innerHeight;
+            const fallbackResize = () => {
+                setIsKeyboardOpen(window.innerHeight < initialHeight - 150);
+            };
+            window.addEventListener('resize', fallbackResize);
+            return () => window.removeEventListener('resize', fallbackResize);
+        }
+    }, []);
 
     // Do not show on auth pages, checkout, or tracking
     const hideOnPages = ['/login', '/register', '/checkout', '/order-success'];
     const isTrackingPage = location.pathname.includes('/tracking');
-    const isActuallyHidden = hideOnPages.includes(location.pathname) || isTrackingPage;
+    const isActuallyHidden = hideOnPages.includes(location.pathname) || isTrackingPage || isKeyboardOpen;
 
     const navItems = [
         { path: '/', label: 'Home', icon: Home },

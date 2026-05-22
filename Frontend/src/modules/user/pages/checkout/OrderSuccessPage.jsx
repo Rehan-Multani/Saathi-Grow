@@ -57,9 +57,6 @@ const OrderSuccessPage = () => {
                         <div className="absolute inset-0 bg-green-500/20 blur-3xl rounded-full scale-150 animate-pulse"></div>
                         <div className="w-24 h-24 bg-[#0c831f] rounded-full flex items-center justify-center text-white shadow-[0_20px_50px_rgba(12,131,31,0.3)] relative z-10 animate-checkmark-pop">
                             <div className="absolute inset-2 border-[3px] border-white/20 rounded-full animate-[spin_8s_linear_infinite]"></div>
-                            <div className="absolute -top-2 -right-2 bg-yellow-400 p-1.5 rounded-full shadow-lg animate-bounce">
-                                <Sparkles size={16} className="text-white fill-white" />
-                            </div>
                             <CheckCircle size={52} strokeWidth={2.5} className="drop-shadow-lg" />
                         </div>
                     </div>

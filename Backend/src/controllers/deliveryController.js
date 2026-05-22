@@ -9,7 +9,7 @@ import DeliveryLocation from '../models/DeliveryLocation.js';
 import CashCollection from '../models/CashCollection.js';
 import { findOptimalSource } from '../services/locationService.js';
 import { creditVendorWallet, debitVendorWallet, creditAdminWallet, debitAdminWallet } from './orderController.js';
-import { sendPushNotification } from '../services/notificationService.js';
+import { sendPushNotification, notifyByBranchAndPermission } from '../services/notificationService.js';
 
 // @desc    Get delivery partner profile
 // @route   GET /api/delivery/profile
@@ -232,6 +232,15 @@ export const updateDeliveryStatus = async (req, res) => {
                         order.paymentStatus = 'paid';
                     }
                     await order.save();
+
+                    // Notify Admin about Delivery
+                    notifyByBranchAndPermission(
+                        order.branchId,
+                        'orders.view',
+                        'Order Delivered! ✅',
+                        `Order #${order.orderId} has been successfully delivered by ${partner.name}.`,
+                        { orderId: order._id.toString(), type: 'delivery_status_update' }
+                    );
 
                     // Notify User about Delivery
                     sendPushNotification(order.user, 'User', {

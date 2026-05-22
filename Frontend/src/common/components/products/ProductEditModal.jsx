@@ -47,6 +47,9 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
 
     const [imagePreview, setImagePreview] = useState(null);
     const [imageFile, setImageFile] = useState(null);
+    const [existingGallery, setExistingGallery] = useState([]);
+    const [galleryPreviews, setGalleryPreviews] = useState([]);
+    const [galleryFiles, setGalleryFiles] = useState([]);
     const [tagInput, setTagInput] = useState('');
     const isVendorProduct = Boolean(product?.vendor);
 
@@ -100,6 +103,9 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
             });
             setBranchStocks(activeStocks);
             setImagePreview(product.image || null);
+            setExistingGallery(product.gallery || []);
+            setGalleryPreviews([]);
+            setGalleryFiles([]);
 
             // Fetch available locations for the first branch of this product
             if (adminUser?.token && !product.vendor) {
@@ -165,6 +171,31 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
         }
     };
 
+    const handleGalleryChange = (e) => {
+        const files = Array.from(e.target.files);
+        if (files.length === 0) return;
+
+        if (existingGallery.length + galleryFiles.length + files.length > 10) {
+            toast.warning('Max 10 images allowed in gallery');
+            return;
+        }
+
+        const newPreviews = files.map(f => URL.createObjectURL(f));
+        setGalleryPreviews(prev => [...prev, ...newPreviews]);
+        setGalleryFiles(prev => [...prev, ...files]);
+        
+        e.target.value = '';
+    };
+
+    const removeExistingGalleryImage = (index) => {
+        setExistingGallery(prev => prev.filter((_, i) => i !== index));
+    };
+
+    const removeGalleryImage = (index) => {
+        setGalleryPreviews(prev => prev.filter((_, i) => i !== index));
+        setGalleryFiles(prev => prev.filter((_, i) => i !== index));
+    };
+
     const addTag = () => {
         const tag = tagInput.trim();
         if (tag && !formData.tags.includes(tag)) {
@@ -196,6 +227,9 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
             }
 
             if (imageFile) data.append('image', imageFile);
+            data.append('existingGallery', JSON.stringify(existingGallery));
+            galleryFiles.forEach(f => data.append('gallery', f));
+            
             await onSave(data);
         } catch (error) { toast.error(error.message); }
         finally { setLoading(false); }
@@ -461,10 +495,34 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
                         {/* Side Panels */}
                         <div className="space-y-8">
                             <div className="space-y-4">
-                                <label className="text-sm font-semibold text-slate-700 block text-center">{t('form.images')}</label>
+                                <label className="text-sm font-semibold text-slate-700 block text-center">{t('form.images')} (Main)</label>
                                 <div className="relative group aspect-square bg-slate-50 border-2 border-dashed border-slate-200 rounded-3xl overflow-hidden flex items-center justify-center cursor-pointer hover:border-blue-400">
                                     {imagePreview ? <img src={imagePreview} className="w-full h-full object-cover" /> : <Camera size={32} className="text-slate-300" />}
-                                    <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleImageChange} />
+                                    <input type="file" accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleImageChange} />
+                                </div>
+                            </div>
+
+                            <div className="space-y-4">
+                                <label className="text-sm font-semibold text-slate-700 block text-center">Gallery Images</label>
+                                <div className="grid grid-cols-3 gap-2">
+                                    {existingGallery.map((img, index) => (
+                                        <div key={`exist-${index}`} className="relative aspect-square bg-slate-50 border border-slate-200 rounded-xl overflow-hidden group">
+                                            <img src={img} className="w-full h-full object-cover" />
+                                            <button type="button" onClick={() => removeExistingGalleryImage(index)} className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-md"><X size={12} strokeWidth={3} /></button>
+                                        </div>
+                                    ))}
+                                    {galleryPreviews.map((img, index) => (
+                                        <div key={`new-${index}`} className="relative aspect-square bg-slate-50 border border-slate-200 rounded-xl overflow-hidden group">
+                                            <img src={img} className="w-full h-full object-cover" />
+                                            <button type="button" onClick={() => removeGalleryImage(index)} className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-md"><X size={12} strokeWidth={3} /></button>
+                                        </div>
+                                    ))}
+                                    {(existingGallery.length + galleryPreviews.length) < 10 && (
+                                        <label className="relative aspect-square bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl overflow-hidden flex items-center justify-center cursor-pointer hover:border-blue-400 hover:bg-slate-100 transition-all">
+                                            <Plus size={20} className="text-slate-400" />
+                                            <input type="file" multiple accept="image/*" className="hidden" onChange={handleGalleryChange} />
+                                        </label>
+                                    )}
                                 </div>
                             </div>
 

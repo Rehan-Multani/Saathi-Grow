@@ -72,6 +72,10 @@ const FirebaseNotificationHandler = ({ token, role, isApp = false }) => {
           theme: "colored"
         }
       );
+
+      // Dispatch a custom event so other components can react (e.g., show a big modal for new orders)
+      const event = new CustomEvent('onFirebaseMessage', { detail: payload });
+      window.dispatchEvent(event);
     });
 
     return () => {

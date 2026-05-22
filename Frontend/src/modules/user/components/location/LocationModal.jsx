@@ -112,7 +112,7 @@ const LocationModal = () => {
     );
 
     return (
-        <div className="fixed inset-0 z-[2100] flex justify-center items-start pt-[6vh] px-4 pointer-events-none font-sans">
+        <div className="fixed inset-0 z-[10010] flex justify-center items-start pt-[6vh] px-4 pointer-events-none font-sans">
             {/* Darkened Overlay */}
             <div
                 className="absolute inset-0 bg-black/60 backdrop-blur-[2px] pointer-events-auto transition-opacity"

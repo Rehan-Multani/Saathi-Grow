@@ -52,7 +52,7 @@ export const createPOSOrder = async (req, res) => {
     const enrichedItems = await enrichItemsWithLocations(items);
 
     const order = new Order({
-      orderId: 'POS-' + Date.now().toString(),
+      orderId: 'POS-' + Math.floor(10000000 + Math.random() * 90000000).toString(),
       items: enrichedItems.map(item => ({
         product: item.product,
         name: item.name,

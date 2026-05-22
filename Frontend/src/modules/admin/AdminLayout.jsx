@@ -8,6 +8,7 @@ import { useAdminAuth } from './context/AdminAuthContext';
 import FirebaseNotificationHandler from '../../common/components/FirebaseNotificationHandler';
 import axios from 'axios';
 import { API_BASE_URL } from '../../config/apiConfig';
+import NewOrderPopup from './components/NewOrderPopup';
 
 const AdminLayout = () => {
     const { t, i18n: i18nInstance } = useTranslation(['admin_sidebar', 'common']);
@@ -39,6 +40,7 @@ const AdminLayout = () => {
     return (
         <div className="min-h-screen bg-slate-50 font-sans">
             <FirebaseNotificationHandler token={adminToken} role="admin" />
+            <NewOrderPopup />
             <AdminSidebar
                 showMobile={showMobileSidebar}
                 onClose={() => setShowMobileSidebar(false)}

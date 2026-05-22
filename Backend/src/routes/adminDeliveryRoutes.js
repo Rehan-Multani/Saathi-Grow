@@ -31,7 +31,7 @@ const router = express.Router();
 // Helper to check for delivery permission (Admins only, Vendors bypass)
 const deliveryAuth = (req, res, next) => {
     if (req.vendor) return next();
-    if (req.admin && (req.admin.role === 'Admin' || (req.admin.permissions || []).includes('MANAGE_DELIVERY'))) return next();
+    if (req.admin && (['Admin', 'Branch Manager', 'Staff'].includes(req.admin.role) || (req.admin.permissions || []).includes('MANAGE_DELIVERY'))) return next();
     return res.status(403).json({ message: 'Delivery Management Access Denied' });
 };
 

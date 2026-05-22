@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { fetchProductById, fetchProducts, logDemandRequest, fetchProductReviews, submitProductReview } from '../../api/shopApi';
 import { useCart } from '../../context/CartContext';
-import { Minus, Plus, ChevronRight, Star, ShoppingCart, Sparkles, TrendingUp, AlertCircle, Bell, MapPin } from 'lucide-react';
+import { Minus, Plus, ChevronRight, ChevronLeft, Star, ShoppingCart, Sparkles, TrendingUp, AlertCircle, Bell, MapPin } from 'lucide-react';
 import { ProductDetailSkeleton } from '../../components/common/Skeleton';
 import ProductCard from '../../components/product/ProductCard';
 import { useAuth } from '../../context/AuthContext';
@@ -14,6 +14,7 @@ const categoryPlaceholder = ASSET_URLS.placeholder;
 
 const ProductDetailsPage = () => {
     const { id } = useParams();
+    const navigate = useNavigate();
     const { addToCart, updateQuantity, cart } = useCart();
     const { user, token, protectAction } = useAuth();
     const { activeStore, isStoreOutOfRange, isStoreInactive, openStoreSelector } = useStore();
@@ -52,7 +53,7 @@ const ProductDetailsPage = () => {
                 id: data._id,
                 name: data.name,
                 image: data.image || (data.gallery && data.gallery.length > 0 ? data.gallery[0] : ''),
-                images: data.gallery && data.gallery.length > 0 ? data.gallery : [data.image],
+                images: [data.image, ...(data.gallery || [])].filter(Boolean),
                 price: data.basePrice,
                 mrp: data.mrp,
                 category: data.category?.name || data.category,
@@ -72,7 +73,7 @@ const ProductDetailsPage = () => {
 
             setProduct(p);
             setSelectedImage(p.image);
-            setProductImages(p.images.length >= 3 ? p.images : [p.image, p.image, p.image]); // Fill layout if few images
+            setProductImages(p.images);
 
         } catch (err) {
             console.error("Failed to load product details:", err);
@@ -283,6 +284,13 @@ const ProductDetailsPage = () => {
             {/* Minimal Breadcrumb */}
             <div className="max-w-7xl mx-auto px-4 py-4">
                 <div className="flex items-center text-[11px] text-gray-400 gap-2 uppercase tracking-widest">
+                    <button 
+                        onClick={() => navigate(-1)} 
+                        className="p-1.5 bg-white dark:bg-[#1a1a1a] text-gray-600 dark:text-gray-300 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors shadow-sm border border-gray-200 dark:border-white/5 mr-1"
+                        aria-label="Go Back"
+                    >
+                        <ChevronLeft size={16} strokeWidth={2.5} />
+                    </button>
                     <Link to="/" className="hover:text-[#0c831f]">Home</Link>
                     <ChevronRight size={12} />
                     <span className="text-gray-300">{product.name}</span>

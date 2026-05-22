@@ -265,6 +265,16 @@ const enrichProductsForStore = (products = [], storeId, storeType) => {
         availableStock = branchStock.stock || 0;
         lowStockThreshold = branchStock.lowStockThreshold || 10;
         isDeliverable = availableStock > 0;
+      } else if (productObj.vendor) {
+        inStore = true;
+        availableStock = productObj.stock || 0;
+        lowStockThreshold = productObj.lowStockThreshold || 10;
+        isDeliverable = availableStock > 0;
+      } else if (productObj.isAllBranches) {
+        inStore = true;
+        availableStock = 0;
+        lowStockThreshold = productObj.lowStockThreshold || 10;
+        isDeliverable = false;
       }
     } else if (storeType === 'vendor') {
       const vendorId = productObj.vendor?._id || productObj.vendor;

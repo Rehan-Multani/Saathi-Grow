@@ -369,7 +369,7 @@ export const verifyRazorpayPayment = async (req, res) => {
 
     // Setup Document safely
     const order = new Order({
-      orderId: 'SG-' + Date.now().toString(),
+      orderId: 'SG-' + Math.floor(10000000 + Math.random() * 90000000).toString(),
       user: req.user._id,
       items: enrichedItems,
       shippingAddress: orderData.shippingAddress,
@@ -440,12 +440,10 @@ export const verifyRazorpayPayment = async (req, res) => {
     }, { orderId: createdOrder.orderId, status: 'confirmed' });
 
     // 2. Notify Branch Staff / Manager
-    if (createdOrder.branchId) {
-      notifyByBranchAndPermission('MANAGE_ORDERS', createdOrder.branchId, {
-        title: 'New Online Order',
-        body: `Order ${createdOrder.orderId} for ₹${createdOrder.totalAmount} is ready for processing.`
-      }, { orderId: createdOrder.orderId, action: 'VIEW_ORDER' });
-    }
+    notifyByBranchAndPermission('MANAGE_ORDERS', createdOrder.branchId || null, {
+      title: 'New Online Order',
+      body: `Order ${createdOrder.orderId} for ₹${createdOrder.totalAmount} is ready for processing.`
+    }, { orderId: createdOrder.orderId, action: 'VIEW_ORDER' });
 
     // 3. Send Transactional Email to User
     if (req.user.email) {
@@ -866,7 +864,7 @@ export const createCODOrder = async (req, res) => {
     const enrichedCODItems = await enrichItemsWithLocations(orderData.items);
 
     const order = new Order({
-      orderId: 'SG-' + Date.now().toString(),
+      orderId: 'SG-' + Math.floor(10000000 + Math.random() * 90000000).toString(),
       user: req.user._id,
       items: enrichedCODItems,
       shippingAddress: orderData.shippingAddress,
@@ -934,12 +932,10 @@ export const createCODOrder = async (req, res) => {
     }, { orderId: createdOrder.orderId, status: 'pending' });
 
     // 2. Notify Branch Staff
-    if (createdOrder.branchId) {
-      notifyByBranchAndPermission('MANAGE_ORDERS', createdOrder.branchId, {
-        title: 'New COD Order',
-        body: `A new COD order ${createdOrder.orderId} needs confirmation.`
-      }, { orderId: createdOrder.orderId, action: 'CONFIRM_ORDER' });
-    }
+    notifyByBranchAndPermission('MANAGE_ORDERS', createdOrder.branchId || null, {
+      title: 'New COD Order',
+      body: `A new COD order ${createdOrder.orderId} needs confirmation.`
+    }, { orderId: createdOrder.orderId, action: 'CONFIRM_ORDER' });
 
     // 3. Status Change Email
     if (req.user.email) {
@@ -988,7 +984,7 @@ export const createWalletOrder = async (req, res) => {
     const enrichedWalletItems = await enrichItemsWithLocations(orderData.items);
 
     const order = new Order({
-      orderId: 'SG-' + Date.now().toString(),
+      orderId: 'SG-' + Math.floor(10000000 + Math.random() * 90000000).toString(),
       user: req.user._id,
       items: enrichedWalletItems,
       shippingAddress: orderData.shippingAddress,
@@ -1072,12 +1068,10 @@ export const createWalletOrder = async (req, res) => {
     }, { orderId: createdOrder.orderId, status: 'confirmed' });
 
     // 2. Notify Branch Staff
-    if (createdOrder.branchId) {
-      notifyByBranchAndPermission('MANAGE_ORDERS', createdOrder.branchId, {
-        title: 'New Prepaid Order',
-        body: `Digital order ${createdOrder.orderId} for ₹${createdOrder.totalAmount} is confirmed.`
-      }, { orderId: createdOrder.orderId, action: 'PROCESS_ORDER' });
-    }
+    notifyByBranchAndPermission('MANAGE_ORDERS', createdOrder.branchId || null, {
+      title: 'New Prepaid Order',
+      body: `Digital order ${createdOrder.orderId} for ₹${createdOrder.totalAmount} is confirmed.`
+    }, { orderId: createdOrder.orderId, action: 'PROCESS_ORDER' });
 
     // 3. User Wallet Order Email
     if (req.user.email) {

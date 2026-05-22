@@ -93,6 +93,22 @@ const OnlineOrders = () => {
         fetchOrders();
     }, [page, debouncedSearch, statusFilter, paymentStatusFilter, startDate, endDate]);
 
+    useEffect(() => {
+        const handleFirebaseMessage = (event) => {
+            const payload = event.detail;
+            const type = payload?.data?.type || '';
+            const title = payload?.notification?.title || payload?.data?.title || '';
+            
+            // If it's related to an order update or a new order, refresh the list
+            if (type.includes('order') || title.toLowerCase().includes('order') || type === 'delivery_status_update') {
+                fetchOrders();
+            }
+        };
+
+        window.addEventListener('onFirebaseMessage', handleFirebaseMessage);
+        return () => window.removeEventListener('onFirebaseMessage', handleFirebaseMessage);
+    }, [page, debouncedSearch, statusFilter, paymentStatusFilter, startDate, endDate]);
+
     const handleFilterChange = (setter) => (e) => { setter(e.target.value); setPage(1); };
 
     const clearFilters = () => {

@@ -485,7 +485,7 @@ const ProductRow = ({ category, loading: globalLoading }) => {
                 category: category.name,
                 page: pageNum,
                 limit: 20,
-                status: 'Active',
+                status: ['Active', 'Low Stock', 'Out of Stock'],
                 activeStoreId: activeStore?.id,
                 activeStoreType: activeStore?.type
             });
@@ -726,7 +726,7 @@ const OccasionSection = ({
                 campaignId: campaignId,
                 page: nextPage,
                 limit: 20,
-                status: 'Active',
+                status: ['Active', 'Low Stock', 'Out of Stock'],
                 activeStoreId: activeStore?.id,
                 activeStoreType: activeStore?.type
             });

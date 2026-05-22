@@ -401,65 +401,71 @@ const OrderDetailsPage = () => {
                                 <ChevronRight size={14} className="text-gray-300 group-hover:text-[#0c831f] transition-all flex-shrink-0" />
                             </button>
 
-                            <button onClick={() => navigate(`/orders/${order.id}/complaint`)} className="w-full py-4 px-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-white/5 active:scale-[0.98] transition-all group">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-9 h-9 rounded-xl bg-orange-50 dark:bg-orange-500/10 flex items-center justify-center text-orange-500 border border-orange-100 dark:border-orange-500/10 flex-shrink-0">
-                                        <MessageSquare size={15} />
+                            {['delivered', 'returned', 'cancelled'].includes(order.status) && (
+                                <button onClick={() => navigate(`/orders/${order.id}/complaint`)} className="w-full py-4 px-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-white/5 active:scale-[0.98] transition-all group">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-9 h-9 rounded-xl bg-orange-50 dark:bg-orange-500/10 flex items-center justify-center text-orange-500 border border-orange-100 dark:border-orange-500/10 flex-shrink-0">
+                                            <MessageSquare size={15} />
+                                        </div>
+                                        <div className="text-left">
+                                            <div className="text-[12px] font-black text-gray-800 dark:text-gray-100">Raise a complaint</div>
+                                            <p className="text-[10px] text-gray-400 font-medium">Issues with delivery or payment</p>
+                                        </div>
                                     </div>
-                                    <div className="text-left">
-                                        <div className="text-[12px] font-black text-gray-800 dark:text-gray-100">Raise a complaint</div>
-                                        <p className="text-[10px] text-gray-400 font-medium">Issues with delivery or payment</p>
-                                    </div>
-                                </div>
-                                <ChevronRight size={14} className="text-gray-300 group-hover:text-orange-500 transition-all flex-shrink-0" />
-                            </button>
+                                    <ChevronRight size={14} className="text-gray-300 group-hover:text-orange-500 transition-all flex-shrink-0" />
+                                </button>
+                            )}
 
-                            <button
-                                onClick={() => {
-                                    const canReturn = order.status === 'delivered' && !rawOrder?.returnRequest?.isRequested;
-                                    if (canReturn) { navigate(`/orders/${order.id}/return`); }
-                                    else if (rawOrder?.returnRequest?.isRequested) {
-                                        const rStatus = rawOrder.returnRequest.status;
-                                        toast.info(rStatus === 'Approved' ? 'Return approved! Refund processing.' : rStatus === 'Rejected' ? 'Return request was rejected.' : 'Return request is under review.');
-                                    } else { toast.info('Returns available only for delivered orders.'); }
-                                }}
-                                className={`w-full py-4 px-4 flex items-center justify-between transition-all group ${order.status === 'delivered' && !rawOrder?.returnRequest?.isRequested ? 'hover:bg-gray-50 dark:hover:bg-white/5 active:scale-[0.98]' : 'opacity-50 cursor-not-allowed'}`}
-                            >
-                                <div className="flex items-center gap-3">
-                                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center border flex-shrink-0 ${rawOrder?.returnRequest?.isRequested ? 'bg-amber-50 text-amber-500 border-amber-100' : 'bg-blue-50 text-blue-500 border-blue-100 dark:bg-blue-500/10 dark:border-blue-500/10'}`}>
-                                        <RefreshCw size={15} />
+                            {(['delivered', 'returned'].includes(order.status) || rawOrder?.returnRequest?.isRequested) && (
+                                <button
+                                    onClick={() => {
+                                        const canReturn = order.status === 'delivered' && !rawOrder?.returnRequest?.isRequested;
+                                        if (canReturn) { navigate(`/orders/${order.id}/return`); }
+                                        else if (rawOrder?.returnRequest?.isRequested) {
+                                            const rStatus = rawOrder.returnRequest.status;
+                                            toast.info(rStatus === 'Approved' ? 'Return approved! Refund processing.' : rStatus === 'Rejected' ? 'Return request was rejected.' : 'Return request is under review.');
+                                        } else { toast.info('Returns available only for delivered orders.'); }
+                                    }}
+                                    className={`w-full py-4 px-4 flex items-center justify-between transition-all group ${order.status === 'delivered' && !rawOrder?.returnRequest?.isRequested ? 'hover:bg-gray-50 dark:hover:bg-white/5 active:scale-[0.98]' : 'opacity-50 cursor-not-allowed'}`}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center border flex-shrink-0 ${rawOrder?.returnRequest?.isRequested ? 'bg-amber-50 text-amber-500 border-amber-100' : 'bg-blue-50 text-blue-500 border-blue-100 dark:bg-blue-500/10 dark:border-blue-500/10'}`}>
+                                            <RefreshCw size={15} />
+                                        </div>
+                                        <div className="text-left">
+                                            <div className="text-[12px] font-black text-gray-800 dark:text-gray-100">Return items</div>
+                                            <p className="text-[10px] text-gray-400 font-medium">
+                                                {rawOrder?.returnRequest?.isRequested ? `Request ${rawOrder.returnRequest.status?.toLowerCase()}` : order.status === 'delivered' ? 'Returning defective or wrong items' : 'Available only after delivery'}
+                                            </p>
+                                        </div>
                                     </div>
-                                    <div className="text-left">
-                                        <div className="text-[12px] font-black text-gray-800 dark:text-gray-100">Return items</div>
-                                        <p className="text-[10px] text-gray-400 font-medium">
-                                            {rawOrder?.returnRequest?.isRequested ? `Request ${rawOrder.returnRequest.status?.toLowerCase()}` : order.status === 'delivered' ? 'Returning defective or wrong items' : 'Available only after delivery'}
-                                        </p>
-                                    </div>
-                                </div>
-                                {order.status === 'delivered' && !rawOrder?.returnRequest?.isRequested && <ChevronRight size={14} className="text-gray-300 group-hover:text-blue-500 transition-all flex-shrink-0" />}
-                            </button>
+                                    {order.status === 'delivered' && !rawOrder?.returnRequest?.isRequested && <ChevronRight size={14} className="text-gray-300 group-hover:text-blue-500 transition-all flex-shrink-0" />}
+                                </button>
+                            )}
 
-                            <button
-                                onClick={() => {
-                                    const restricted = ['out_for_delivery', 'delivered', 'cancelled', 'returned'];
-                                    if (!restricted.includes(order.status)) { navigate(`/orders/${order.id}/cancel`); }
-                                    else { toast.info('Cancellation no longer available for this order.'); }
-                                }}
-                                className={`w-full py-4 px-4 flex items-center justify-between transition-all group ${['out_for_delivery', 'delivered', 'cancelled', 'returned'].includes(order.status) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50 dark:hover:bg-white/5 active:scale-[0.98]'}`}
-                            >
-                                <div className="flex items-center gap-3">
-                                    <div className="w-9 h-9 rounded-xl bg-red-50 dark:bg-red-500/10 flex items-center justify-center text-red-500 border border-red-100 dark:border-red-500/10 flex-shrink-0">
-                                        <XCircle size={15} />
+                            {!['out_for_delivery', 'delivered', 'cancelled', 'returned'].includes(order.status) && (
+                                <button
+                                    onClick={() => {
+                                        const restricted = ['out_for_delivery', 'delivered', 'cancelled', 'returned'];
+                                        if (!restricted.includes(order.status)) { navigate(`/orders/${order.id}/cancel`); }
+                                        else { toast.info('Cancellation no longer available for this order.'); }
+                                    }}
+                                    className={`w-full py-4 px-4 flex items-center justify-between transition-all group ${['out_for_delivery', 'delivered', 'cancelled', 'returned'].includes(order.status) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50 dark:hover:bg-white/5 active:scale-[0.98]'}`}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-9 h-9 rounded-xl bg-red-50 dark:bg-red-500/10 flex items-center justify-center text-red-500 border border-red-100 dark:border-red-500/10 flex-shrink-0">
+                                            <XCircle size={15} />
+                                        </div>
+                                        <div className="text-left">
+                                            <div className="text-[12px] font-black text-gray-800 dark:text-gray-100">Cancel order</div>
+                                            <p className="text-[10px] text-gray-400 font-medium">
+                                                {['out_for_delivery', 'delivered'].includes(order.status) ? 'Already out for delivery' : order.status === 'cancelled' ? 'This order was cancelled' : 'Cancel before delivery'}
+                                            </p>
+                                        </div>
                                     </div>
-                                    <div className="text-left">
-                                        <div className="text-[12px] font-black text-gray-800 dark:text-gray-100">Cancel order</div>
-                                        <p className="text-[10px] text-gray-400 font-medium">
-                                            {['out_for_delivery', 'delivered'].includes(order.status) ? 'Already out for delivery' : order.status === 'cancelled' ? 'This order was cancelled' : 'Cancel before delivery'}
-                                        </p>
-                                    </div>
-                                </div>
-                                {!['out_for_delivery', 'delivered', 'cancelled', 'returned'].includes(order.status) && <ChevronRight size={14} className="text-gray-300 group-hover:text-red-500 transition-all flex-shrink-0" />}
-                            </button>
+                                    {!['out_for_delivery', 'delivered', 'cancelled', 'returned'].includes(order.status) && <ChevronRight size={14} className="text-gray-300 group-hover:text-red-500 transition-all flex-shrink-0" />}
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>

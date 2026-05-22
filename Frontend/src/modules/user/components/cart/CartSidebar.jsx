@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Minus, Plus, ChevronRight, Clock, ShoppingBag, Info, AlertCircle } from 'lucide-react';
+import { X, Minus, Plus, ChevronRight, ChevronLeft, Clock, ShoppingBag, Info, AlertCircle } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -33,7 +33,7 @@ const CartSidebar = () => {
     if (!isCartOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[2000] flex justify-end font-sans">
+        <div className="fixed inset-0 z-[10005] flex justify-end font-sans">
             {/* Overlay - Hidden on Mobile for "Full Page" feel */}
             <div
                 className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity hidden sm:block"
@@ -45,7 +45,15 @@ const CartSidebar = () => {
 
                 {/* Header */}
                 <div className="px-3.5 py-3.5 bg-transparent flex items-center justify-between sticky top-0 z-10 border-b border-gray-100 dark:border-white/5">
-                    <h2 className="text-[15px] font-black text-[#1f2937] dark:text-gray-100 tracking-tight">My Basket</h2>
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => setIsCartOpen(false)}
+                            className="p-1 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full transition-colors"
+                        >
+                            <ChevronLeft size={20} className="text-gray-600 dark:text-gray-400" strokeWidth={2.5} />
+                        </button>
+                        <h2 className="text-[15px] font-black text-[#1f2937] dark:text-gray-100 tracking-tight">My Basket</h2>
+                    </div>
                     <button
                         onClick={() => setIsCartOpen(false)}
                         className="p-1 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full transition-colors"
@@ -154,6 +162,17 @@ const CartSidebar = () => {
                                     </div>
                                 ))}
                             </div>
+
+                            {/* Add More Items Button */}
+                            <div className="px-1 mt-4 mb-2">
+                                <button
+                                    onClick={() => setIsCartOpen(false)}
+                                    className="w-full py-2.5 border border-[#0c831f] text-[#0c831f] dark:border-green-500 dark:text-green-500 rounded-lg text-[11px] font-black uppercase tracking-widest hover:bg-[#0c831f]/5 transition-colors flex items-center justify-center gap-2"
+                                >
+                                    <Plus size={14} strokeWidth={3} />
+                                    Add more products
+                                </button>
+                            </div>
                         </>
                     )}
                 </div>
@@ -172,20 +191,6 @@ const CartSidebar = () => {
                                         <span className="text-gray-900 dark:text-gray-100">₹{itemTotalDiscounted}</span>
                                     </div>
                                 </div>
-                                <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-tight text-gray-500 dark:text-gray-400">
-                                    <span className="flex items-center gap-1">Delivery charge {publicSettings?.surgeMultiplier > 1 && <span className="lowercase normal-case text-rose-500 tracking-normal">(Surge x{publicSettings.surgeMultiplier})</span>}</span>
-                                    <span className={deliveryFee === 0 ? "text-[#0c831f] font-black" : "font-black text-gray-900 dark:text-gray-100"}>
-                                        {deliveryFee === 0 ? 'FREE' : `₹${deliveryFee.toFixed(2)}`}
-                                    </span>
-                                </div>
-                                <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-tight text-gray-500 dark:text-gray-400">
-                                    <span className="flex items-center gap-1">Handling charge</span>
-                                    <span className="text-gray-900 dark:text-gray-100 font-black">₹{handlingFee}</span>
-                                </div>
-                                <div className="pt-3 border-t border-gray-100 dark:border-white/10 flex justify-between items-center">
-                                    <span className="font-black text-gray-900 dark:text-gray-100 !text-[12px] uppercase tracking-tighter">Grand total</span>
-                                    <span className="font-black text-gray-900 dark:text-gray-100 !text-[18px]">₹{finalTotal}</span>
-                                </div>
                             </div>
                         </div>
 
@@ -203,8 +208,8 @@ const CartSidebar = () => {
                             className={`w-full text-white px-8 flex items-center justify-between transition-all h-14 shadow-lg shadow-green-500/10 group ${isStoreOutOfRange ? 'bg-gray-400 cursor-not-allowed shadow-none' : 'bg-[#0c831f] hover:bg-[#0a6b19] active:scale-[0.98]'}`}
                         >
                             <div className="flex flex-col items-start leading-none gap-0.5">
-                                <span className="font-black text-[15px]">₹{finalTotal}</span>
-                                <span className="text-[7.5px] font-black uppercase tracking-[0.15em] opacity-80">Total Bill</span>
+                                <span className="font-black text-[15px]">₹{itemTotalDiscounted}</span>
+                                <span className="text-[7.5px] font-black uppercase tracking-[0.15em] opacity-80">Item Total</span>
                             </div>
                             <div className="flex items-center gap-1.5">
                                 <span className="font-black text-[12px]">{user ? (isStoreOutOfRange ? 'Out of Range' : 'Proceed') : 'Login'}</span>

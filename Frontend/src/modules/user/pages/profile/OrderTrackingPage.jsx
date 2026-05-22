@@ -4,7 +4,7 @@ import { GoogleMap, MarkerF, Polyline, useJsApiLoader } from '@react-google-maps
 import { db } from '../../../../config/firebase';
 import { ref, onValue, off } from 'firebase/database';
 import polylineUtil from '@mapbox/polyline';
-import { Navigation as NavIcon, Phone, ChevronLeft, Star, Clock, AlertCircle, Loader2 } from 'lucide-react';
+import { Navigation as NavIcon, Phone, ChevronLeft, Star, Clock, AlertCircle, Loader2, CheckCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import * as orderApi from '../../api/orderApi';
 import { useAuth } from '../../context/AuthContext';
@@ -243,6 +243,22 @@ const OrderTrackingPage = () => {
       <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-slate-50 dark:bg-zinc-950 text-gray-900 dark:text-white">
         <Loader2 className="animate-spin text-emerald-500 mb-4" size={48} />
         <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-40">Syncing Pilot...</p>
+      </div>
+    );
+  }
+
+  // ── Delivered Success ──────────────────────────────────────────────────────
+  if (order?.status === 'delivered') {
+    return (
+      <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-emerald-500 text-white px-8 text-center">
+        <div className="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center mb-6 animate-bounce">
+          <CheckCircle size={48} className="text-white" />
+        </div>
+        <h1 className="text-4xl font-black mb-2 uppercase tracking-tight">Delivered!</h1>
+        <p className="text-emerald-100 font-bold mb-8 text-lg">Your order has been successfully delivered.</p>
+        <button onClick={() => navigate(-1)} className="px-8 py-4 bg-white text-emerald-600 rounded-2xl text-sm font-black uppercase tracking-widest hover:bg-emerald-50 transition-all shadow-xl active:scale-95">
+          Back to Orders
+        </button>
       </div>
     );
   }

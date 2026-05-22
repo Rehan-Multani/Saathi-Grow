@@ -13,7 +13,7 @@ const StoreManagerSidebar = ({ showMobile, onClose }) => {
 
     const hasAccess = (permissionCode) => {
         if (!managerUser) return false;
-        if (managerUser.role === 'Branch Manager' || managerUser.role === 'Admin') return true;
+        if (managerUser.role === 'Admin') return true; // Super Admin bypasses
         if (!permissionCode || permissionCode === 'VIEW_DASHBOARD') return true;
         
         const permissions = Array.isArray(managerUser.permissions) ? managerUser.permissions : [];

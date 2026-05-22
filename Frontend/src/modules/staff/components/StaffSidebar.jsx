@@ -13,6 +13,7 @@ const StaffSidebar = ({ showMobile, onClose }) => {
 
     const hasAccess = (item) => {
         if (!staffUser) return false;
+        if (staffUser.role === 'Admin') return true;
         if (item.title === 'Manage Staff') {
             return staffUser.role === 'Branch Manager';
         }
@@ -99,6 +100,7 @@ const StaffSidebar = ({ showMobile, onClose }) => {
                                         <div className={`overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${isMenuOpen ? 'max-h-[500px] opacity-100 mt-1' : 'max-h-0 opacity-0'}`}>
                                             <div className="bg-slate-900/40 rounded-2xl py-2 ml-4 border-l border-white/5">
                                                 {item.submenu.map((subItem, subIndex) => {
+                                                    if (!hasAccess(subItem)) return null;
                                                     const isSubActive = location.pathname === subItem.path;
                                                     return (
                                                         <NavLink

@@ -60,6 +60,22 @@ const DeliveryDashboard = () => {
     const mapUrl = `https://maps.googleapis.com/maps/api/staticmap?center=22.7533,75.8948&zoom=14&size=600x300&maptype=roadmap&markers=color:black%7Clabel:S%7C22.7533,75.8948&markers=color:red%7Clabel:C%7C22.7196,75.8577&key=${GOOGLE_MAPS_API_KEY}`;
     console.log('URL:', mapUrl);
 
+    useEffect(() => {
+        const handleFirebaseMessage = (event) => {
+            const payload = event.detail;
+            const title = payload?.notification?.title || payload?.data?.title || '';
+            const isAssignment = title.toLowerCase().includes('assign') || title.toLowerCase().includes('pickup');
+            
+            if (isAssignment) {
+                // Instantly fetch latest data so new order appears without manual refresh
+                refreshAll();
+            }
+        };
+
+        window.addEventListener('onFirebaseMessage', handleFirebaseMessage);
+        return () => window.removeEventListener('onFirebaseMessage', handleFirebaseMessage);
+    }, [refreshAll]);
+
     const handleToggleDuty = async () => {
         try {
             await toggleStatus(profile?.dutyStatus);

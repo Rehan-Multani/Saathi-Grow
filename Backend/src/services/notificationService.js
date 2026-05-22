@@ -161,19 +161,14 @@ export const notifyByBranchAndPermission = async (permission, branchId, notifica
     // We fetch matching Staff and Branch Managers
     const staff = await Admin.find(query);
     
-    // Also include Super Admins if not scoped strictly to branch
-    if (!branchId || permission === 'VIEW_DASHBOARD') {
-      const superAdmins = await Admin.find({ role: 'Admin', isActive: true });
-      // Union both lists avoiding duplicates
-      const allRecipients = [...new Map([...staff, ...superAdmins].map(item => [item._id.toString(), item])).values()];
-      
-      for (const recipient of allRecipients) {
-        await sendPushNotification(recipient._id, 'Admin', notification, data, true);
-      }
-    } else {
-      for (const s of staff) {
-        await sendPushNotification(s._id, 'Admin', notification, data, true);
-      }
+    // Always include Super Admins so they can monitor all activities
+    const superAdmins = await Admin.find({ role: 'Admin', isActive: true });
+    
+    // Union both lists avoiding duplicates
+    const allRecipients = [...new Map([...staff, ...superAdmins].map(item => [item._id.toString(), item])).values()];
+    
+    for (const recipient of allRecipients) {
+      await sendPushNotification(recipient._id, 'Admin', notification, data, true);
     }
   } catch (error) {
     console.error('Error in notifyByBranchAndPermission:', error);
