@@ -116,7 +116,10 @@ const validateStockAvailability = async (items, storeId, storeType) => {
       const branchStock = product.branchStocks?.find(bs => (bs.branchId?._id || bs.branchId)?.toString() === storeId?.toString());
       
       if (!branchStock) {
-        if (product.isAllBranches) {
+        if (product.vendor) {
+          availableStock = product.stock || 0;
+          threshold = product.lowStockThreshold || 10;
+        } else if (product.isAllBranches) {
           // If available to all branches but not yet initialized for this branch, assume 0 stock
           availableStock = 0;
           threshold = product.lowStockThreshold || 10;
@@ -471,7 +474,13 @@ export const decrementStock = async (order) => {
       const quantity = parseInt(item.quantity) || 0;
       console.log(`[STOCK-DEBUG] Processing Product: ${productId}, Qty: ${quantity}`);
 
-      if (branchId) {
+      const prodData = await Product.findById(productId);
+      if (!prodData) {
+        console.warn(`[STOCK-WARN] Product not found: ${productId}`);
+        continue;
+      }
+
+      if (!prodData.vendor && branchId) {
         // Logic for Branch Stock
         // Try to update existing entry
         let updatedProduct = await Product.findOneAndUpdate(
@@ -523,8 +532,9 @@ export const decrementStock = async (order) => {
         } else {
           console.warn(`[STOCK-WARN] No match found for Product: ${productId} even after attempt to initialize Branch: ${branchId}`);
         }
-      } else if (vendor) {
+      } else if (prodData.vendor) {
         // Logic for Vendor Stock (Deduct from top-level stock atomically)
+        const targetVendor = prodData.vendor;
         const updatedProduct = await Product.findOneAndUpdate(
           { _id: productId },
           { $inc: { stock: -quantity } },
@@ -532,10 +542,10 @@ export const decrementStock = async (order) => {
         );
 
         if (updatedProduct) {
-          console.log(`[STOCK-SUCCESS] Deducted ${quantity} from Vendor ${vendor} for Product ${productId}`);
+          console.log(`[STOCK-SUCCESS] Deducted ${quantity} from Vendor ${targetVendor} for Product ${productId}`);
           await InventoryLog.create({
             product: productId,
-            vendorId: vendor,
+            vendorId: targetVendor,
             changeAmount: -quantity,
             previousStock: (updatedProduct.stock || 0) + quantity,
             newStock: updatedProduct.stock || 0,
@@ -546,13 +556,13 @@ export const decrementStock = async (order) => {
 
           // --- Production Vendor Stock Alert ---
           if (updatedProduct.stock <= (updatedProduct.lowStockThreshold || 10)) {
-            await sendPushNotification(vendor, 'Vendor', {
+            await sendPushNotification(targetVendor, 'Vendor', {
               title: 'Low Stock Alert!',
               body: `Your product '${updatedProduct.name}' is running low (${updatedProduct.stock} items left).`
             }, { productId: updatedProduct._id.toString(), type: 'inventory_alert' });
           }
         } else {
-          console.warn(`[STOCK-WARN] No match found for Product: ${productId} at Vendor: ${vendor}`);
+          console.warn(`[STOCK-WARN] No match found for Product: ${productId} at Vendor: ${targetVendor}`);
         }
       }
     } catch (err) {
@@ -592,7 +602,10 @@ export const incrementStock = async (order) => {
       const productId = item.product._id || item.product;
       const quantity = parseInt(item.quantity) || 0;
 
-      if (branchId) {
+      const prodData = await Product.findById(productId);
+      if (!prodData) continue;
+
+      if (!prodData.vendor && branchId) {
         const updatedProduct = await Product.findOneAndUpdate(
           { _id: productId, 'branchStocks.branchId': branchId },
           { $inc: { 'branchStocks.$.stock': quantity } },
@@ -612,8 +625,9 @@ export const incrementStock = async (order) => {
             orderId: order._id
           });
         }
-      } else if (vendor) {
+      } else if (prodData.vendor) {
         // Restore to top-level stock
+        const targetVendor = prodData.vendor;
         const updatedProduct = await Product.findOneAndUpdate(
           { _id: productId },
           { $inc: { stock: quantity } },
@@ -623,7 +637,7 @@ export const incrementStock = async (order) => {
         if (updatedProduct) {
           await InventoryLog.create({
             product: productId,
-            vendorId: vendor,
+            vendorId: targetVendor,
             changeAmount: quantity,
             previousStock: (updatedProduct.stock || 0) - quantity,
             newStock: updatedProduct.stock || 0,

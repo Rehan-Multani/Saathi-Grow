@@ -53,7 +53,7 @@ const ProductDetailsPage = () => {
                 id: data._id,
                 name: data.name,
                 image: data.image || (data.gallery && data.gallery.length > 0 ? data.gallery[0] : ''),
-                images: [data.image, ...(data.gallery || [])].filter(Boolean),
+                images: Array.from(new Set([data.image, ...(data.gallery || [])].filter(Boolean))),
                 price: data.basePrice,
                 mrp: data.mrp,
                 category: data.category?.name || data.category,
