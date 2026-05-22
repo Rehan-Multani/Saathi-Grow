@@ -72,8 +72,7 @@ const InventoryRequests = () => {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
                 <div>
                     <div className="flex items-center gap-2">
-                        <h1 className="text-xl font-bold tracking-tight">{t('requests.title')}</h1>
-                        <span className="px-2.5 py-1 bg-blue-50 text-blue-600 text-[10px] font-bold rounded-lg border border-blue-100 uppercase">{totalFiltered} {t('adjustments.logged')}</span>
+                        <h1 className="text-xl font-bold tracking-tight text-slate-900">{t('requests.title')}</h1>
                     </div>
                     <p className="text-slate-500 text-xs mt-1 font-medium">{t('requests.subtitle')}</p>
                 </div>

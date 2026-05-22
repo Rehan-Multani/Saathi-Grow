@@ -180,11 +180,18 @@ const LoginPage = () => {
                         </form>
                     )}
                 </div>
-                <div className="bg-gray-50/50 dark:bg-white/5 px-6 py-2.5 text-center border-t border-gray-100 dark:border-white/5">
+                <div className="bg-gray-50/50 dark:bg-white/5 px-6 py-4 text-center border-t border-gray-100 dark:border-white/5 flex flex-col gap-2">
                     <p className="text-[10px] text-gray-400 dark:text-gray-500 font-medium">
                         Don't have an account?{' '}
                         <Link to={`/register?redirect=${encodeURIComponent(redirectPath)}`} className="font-bold text-[#0c831f] dark:text-[#10b981] hover:underline">
                             Register
+                        </Link>
+                    </p>
+                    <div className="h-[1px] bg-gray-100 dark:bg-white/5 w-1/2 mx-auto my-0.5" />
+                    <p className="text-[9px] text-gray-400 dark:text-gray-500 font-medium">
+                        Having trouble?{' '}
+                        <Link to="/help" className="font-bold text-gray-500 hover:text-[#0c831f] dark:hover:text-[#10b981] hover:underline transition-colors">
+                            Contact Support
                         </Link>
                     </p>
                 </div>

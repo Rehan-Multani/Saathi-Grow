@@ -860,7 +860,7 @@ export const getProductById = async (req, res) => {
       pObj.isDeliverable = isDeliverable;
       pObj.availableStock = availableStock;
       pObj.lowStockThreshold = lowStockThreshold;
-      pObj.maxAllowed = Math.max(0, availableStock - lowStockThreshold);
+      pObj.maxAllowed = availableStock; // Allow ordering up to full available stock, even if low stock
       pObj.inStore = inStore;
 
       // Enrich sourceInfo

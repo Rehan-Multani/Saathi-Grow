@@ -163,9 +163,18 @@ const AddProduct = () => {
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
+        let finalValue = type === 'checkbox' ? checked : value;
+        
+        if (type === 'number' && value !== '') {
+            const numVal = parseFloat(value);
+            if (numVal < 0) {
+                finalValue = '0';
+            }
+        }
+
         setFormData(prev => ({
             ...prev,
-            [name]: type === 'checkbox' ? checked : value
+            [name]: finalValue
         }));
     };
 
@@ -198,6 +207,32 @@ const AddProduct = () => {
 
         if (!formData.name || !formData.category || (isBrandRequired && !formData.brandName) || !formData.basePrice || !formData.sku) {
             return toast.error('Please fill all required fields');
+        }
+
+        // Pricing & Units Validations
+        const price = parseFloat(formData.basePrice);
+        const mrp = formData.mrp ? parseFloat(formData.mrp) : price;
+        const stock = parseInt(formData.stock, 10);
+        const lowStock = parseInt(formData.lowStockThreshold, 10);
+
+        if (isNaN(price) || price <= 0) {
+            return toast.error('Price must be greater than 0');
+        }
+
+        if (formData.mrp && (isNaN(mrp) || mrp <= 0)) {
+            return toast.error('MRP must be greater than 0');
+        }
+
+        if (mrp < price) {
+            return toast.error('MRP cannot be less than Price');
+        }
+
+        if (isNaN(stock) || stock < 0) {
+            return toast.error('Stock must be a non-negative integer (0 or more)');
+        }
+
+        if (isNaN(lowStock) || lowStock < 0) {
+            return toast.error('Low Stock Alert must be a non-negative integer (0 or more)');
         }
         setLoading(true);
         try {
@@ -276,11 +311,11 @@ const AddProduct = () => {
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                 <div>
                                     <label className="block text-xs font-bold text-gray-700 mb-1.5">Price (₹)</label>
-                                    <input type="number" name="basePrice" value={formData.basePrice} onChange={handleChange} required className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm font-bold focus:border-[#0c831f] outline-none transition-all" />
+                                    <input type="number" name="basePrice" min="0.01" step="any" value={formData.basePrice} onChange={handleChange} required className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm font-bold focus:border-[#0c831f] outline-none transition-all" />
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold text-gray-700 mb-1.5">MRP (₹)</label>
-                                    <input type="number" name="mrp" value={formData.mrp} onChange={handleChange} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium focus:border-[#0c831f] outline-none transition-all" />
+                                    <input type="number" name="mrp" min="0.01" step="any" value={formData.mrp} onChange={handleChange} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium focus:border-[#0c831f] outline-none transition-all" />
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold text-gray-700 mb-1.5">Unit Type</label>
@@ -290,11 +325,11 @@ const AddProduct = () => {
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold text-gray-700 mb-1.5">Stock</label>
-                                    <input type="number" name="stock" value={formData.stock} onChange={handleChange} required className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm font-bold focus:border-[#0c831f] outline-none transition-all" />
+                                    <input type="number" name="stock" min="0" step="1" value={formData.stock} onChange={handleChange} required className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm font-bold focus:border-[#0c831f] outline-none transition-all" />
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold text-gray-700 mb-1.5">Low Stock Alert at</label>
-                                    <input type="number" name="lowStockThreshold" value={formData.lowStockThreshold} onChange={handleChange} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium focus:border-[#0c831f] outline-none transition-all" />
+                                    <input type="number" name="lowStockThreshold" min="0" step="1" value={formData.lowStockThreshold} onChange={handleChange} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium focus:border-[#0c831f] outline-none transition-all" />
                                 </div>
                                 <div className="col-span-2">
                                     <label className="block text-xs font-bold text-gray-700 mb-1.5">Physical Location</label>

@@ -34,10 +34,13 @@ const AllCategoryPages = () => {
     fetchPages();
   }, [fetchPages]);
 
-  const filtered = pages.filter(p => 
-    p.category?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.category?.slug?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filtered = pages.filter(p => {
+    if (!searchTerm) return true;
+    const term = searchTerm.toLowerCase();
+    const nameMatch = p.category?.name?.toLowerCase()?.includes(term) || false;
+    const slugMatch = p.category?.slug?.toLowerCase()?.includes(term) || false;
+    return nameMatch || slugMatch;
+  });
 
   const handleDelete = async (id, name) => {
     const result = await showDeleteConfirmation(

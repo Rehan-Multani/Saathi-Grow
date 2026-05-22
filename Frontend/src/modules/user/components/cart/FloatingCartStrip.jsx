@@ -9,9 +9,31 @@ const FloatingCartStrip = () => {
     const { protectAction } = useAuth();
     const routerLocation = useLocation();
 
-    // Hide if cart is empty, if sidebar is open, or on checkout/success pages
-    const hiddenPages = ['/checkout', '/order-success', '/login', '/register'];
-    if (cartCount === 0 || isCartOpen || hiddenPages.includes(routerLocation.pathname)) return null;
+    // Hide if cart is empty, if sidebar is open, or on checkout/auth/profile/support routes
+    const hiddenPrefixes = [
+        '/checkout',
+        '/order-success',
+        '/login',
+        '/register',
+        '/logout-confirmation',
+        '/profile',
+        '/orders',
+        '/wallet',
+        '/wishlist',
+        '/saved-addresses',
+        '/add-address',
+        '/edit-address',
+        '/my-complaints',
+        '/support',
+        '/help',
+        '/settings',
+        '/notifications',
+        '/legal'
+    ];
+    const shouldHide = cartCount === 0 || 
+                       isCartOpen || 
+                       hiddenPrefixes.some(prefix => routerLocation.pathname.startsWith(prefix));
+    if (shouldHide) return null;
 
     // Get unique product images (up to 2)
     const uniqueItems = Array.from(new Map(cart.map(item => [item.id, item])).values()).slice(-2);

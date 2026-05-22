@@ -240,13 +240,13 @@ const CheckoutPage = () => {
 
         try {
             if (paymentMethod === 'cod') {
-                await orderApi.createCODOrder(token, orderData);
+                const res = await orderApi.createCODOrder(token, orderData);
                 clearCart();
-                navigate('/order-success');
+                navigate('/order-success', { state: { orderId: res.order._id } });
             } else if (paymentMethod === 'wallet') {
-                await orderApi.createWalletOrder(token, orderData);
+                const res = await orderApi.createWalletOrder(token, orderData);
                 clearCart();
-                navigate('/order-success');
+                navigate('/order-success', { state: { orderId: res.order._id } });
             } else {
                 // Online Payment Workflow leveraging Razorpay
                 const isSdkReady = await loadRazorpaySDK();
@@ -281,14 +281,14 @@ const CheckoutPage = () => {
                     order_id: rpPayload.razorpayOrderId,
                     handler: async function (response) {
                         try {
-                            await orderApi.verifyRazorpayPayment(token, {
+                            const res = await orderApi.verifyRazorpayPayment(token, {
                                 razorpayOrderId: response.razorpay_order_id,
                                 razorpayPaymentId: response.razorpay_payment_id,
                                 razorpaySignature: response.razorpay_signature,
                                 orderData
                             });
                             clearCart();
-                            navigate('/order-success');
+                            navigate('/order-success', { state: { orderId: res.order._id } });
                         } catch (verifyErr) {
                             toast.error("Payment was blocked or untrusted signature failed");
                         }

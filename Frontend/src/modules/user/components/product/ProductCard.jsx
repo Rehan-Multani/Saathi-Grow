@@ -29,11 +29,9 @@ const ProductCard = memo(({ product, isCompact = false, customTheme, imgPadding,
   const availableStock = product.availableStock ?? 999;
   const lowStockThreshold = product.lowStockThreshold ?? 0;
 
-  // User explicitly asked to disable for out of stock or low stock threshold products
+  // Only disable if completely out of stock — Low Stock products are still orderable
   const isOutOfStock = availableStock <= 0;
-  const isLowStock = availableStock <= lowStockThreshold && availableStock > 0;
-
-  const isBtnDisabled = !isDeliverable || isStoreOutOfRange || isStoreInactive || isOutOfStock || isLowStock;
+  const isBtnDisabled = !isDeliverable || isStoreOutOfRange || isStoreInactive || isOutOfStock;
 
   const handleAddToCart = (e) => {
     if (isBtnDisabled) return;

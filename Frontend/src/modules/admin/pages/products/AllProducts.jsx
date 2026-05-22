@@ -343,11 +343,9 @@ const AllProducts = () => {
                                                 <button onClick={() => setShowQR(showQR === p._id ? null : p._id)} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all" title="View QR"><QrCode size={18} /></button>
                                                 <button onClick={() => navigate(`/admin/products/${p._id}/inventory-logs`)} className="p-2 text-slate-400 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-all" title="Logs"><History size={18} /></button>
                                                 {!p.vendor && (
-                                                    <>
-                                                        <button onClick={() => { setSelectedProduct(p); setShowRestockModal(true); }} className="p-2 text-slate-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all" title="Restock"><Plus size={18} /></button>
-                                                        <button onClick={() => { setSelectedProduct(p); setShowEditModal(true); }} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all" title="Edit"><Edit size={18} /></button>
-                                                    </>
+                                                    <button onClick={() => { setSelectedProduct(p); setShowRestockModal(true); }} className="p-2 text-slate-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all" title="Restock"><Plus size={18} /></button>
                                                 )}
+                                                <button onClick={() => { setSelectedProduct(p); setShowEditModal(true); }} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all" title="Edit"><Edit size={18} /></button>
                                                 <button onClick={() => handleDelete(p._id, p.name)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all" title="Delete"><Trash2 size={18} /></button>
                                             </div>
                                             {showQR === p._id && (

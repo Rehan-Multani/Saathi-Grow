@@ -272,6 +272,9 @@ const AddBrand = () => {
                     width: 100%; background: #f8fafc; border: 1.5px solid #f1f5f9; border-radius: 1.25rem; 
                     padding: 0.9rem 1.25rem; outline: none; transition: all 0.25s; font-size: 14px;
                 }
+                .brand-add-input.pl-12 {
+                    padding-left: 3rem !important;
+                }
                 .brand-add-input:focus { border-color: #3b82f6; background: white; box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.08); }
             `}} />
         </div>

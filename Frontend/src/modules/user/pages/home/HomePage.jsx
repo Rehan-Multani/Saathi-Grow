@@ -223,14 +223,14 @@ const HomePage = ({ }) => {
     };
 
     return (
-        <motion.div 
+        <motion.div
             initial="hidden"
             animate="visible"
             variants={containerVariants}
             className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#000000] dark:to-[#000000] md:bg-none md:bg-white md:dark:bg-black transition-colors duration-300 overflow-x-hidden"
         >
-            <SEO 
-                title="Fresh Grocery Delivery" 
+            <SEO
+                title="Fresh Grocery Delivery"
                 description="Get fresh groceries, staples, and daily essentials delivered to your doorstep with Saathi-Grow. Best quality and fast delivery guaranteed."
             />
 
@@ -241,7 +241,7 @@ const HomePage = ({ }) => {
                         <BannerSkeleton />
                     </div>
                 ) : activeOffers.length > 0 ? (
-                    <motion.div 
+                    <motion.div
                         variants={sectionVariants}
                         className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 mt-4 md:mt-8 mb-6 md:mb-10 group/offers relative"
                     >
@@ -305,7 +305,7 @@ const HomePage = ({ }) => {
 
             {/* Categories */}
             {(filteredCategories.length > 0 || !isSearching) && (
-                <motion.div 
+                <motion.div
                     variants={sectionVariants}
                     className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-10 mb-6 md:mb-10"
                 >
@@ -340,11 +340,11 @@ const HomePage = ({ }) => {
                                             key={cat._id || cat.id}
                                             className="flex-shrink-0"
                                         >
-                                            <Link 
-                                                to={`/category/${encodeURIComponent(cat.slug || cat.name?.toLowerCase().replace(/\s+/g, '-'))}`} 
+                                            <Link
+                                                to={`/category/${encodeURIComponent(cat.slug || cat.name?.toLowerCase().replace(/\s+/g, '-'))}`}
                                                 className="flex flex-col group w-[85px] sm:w-36 h-[100px] sm:h-[155px] transition-all duration-300 active:scale-95 md:snap-start rounded-xl sm:rounded-[32px] overflow-hidden border border-gray-100/50 dark:border-white/5 shadow-sm"
-                                                style={{ 
-                                                    backgroundColor: isDarkMode ? 'rgba(255,255,255,0.03)' : (cat.bgColor || categoryColors[cat.slug] || '#f3f4f6') 
+                                                style={{
+                                                    backgroundColor: isDarkMode ? 'rgba(255,255,255,0.03)' : (cat.bgColor || categoryColors[cat.slug] || '#f3f4f6')
                                                 }}
                                             >
                                                 {/* Title Inside Card at Top */}
@@ -393,7 +393,7 @@ const HomePage = ({ }) => {
                         isDeliverable: cp.productId?.isDeliverable
                     }));
                 return (
-                    <motion.div 
+                    <motion.div
                         key={campaign._id}
                         initial="hidden"
                         whileInView="visible"
@@ -430,7 +430,7 @@ const HomePage = ({ }) => {
             {!isSearching && (
                 <div className="pb-12">
                     {categories.map((category) => (
-                        <motion.div 
+                        <motion.div
                             key={category._id || category.id}
                             initial="hidden"
                             whileInView="visible"
@@ -471,7 +471,7 @@ const ProductRow = ({ category, loading: globalLoading }) => {
     const sectionRef = useRef(null);
     const observerRef = useRef(null);
     const [hasEntredViewport, setHasEntredViewport] = useState(false);
-    
+
     const [showLeft, setShowLeft] = useState(false);
     const [showRight, setShowRight] = useState(true);
     const [localProducts, setLocalProducts] = useState([]);
@@ -528,7 +528,7 @@ const ProductRow = ({ category, loading: globalLoading }) => {
     useEffect(() => {
         // Skip if activeStore is not yet initialized to prevent redundant fetches
         if (!activeStore && !hasEntredViewport) return;
-        
+
         if (hasEntredViewport) {
             setPage(1);
             fetchItems(1);

@@ -490,9 +490,9 @@ const generateVirtualCategoryPage = async (category, storeContext) => {
     _id: `v-page-${category._id}`,
     status: 'published',
     isVirtual: true,
-    theme: sanitizeTheme({ 
-      pageBg: '#f6fbf7', 
-      heroBg: bgColor || '#eef8f0', 
+    theme: sanitizeTheme({
+      pageBg: '#f6fbf7',
+      heroBg: bgColor || '#eef8f0',
       cardBg: '#ffffff',
       accent: '#0c831f'
     }),

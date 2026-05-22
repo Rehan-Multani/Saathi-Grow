@@ -141,13 +141,11 @@ const validateStockAvailability = async (items, storeId, storeType) => {
     }
 
     const remaining = availableStock - requestedQty;
-    if (remaining < threshold) {
-      const maxAllowed = Math.max(0, availableStock - threshold);
-      if (maxAllowed <= 0) {
-        throw new Error(`${product.name} is currently out of stock.`);
-      } else {
-        throw new Error(`Only ${maxAllowed} units of ${product.name} are currently available.`);
-      }
+    if (availableStock <= 0) {
+      throw new Error(`${product.name} is currently out of stock.`);
+    }
+    if (remaining < 0) {
+      throw new Error(`Only ${availableStock} unit(s) of ${product.name} are currently available.`);
     }
   }
   return true;
@@ -1502,7 +1500,7 @@ export const getAllOrdersAdmin = async (req, res) => {
     // Run paginated results, total count, AND full-dataset aggregate stats in parallel
     const [orders, totalOrders, statsAgg] = await Promise.all([
       Order.find(query)
-        .select('orderId user posCustomer totalAmount status createdAt paymentMethod paymentStatus branchId vendor deliverySlot isImmediate orderSource promoCode discountAmount')
+        .select('orderId user posCustomer totalAmount status createdAt paymentMethod paymentStatus branchId vendor deliverySlot isImmediate orderSource promoCode discountAmount items')
         .populate('user', 'name email phone')
         .populate('branchId', 'name')
         .populate('vendor', 'storeName')

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { 
-    User, Mail, Phone, Lock, Eye, EyeOff, Save, ArrowLeft, 
+    User, Mail, Phone, Save, ArrowLeft, 
     Truck, Camera, Info, ShieldCheck, CreditCard, ChevronRight, Loader2, CheckCircle, Package, Store, MapPin
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -12,14 +12,14 @@ const AddDeliveryPartner = () => {
     const { t } = useTranslation('admin_delivery');
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
-    const [showPassword, setShowPassword] = useState(false);
+
     
     // Form State
     const [formData, setFormData] = useState({
         name: '',
         phone: '',
         email: '',
-        password: '',
+        password: Math.random().toString(36).slice(-8).toUpperCase(),
         vehicleType: 'Bike',
         vehicleNumber: '',
         profileImage: null
@@ -64,11 +64,7 @@ const AddDeliveryPartner = () => {
         }
     };
 
-    const generatePassword = () => {
-        const pass = Math.random().toString(36).slice(-8).toUpperCase();
-        setFormData(prev => ({ ...prev, password: pass }));
-        toast.info("Password Generated: " + pass, { autoClose: 3000 });
-    };
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -201,46 +197,7 @@ const AddDeliveryPartner = () => {
                             </div>
                         </div>
 
-                        <div className="bg-slate-900 rounded-3xl p-8 text-white relative overflow-hidden group shadow-2xl shadow-indigo-100">
-                            <div className="absolute top-0 right-0 p-8 opacity-10 rotate-12 group-hover:rotate-0 transition-transform duration-500"><ShieldCheck size={120} /></div>
-                            <div className="relative space-y-8">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center border border-white/10"><Lock size={20} /></div>
-                                    <h4 className="text-sm font-bold uppercase tracking-widest">Authentication Key</h4>
-                                </div>
-                                
-                                <div className="flex flex-col md:flex-row gap-6 items-end">
-                                    <div className="flex-grow space-y-2">
-                                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Secure Password</label>
-                                        <div className="relative">
-                                            <input
-                                                type={showPassword ? "text" : "password"}
-                                                name="password"
-                                                value={formData.password}
-                                                onChange={handleChange}
-                                                placeholder="Set Rider Access Code"
-                                                className="w-full pl-6 pr-12 py-3 bg-white/5 border border-white/10 rounded-2xl outline-none focus:border-blue-500 focus:bg-white/10 transition-all text-xs font-bold tracking-widest"
-                                            />
-                                            <button 
-                                                type="button" 
-                                                onClick={() => setShowPassword(!showPassword)} 
-                                                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors"
-                                            >
-                                                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <button 
-                                        type="button" 
-                                        onClick={generatePassword}
-                                        className="h-12 px-6 bg-white text-slate-900 rounded-2xl font-bold text-[10px] uppercase tracking-widest hover:bg-slate-100 active:scale-95 transition-all shadow-lg border-none"
-                                    >
-                                        Auto Generate
-                                    </button>
-                                </div>
-                                <p className="text-[9px] text-slate-500 font-medium italic border-t border-white/5 pt-4">This will be the rider's primary password to access the delivery terminal mobile app.</p>
-                            </div>
-                        </div>
+
                     </div>
                 </div>
 

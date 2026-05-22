@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { CheckCircle, Sparkles } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { CheckCircle, Sparkles, Map } from 'lucide-react';
 
 // Premium Particle Burst Component
 const CelebrationBurst = () => {
@@ -40,6 +40,8 @@ const CelebrationBurst = () => {
 
 const OrderSuccessPage = () => {
     const navigate = useNavigate();
+    const location = useLocation();
+    const orderId = location.state?.orderId;
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -68,13 +70,24 @@ const OrderSuccessPage = () => {
                         Freshness is on the way! Your order has been placed successfully.
                     </p>
                 </div>
-                <button
-                    onClick={() => navigate('/')}
-                    style={{ borderRadius: '100px' }}
-                    className="w-[85%] max-w-[240px] bg-[#0c831f] text-white py-4 font-black text-[13px] uppercase tracking-widest shadow-[0_15px_35px_rgba(12,131,31,0.25)] active:scale-95 transition-all"
-                >
-                    Back to Home
-                </button>
+                <div className="flex flex-col gap-3 w-[85%] max-w-[240px]">
+                    {orderId && (
+                        <button
+                            onClick={() => navigate(`/orders/${orderId}/tracking`)}
+                            style={{ borderRadius: '100px' }}
+                            className="w-full bg-[#0c831f] text-white py-4 font-black text-[13px] uppercase tracking-widest shadow-[0_15px_35px_rgba(12,131,31,0.25)] active:scale-95 transition-all flex items-center justify-center gap-2"
+                        >
+                            <Map size={16} /> Track Order
+                        </button>
+                    )}
+                    <button
+                        onClick={() => navigate('/')}
+                        style={{ borderRadius: '100px' }}
+                        className={`w-full ${orderId ? 'bg-white dark:bg-white/10 text-gray-900 dark:text-white border-2 border-gray-100 dark:border-white/10' : 'bg-[#0c831f] text-white shadow-[0_15px_35px_rgba(12,131,31,0.25)]'} py-4 font-black text-[13px] uppercase tracking-widest active:scale-95 transition-all`}
+                    >
+                        Back to Home
+                    </button>
+                </div>
             </div>
             <style>{`
                 @keyframes fall-premium { 0% { transform: translateY(-50px) rotate(0deg); opacity: 0; } 20% { opacity: 1; } 100% { transform: translateY(110vh) rotate(540deg); opacity: 0; } }

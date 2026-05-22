@@ -92,10 +92,10 @@ const ManageOffer = () => {
         isActive: true,
         displayLocation: 'Home Slider',
         expiryDate: '',
-        discountPercentage: 0,
+        discountPercentage: '',
         animationType: 'Default',
         backgroundEffect: 'None',
-        displayOrder: 0
+        displayOrder: ''
     });
 
     useEffect(() => {
@@ -113,10 +113,10 @@ const ManageOffer = () => {
                         isActive: offer.isActive !== undefined ? offer.isActive : true,
                         displayLocation: offer.displayLocation || 'Home Slider',
                         expiryDate: offer.expiryDate ? new Date(offer.expiryDate).toISOString().split('T')[0] : '',
-                        discountPercentage: offer.discountPercentage || 0,
+                        discountPercentage: offer.discountPercentage !== undefined ? offer.discountPercentage : '',
                         animationType: offer.animationType || 'Default',
                         backgroundEffect: offer.backgroundEffect || 'None',
-                        displayOrder: offer.displayOrder !== undefined ? offer.displayOrder : 0
+                        displayOrder: offer.displayOrder !== undefined ? offer.displayOrder : ''
                     });
                     setImagePreview(offer.bannerImage);
                     setSelectedProducts(offer.products
@@ -140,20 +140,26 @@ const ManageOffer = () => {
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
+        let finalValue = type === 'checkbox' ? checked : value;
+        if (name === 'displayOrder') {
+            finalValue = value === '' ? '' : Number(value);
+        }
         setFormData(prev => ({
             ...prev,
-            [name]: type === 'checkbox' ? checked : value
+            [name]: finalValue
         }));
     };
 
     const handleDiscountChange = (e) => {
-        const percent = Number(e.target.value);
+        const value = e.target.value;
+        const percent = value === '' ? '' : Number(value);
         setFormData(prev => ({ ...prev, discountPercentage: percent }));
 
         if (selectedProducts.length > 0) {
+            const numericPercent = Number(percent) || 0;
             setSelectedProducts(prev => prev.map(p => ({
                 ...p,
-                basePrice: Math.round(p.mrp * (1 - percent / 100))
+                basePrice: Math.round(p.mrp * (1 - numericPercent / 100))
             })));
         }
     };
@@ -223,7 +229,12 @@ const ManageOffer = () => {
         setLoading(true);
         try {
             const data = new FormData();
-            Object.keys(formData).forEach(key => data.append(key, formData[key]));
+            Object.keys(formData).forEach(key => {
+                let value = formData[key];
+                if (key === 'discountPercentage' && value === '') value = 0;
+                if (key === 'displayOrder' && value === '') value = 0;
+                data.append(key, value);
+            });
 
             if (fileInputRef.current?.files[0]) {
                 data.append('bannerImage', fileInputRef.current.files[0]);

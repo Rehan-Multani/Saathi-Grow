@@ -97,8 +97,25 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
         }
     };
 
+    const statusOrderMap = {
+        'pending': 1,
+        'confirmed': 2,
+        'preparing': 3,
+        'ready_for_pickup': 4,
+        'out_for_delivery': 5,
+        'delivered': 6,
+        'cancelled': 7
+    };
+
     const handleStatusUpdate = async (newStatus) => {
         if (newStatus === displayOrder.status) return;
+
+        const currentRank = statusOrderMap[displayOrder.status] || 0;
+        const newRank = statusOrderMap[newStatus] || 0;
+        
+        if (newRank < currentRank) {
+            return toast.error('Cannot revert order to a previous status');
+        }
         
         setUpdatingStatus(true);
         try {
@@ -137,9 +154,48 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
     const displayStore = displayOrder.branchId?.name || displayOrder.vendor?.storeName || displayOrder.vendor?.name || 'Main Warehouse';
     const storeType = displayOrder.branchId ? 'Branch' : (displayOrder.vendor ? 'Vendor' : 'Internal');
 
+    const handlePrint = () => {
+        const content = document.getElementById('print-receipt').innerHTML;
+        const printWindow = window.open('', '', 'width=800,height=600');
+        
+        // Collect all styles from the current document
+        const styles = Array.from(document.querySelectorAll('style, link[rel="stylesheet"]'))
+            .map(s => s.outerHTML)
+            .join('\n');
+
+        printWindow.document.write(`
+            <html>
+                <head>
+                    <title>Receipt #${displayId}</title>
+                    ${styles}
+                    <style>
+                        body { padding: 20px; background: white !important; font-family: system-ui, -apple-system, sans-serif; }
+                        .print\\:hidden { display: none !important; }
+                        #print-receipt-content { box-shadow: none !important; border: none !important; max-height: none !important; overflow: visible !important; width: 100% !important; margin: 0 auto; max-width: 800px; }
+                        .animate-in { animation: none !important; }
+                    </style>
+                </head>
+                <body>
+                    <div id="print-receipt-content" class="bg-white">
+                        ${content}
+                    </div>
+                    <script>
+                        window.onload = () => {
+                            setTimeout(() => {
+                                window.print();
+                                window.close();
+                            }, 500);
+                        };
+                    </script>
+                </body>
+            </html>
+        `);
+        printWindow.document.close();
+    };
+
     return (
         <div className="fixed inset-0 z-[1060] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
+            <div id="print-receipt" className="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
                 <div className="flex justify-between items-center p-5 border-b border-slate-100">
                     <h5 className="text-lg font-bold text-slate-900">
                         Order Details: <span className="text-blue-600">#{displayId?.slice(-8).toUpperCase()}</span>
@@ -178,7 +234,11 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
                                 <div className="p-4 bg-slate-50 rounded-lg border border-slate-100">
                                     <p className="text-[10px] font-bold text-slate-400 uppercase mb-2">Address</p>
                                     <p className="text-[10px] text-slate-700 leading-relaxed font-semibold line-clamp-2">
-                                        {displayOrder.shippingAddress?.address || 'Direct Transaction'}
+                                        {displayOrder.shippingAddress?.street ? (
+                                            `${displayOrder.shippingAddress.street}${displayOrder.shippingAddress.city ? `, ${displayOrder.shippingAddress.city}` : ''}${displayOrder.shippingAddress.state ? `, ${displayOrder.shippingAddress.state}` : ''}${displayOrder.shippingAddress.zipCode ? ` - ${displayOrder.shippingAddress.zipCode}` : ''}`
+                                        ) : (
+                                            displayOrder.shippingAddress?.address || 'Direct Transaction'
+                                        )}
                                     </p>
                                 </div>
                                 <div className="p-4 bg-slate-50 rounded-lg border border-slate-100">
@@ -189,9 +249,16 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
                                         onChange={(e) => handleStatusUpdate(e.target.value)}
                                         disabled={updatingStatus}
                                     >
-                                        {statusOptions.map(opt => (
-                                            <option key={opt.value} value={opt.value}>{opt.label}</option>
-                                        ))}
+                                        {statusOptions.map(opt => {
+                                            const currentRank = statusOrderMap[displayOrder.status] || 0;
+                                            const optRank = statusOrderMap[opt.value] || 0;
+                                            const isDisabled = optRank < currentRank;
+                                            return (
+                                                <option key={opt.value} value={opt.value} disabled={isDisabled}>
+                                                    {opt.label}
+                                                </option>
+                                            );
+                                        })}
                                     </select>
                                     <p className="hidden print:block text-[11px] font-bold text-slate-900 uppercase">
                                         {displayOrder.status?.replace(/_/g, ' ')}
@@ -277,15 +344,45 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
 
                             <div className="flex justify-end">
                                 <div className="w-full max-w-[240px] space-y-2">
+                                    <div className="flex justify-between text-xs font-medium text-slate-500 mb-1">
+                                        <span>Payment Method</span>
+                                        <span className="uppercase text-slate-800 font-bold">{displayOrder.paymentMethod?.replace(/_/g, ' ') || 'N/A'}</span>
+                                    </div>
+                                    <div className="flex justify-between text-xs font-medium text-slate-500 pb-2 border-b border-slate-100 mb-2">
+                                        <span>Payment Status</span>
+                                        <span className={`uppercase font-bold ${displayOrder.paymentStatus === 'paid' ? 'text-emerald-600' : 'text-amber-600'}`}>
+                                            {displayOrder.paymentStatus || 'pending'}
+                                        </span>
+                                    </div>
                                     <div className="flex justify-between text-xs font-medium text-slate-400">
                                         <span>Subtotal</span>
                                         <span>₹{displayOrder.subTotal || 0}</span>
                                     </div>
-                                    <div className="flex justify-between text-xs font-medium text-slate-400">
-                                        <span>Tax</span>
-                                        <span>₹{displayOrder.taxAmount || 0}</span>
-                                    </div>
-                                    <div className="flex justify-between items-center pt-2 border-t border-slate-100">
+                                    {displayOrder.taxAmount > 0 && (
+                                        <div className="flex justify-between text-xs font-medium text-slate-400">
+                                            <span>Tax</span>
+                                            <span>₹{displayOrder.taxAmount}</span>
+                                        </div>
+                                    )}
+                                    {displayOrder.deliveryFee > 0 && (
+                                        <div className="flex justify-between text-xs font-medium text-slate-400">
+                                            <span>Delivery Fee</span>
+                                            <span>₹{displayOrder.deliveryFee}</span>
+                                        </div>
+                                    )}
+                                    {displayOrder.handlingFee > 0 && (
+                                        <div className="flex justify-between text-xs font-medium text-slate-400">
+                                            <span>Handling Fee</span>
+                                            <span>₹{displayOrder.handlingFee}</span>
+                                        </div>
+                                    )}
+                                    {displayOrder.discountAmount > 0 && (
+                                        <div className="flex justify-between text-xs font-medium text-emerald-500">
+                                            <span>Discount {displayOrder.promoCode ? `(${displayOrder.promoCode})` : ''}</span>
+                                            <span>-₹{displayOrder.discountAmount}</span>
+                                        </div>
+                                    )}
+                                    <div className="flex justify-between items-center pt-2 border-t border-slate-100 mt-2">
                                         <span className="text-sm font-black text-slate-900 uppercase">Total</span>
                                         <span className="text-lg font-black text-blue-600">₹{displayTotal}</span>
                                     </div>
@@ -298,7 +395,7 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
                 <div className="p-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
                     <button onClick={onHide} className="px-4 py-2 text-xs font-bold text-slate-500 hover:text-slate-700 transition-all print:hidden">Close</button>
                     <button 
-                        onClick={() => window.print()} 
+                        onClick={handlePrint} 
                         className="px-4 py-2 bg-slate-900 text-white rounded-lg text-xs font-bold flex items-center gap-2 print:hidden"
                     >
                         <Download size={14} /> Print Receipt

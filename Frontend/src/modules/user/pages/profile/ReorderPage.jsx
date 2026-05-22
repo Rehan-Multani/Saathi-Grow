@@ -109,9 +109,9 @@ const ReorderPage = () => {
                 paymentMethod: 'cod' // Default to COD for instant reorder
             };
 
-            await createCODOrder(token, orderData);
+            const res = await createCODOrder(token, orderData);
             toast.success("Order placed successfully!");
-            navigate('/order-success');
+            navigate('/order-success', { state: { orderId: res.order._id } });
         } catch (error) {
             console.error("Reorder failed:", error);
             toast.error(error.message || "Failed to place reorder");

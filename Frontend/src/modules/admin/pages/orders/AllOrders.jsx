@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Search, Eye, Printer, Filter, Download, Store, Upload, Clock, ChevronLeft, ChevronRight, Zap, CreditCard, Calendar, Truck, Edit3, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import OrderDetailsModal from '../../../../common/components/orders/OrderDetailsModal';
@@ -141,6 +141,62 @@ const AllOrders = () => {
         }
     };
 
+    const handleExportOrders = () => {
+        if (!orders || orders.length === 0) {
+            return toast.warning('No orders available to export');
+        }
+
+        // CSV headers
+        const headers = [
+            'Order ID',
+            'Customer Name',
+            'Phone',
+            'Date',
+            'Payment Status',
+            'Payment Method',
+            'Status',
+            'Total Amount (₹)'
+        ];
+
+        // Format rows
+        const csvRows = [
+            headers.join(','), // Header row
+            ...orders.map(order => {
+                const orderId = order.orderId || order._id?.slice(-8).toUpperCase() || '';
+                const name = `"${(order.user?.name || order.posCustomer?.name || 'Guest').replace(/"/g, '""')}"`;
+                const phone = order.user?.phone || order.posCustomer?.phone || '';
+                const date = new Date(order.createdAt).toLocaleDateString();
+                const paymentStatus = order.paymentStatus || '';
+                const paymentMethod = order.paymentMethod || '';
+                const status = order.status || '';
+                const total = order.totalAmount || 0;
+
+                return [
+                    orderId,
+                    name,
+                    phone,
+                    date,
+                    paymentStatus,
+                    paymentMethod,
+                    status,
+                    total
+                ].join(',');
+            })
+        ];
+
+        // Create Blob and download trigger with UTF-8 BOM
+        const csvString = csvRows.join('\n');
+        const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csvString], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", `orders_export_${new Date().toISOString().split('T')[0]}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        toast.success('Orders exported successfully in CSV format!');
+    };
+
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(10);
     const [pagination, setPagination] = useState({ total: 0, totalPages: 1 });
@@ -157,6 +213,7 @@ const AllOrders = () => {
     const [orderSourceFilter, setOrderSourceFilter] = useState('');
     const [deliverySlots, setDeliverySlots] = useState([]);
     const [searchParams] = useSearchParams();
+    const navigate = useNavigate();
 
     useEffect(() => {
         const source = searchParams.get('source');
@@ -277,7 +334,23 @@ const AllOrders = () => {
             { value: 'cancelled', label: t('status.cancelled'), icon: '❌', color: '#ef4444', bgColor: '#fee2e2' }
         ];
 
-        const optionsHtml = statusOptions.map(opt => 
+        const statusOrderMap = {
+            'pending': 1,
+            'confirmed': 2,
+            'preparing': 3,
+            'ready_for_pickup': 4,
+            'out_for_delivery': 5,
+            'delivered': 6,
+            'cancelled': 7
+        };
+
+        const currentRank = statusOrderMap[currentStatus] || 0;
+        const filteredOptions = statusOptions.filter(opt => {
+            const optRank = statusOrderMap[opt.value] || 0;
+            return optRank >= currentRank;
+        });
+
+        const optionsHtml = filteredOptions.map(opt => 
             `<div class="status-option ${opt.value === currentStatus ? 'status-option-active' : ''}" data-value="${opt.value}" style="border-color: ${opt.color}20; background: ${opt.value === currentStatus ? opt.bgColor : 'white'};">
                 <span class="status-icon" style="background: ${opt.bgColor}; color: ${opt.color};">${opt.icon}</span>
                 <span class="status-label" style="color: ${opt.value === currentStatus ? opt.color : '#334155'};">${opt.label}</span>
@@ -444,10 +517,10 @@ const AllOrders = () => {
                 </div>
 
                 <div className="flex items-center gap-2 w-full md:w-auto">
-                    <button className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors shadow-sm">
-                        <Upload size={16} /> {t('batch')}
-                    </button>
-                    <button className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-lg text-sm font-medium hover:bg-slate-800 transition-colors shadow-sm">
+                    <button 
+                        onClick={handleExportOrders}
+                        className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-lg text-sm font-medium hover:bg-slate-800 transition-colors shadow-sm"
+                    >
                         <Download size={16} /> {t('export')}
                     </button>
                 </div>

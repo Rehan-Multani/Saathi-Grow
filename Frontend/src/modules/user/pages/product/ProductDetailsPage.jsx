@@ -224,8 +224,8 @@ const ProductDetailsPage = () => {
 
     // Check if product is disabled based on stock/delivery
     const isOutOfStock = (product?.availableStock ?? 999) <= 0;
-    const isLowStock = (product?.availableStock ?? 999) <= (product?.lowStockThreshold ?? 0);
-    // Allow ordering even if low stock (only block if completely out)
+    const isLowStock = (product?.availableStock ?? 999) <= (product?.lowStockThreshold ?? 0) && (product?.availableStock ?? 999) > 0;
+    // Only block if completely out of stock — Low Stock products are still orderable
     const isBtnDisabled = product?.isDeliverable === false || isStoreOutOfRange || isStoreInactive || isOutOfStock;
     const availabilityTone = isStoreInactive
         ? 'border-red-500 text-red-500'
@@ -245,7 +245,7 @@ const ProductDetailsPage = () => {
         ? 'Store Closed'
         : (isStoreOutOfRange || !product?.inStore)
             ? 'Out of Zone'
-            : (isLowStock ? 'Low Stock' : 'Out of Stock');
+            : 'Out of Stock';
 
     if (loading) return (
         <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] md:bg-none md:bg-white dark:from-[#141414] dark:to-[#141414] transition-colors duration-300">

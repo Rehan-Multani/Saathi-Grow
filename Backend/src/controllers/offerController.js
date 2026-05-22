@@ -230,6 +230,7 @@ export const getActiveOfferDeals = async (req, res) => {
 
     // Decorate each product with isDeliverable flag when store context is provided
     if (storeId && storeType) {
+      // Allow offers that have a bannerImage OR at least 1 product (banner-only offers should still show)
       const formattedOffers = offers.map(offer => {
         const offerObj = offer;
         offerObj.products = (offerObj.products || []).map(cp => {
@@ -273,11 +274,12 @@ export const getActiveOfferDeals = async (req, res) => {
           return cp;
         });
         return offerObj;
-      }).filter(offer => offer.products && offer.products.length > 0);
+      }).filter(offer => offer.bannerImage || (offer.products && offer.products.length > 0));
       return res.json(formattedOffers);
     }
 
-    const filteredOffers = offers.filter(offer => offer.products && offer.products.length > 0);
+    // Allow banner-only offers (with bannerImage but no products) to show on user side
+    const filteredOffers = offers.filter(offer => offer.bannerImage || (offer.products && offer.products.length > 0));
     res.json(filteredOffers);
   } catch (error) {
     res.status(500).json({ message: error.message });

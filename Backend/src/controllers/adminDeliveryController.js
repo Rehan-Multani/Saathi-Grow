@@ -236,10 +236,12 @@ export const deleteDeliveryPartner = async (req, res) => {
     const partner = await DeliveryPartner.findById(req.params.id);
 
     if (partner) {
-      // Cannot delete if active on a delivery
-      if (partner.assignmentStatus === 'Busy' || partner.activeOrder) {
-        return res.status(400).json({ message: 'Cannot delete a partner currently executing a live order' });
-      }
+      // Safely unassign any active orders to prevent them from getting stuck without a driver
+      await Order.updateMany(
+        { deliveryPartnerId: partner._id, status: { $in: ['preparing', 'ready_for_pickup', 'out_for_delivery'] } },
+        { $set: { deliveryPartnerId: null, status: 'confirmed', deliveryOTP: null } }
+      );
+      
       await partner.deleteOne();
       res.json({ message: 'Delivery Partner forcefully removed' });
     } else {

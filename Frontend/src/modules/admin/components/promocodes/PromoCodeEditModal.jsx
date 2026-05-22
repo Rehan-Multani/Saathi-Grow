@@ -47,6 +47,18 @@ const PromoCodeEditModal = ({ show, onHide, promoCode, onSave }) => {
         });
     };
 
+    // Prevent background scrolling when modal is open
+    useEffect(() => {
+        if (show) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, [show]);
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
