@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Search, Edit2, Trash2, CheckCircle, Clock, XCircle, AlertCircle, ChevronLeft, ChevronRight, Package, Sparkles } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, CheckCircle, Clock, XCircle, AlertCircle, ChevronLeft, ChevronRight, Package, Sparkles, SlidersHorizontal, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useVendor } from '../../contexts/VendorContext';
 import { formatCurrency } from '../../../../common/utils/formatUtils';
@@ -10,6 +10,8 @@ const ProductList = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('all');
     const [statusFilter, setStatusFilter] = useState('all');
+    const [stockFilter, setStockFilter] = useState('all');
+    const [showFilterPanel, setShowFilterPanel] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
 
@@ -20,14 +22,20 @@ const ProductList = () => {
         totalStock: p.stock || 0
     })).filter(product => {
         const categoryName = typeof product.category === 'object' ? product.category.name : (product.category || '');
-        const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            categoryName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            (product.sku && product.sku.toLowerCase().includes(searchQuery.toLowerCase()));
+        const query = searchQuery.trim().toLowerCase();
+        const matchesSearch = product.name.toLowerCase().includes(query) ||
+            categoryName.toLowerCase().includes(query) ||
+            (product.sku && product.sku.toLowerCase().includes(query));
 
         const matchesCategory = categoryFilter === 'all' || categoryName === categoryFilter;
         const matchesStatus = statusFilter === 'all' ? true : (product.status || 'Active') === statusFilter;
+        const stock = product.totalStock;
+        const matchesStock =
+            stockFilter === 'all' ? true :
+            stockFilter === 'low' ? stock <= (product.lowStockThreshold || 10) && stock > 0 :
+            stockFilter === 'out' ? stock === 0 : true;
 
-        return matchesSearch && matchesCategory && matchesStatus;
+        return matchesSearch && matchesCategory && matchesStatus && matchesStock;
     });
 
     const totalItems = filteredProducts.length;
@@ -65,7 +73,7 @@ const ProductList = () => {
             'Inactive': { icon: <AlertCircle size={12} />, label: 'INACTIVE' }
         };
         const current = config[status] || { icon: <CheckCircle size={12} />, label: 'ACTIVE' };
-        
+
         return (
             <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${variants[status] || 'bg-blue-50 text-blue-700 border-blue-200'}`}>
                 {current.icon} {current.label}
@@ -150,32 +158,91 @@ const ProductList = () => {
                             className="w-full bg-white border border-gray-200 rounded-lg py-2 pl-10 pr-4 text-sm font-medium text-gray-900 placeholder:text-gray-400 focus:border-[#0c831f] focus:ring-1 focus:ring-[#0c831f] transition-all outline-none"
                         />
                     </div>
-                    
-                    <div className="flex gap-3">
-                        <select
-                            value={categoryFilter}
-                            onChange={(e) => handleFilterChange(setCategoryFilter, e.target.value)}
-                            className="bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 outline-none focus:border-[#0c831f] transition-all"
+
+                    {/* Filter Button */}
+                    <div className="relative">
+                        <button
+                            onClick={() => setShowFilterPanel(p => !p)}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-semibold transition-all ${
+                                (categoryFilter !== 'all' || statusFilter !== 'all' || stockFilter !== 'all')
+                                    ? 'bg-[#0c831f] text-white border-[#0c831f] shadow-sm'
+                                    : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
+                            }`}
                         >
-                            <option value="all">All Categories</option>
-                            {categories.filter(c => c !== 'all').map(cat => (
-                                <option key={cat} value={cat}>{cat}</option>
-                            ))}
-                        </select>
-                        
-                        <select
-                            value={statusFilter}
-                            onChange={(e) => handleFilterChange(setStatusFilter, e.target.value)}
-                            className="bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 outline-none focus:border-[#0c831f] transition-all"
-                        >
-                            <option value="all">All Status</option>
-                            <option value="Active">Active</option>
-                            <option value="Pending Approval">Pending</option>
-                            <option value="Rejected">Rejected</option>
-                            <option value="Inactive">Inactive</option>
-                        </select>
+                            <SlidersHorizontal size={15} />
+                            Filter
+                            {(categoryFilter !== 'all' || statusFilter !== 'all' || stockFilter !== 'all') && (
+                                <span className="ml-1 bg-white text-[#0c831f] text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center">
+                                    {[categoryFilter, statusFilter, stockFilter].filter(f => f !== 'all').length}
+                                </span>
+                            )}
+                        </button>
                     </div>
                 </div>
+
+                {/* Filter Panel */}
+                {showFilterPanel && (
+                    <div className="px-4 pb-4 pt-0 border-b border-gray-100 bg-gray-50/50">
+                        <div className="flex flex-wrap gap-6 pt-3">
+                            {/* Category */}
+                            <div className="flex flex-col gap-1.5 min-w-[150px]">
+                                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Category</label>
+                                <select
+                                    value={categoryFilter}
+                                    onChange={(e) => handleFilterChange(setCategoryFilter, e.target.value)}
+                                    className="bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 outline-none focus:border-[#0c831f] transition-all"
+                                >
+                                    <option value="all">All Categories</option>
+                                    {categories.filter(c => c !== 'all').map(cat => (
+                                        <option key={cat} value={cat}>{cat}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {/* Status */}
+                            <div className="flex flex-col gap-1.5 min-w-[130px]">
+                                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Status</label>
+                                <select
+                                    value={statusFilter}
+                                    onChange={(e) => handleFilterChange(setStatusFilter, e.target.value)}
+                                    className="bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 outline-none focus:border-[#0c831f] transition-all"
+                                >
+                                    <option value="all">All Status</option>
+                                    <option value="Active">Active</option>
+                                    <option value="Pending Approval">Pending</option>
+                                    <option value="Rejected">Rejected</option>
+                                    <option value="Inactive">Inactive</option>
+                                </select>
+                            </div>
+
+                            {/* Stock */}
+                            <div className="flex flex-col gap-1.5 min-w-[130px]">
+                                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Stock</label>
+                                <select
+                                    value={stockFilter}
+                                    onChange={(e) => handleFilterChange(setStockFilter, e.target.value)}
+                                    className="bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 outline-none focus:border-[#0c831f] transition-all"
+                                >
+                                    <option value="all">All Stock</option>
+                                    <option value="low">Low Stock</option>
+                                    <option value="out">Out of Stock</option>
+                                </select>
+                            </div>
+
+                            {/* Reset */}
+                            {(categoryFilter !== 'all' || statusFilter !== 'all' || stockFilter !== 'all') && (
+                                <div className="flex flex-col justify-end">
+                                    <button
+                                        onClick={() => { setCategoryFilter('all'); setStatusFilter('all'); setStockFilter('all'); setCurrentPage(1); }}
+                                        className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-red-600 bg-red-50 border border-red-100 rounded-lg hover:bg-red-100 transition-colors"
+                                    >
+                                        <X size={12} /> Clear Filters
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
 
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
@@ -222,15 +289,15 @@ const ProductList = () => {
                                     </td>
                                     <td className="px-6 py-4 text-right">
                                         <div className="flex items-center justify-end gap-2">
-                                            <button 
-                                                onClick={() => navigate(`edit/${product._id}`)} 
+                                            <button
+                                                onClick={() => navigate(`edit/${product._id}`)}
                                                 className="p-1.5 text-gray-400 hover:text-[#0c831f] hover:bg-green-50 rounded-md transition-colors"
                                                 title="Edit Product"
                                             >
                                                 <Edit2 size={16} />
                                             </button>
-                                            <button 
-                                                onClick={() => { if (window.confirm('Are you sure you want to delete this product?')) navigate(`delete/${product._id}`) }} 
+                                            <button
+                                                onClick={() => { if (window.confirm('Are you sure you want to delete this product?')) navigate(`delete/${product._id}`) }}
                                                 className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
                                                 title="Delete Product"
                                             >

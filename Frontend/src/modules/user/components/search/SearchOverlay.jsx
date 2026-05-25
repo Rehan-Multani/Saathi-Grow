@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
 const VoiceSearchModal = lazy(() => import('./VoiceSearchModal'));
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { ArrowLeft, X, Search, Sparkles, Mic, Loader2 } from 'lucide-react';
 import { useSearch } from '../../context/SearchContext';
 import ProductCard from '../product/ProductCard';
@@ -17,6 +17,7 @@ const SearchOverlay = () => {
     const { isDarkMode } = useTheme();
     const { activeStore } = useStore();
     const navigate = useNavigate();
+    const location = useLocation();
     const [recentSearches, setRecentSearches] = useState(() => {
         const saved = localStorage.getItem('recentSearches');
         return saved ? JSON.parse(saved) : [];
@@ -50,6 +51,14 @@ const SearchOverlay = () => {
     useEffect(() => {
         storeSettledRef.current = true;
     }, [activeStore]);
+
+    useEffect(() => {
+        if (isSearchOverlayOpen) {
+            setIsSearchOverlayOpen(false);
+            setSearchQuery('');
+            setIsAISearch(false);
+        }
+    }, [location.pathname]);
 
     const handleAISearch = async (forcedQuery) => {
         const query = forcedQuery || searchQuery;
@@ -296,7 +305,7 @@ const SearchOverlay = () => {
                             ) : filteredProducts.length > 0 ? (
                                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                                     {filteredProducts.map((p) => (
-                                        <div key={p._id || p.id} onClick={handleClose}>
+                                        <div key={p._id || p.id}>
                                             <ProductCard product={normalizeProduct(p)} />
                                         </div>
                                     ))}

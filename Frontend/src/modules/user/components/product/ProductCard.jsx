@@ -8,7 +8,6 @@ import { Plus, Minus, Heart, Star } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { useWishlist } from '../../context/WishlistContext';
 import { useStore } from '../../context/StoreContext';
-import { motion, AnimatePresence } from 'framer-motion';
 
 const ProductCard = memo(({ product, isCompact = false, customTheme, imgPadding, wishlistPosition = "top-2 right-2", isLowestPrice = false, isValentine = false, isSaathiSignature = false, isLargeButton = false }) => {
   const { cart, addToCart, updateQuantity } = useCart();
@@ -48,34 +47,20 @@ const ProductCard = memo(({ product, isCompact = false, customTheme, imgPadding,
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95, y: 10 }}
-      whileInView={{ opacity: 1, scale: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.1 }}
-      whileHover={{ y: -5, scale: 1.02 }}
-      transition={{ 
-        type: "spring", 
-        stiffness: 300, 
-        damping: 20,
-        opacity: { duration: 0.4 }
-      }}
-      className="rounded-lg sm:rounded-xl p-2 sm:p-5 shadow-[0_4px_12px_rgba(0,0,0,0.08)] md:shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-gray-200/60 dark:border-white/10 hover:shadow-lg active:shadow-md transition-all duration-500 flex flex-col gap-1 sm:gap-3 h-auto md:h-full group relative overflow-hidden mb-1 md:ring-0 md:!bg-white dark:md:!bg-[#111111] will-change-transform"
+    <div
+      className="rounded-lg sm:rounded-xl p-2 sm:p-5 shadow-[0_4px_12px_rgba(0,0,0,0.08)] md:shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-gray-200/60 dark:border-white/10 hover:shadow-lg active:shadow-md transition-all duration-500 flex flex-col gap-1 sm:gap-3 h-auto md:h-full group relative overflow-hidden mb-1 md:ring-0 md:!bg-white dark:md:!bg-[#111111] will-change-transform hover:-translate-y-1.5 hover:scale-[1.02] animate-[fade-in-up_0.4s_ease-out]"
       style={{
         background: isDarkMode ? '#111111' : (customTheme?.bgColor || '#ffffff'),
         borderColor: customTheme ? `${customTheme.themeColor}30` : undefined,
-        '--theme-color': customTheme ? customTheme.themeColor : '#0c831f',
-        transform: 'translateZ(0)', // Force GPU acceleration for Safari
-        WebkitTransform: 'translateZ(0)',
-        backfaceVisibility: 'hidden',
-        WebkitBackfaceVisibility: 'hidden',
+        '--theme-color': customTheme ? customTheme.themeColor : '#0c831f'
       }}
     >
 
 
 
-      {/* Pulsing Border Highlight - Mobile Only - DISABLED on Safari */}
+      {/* Pulsing Border Highlight - Mobile Only */}
       <div
-        className="absolute inset-0 rounded-lg sm:rounded-xl border-[1.5px] md:border-transparent pointer-events-none z-30 safari-no-animate"
+        className="absolute inset-0 rounded-lg sm:rounded-xl border-[1.5px] md:border-transparent pointer-events-none z-30 opacity-50"
         style={{ borderColor: customTheme ? `${customTheme.themeColor}20` : '#0c831f20' }}
       />
       <div className="absolute top-0 left-0 bg-[#0c831f] text-white text-[7.5px] sm:text-[10px] font-bold px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-br-lg z-30 shadow-sm flex items-center gap-0.5">
@@ -195,18 +180,16 @@ const ProductCard = memo(({ product, isCompact = false, customTheme, imgPadding,
       </div>
 
       <style>{`
+        @keyframes fade-in-up {
+          0% { opacity: 0; transform: translateY(10px) scale(0.95); }
+          100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
         @keyframes shine-sweep-fast {
           0% { left: -100%; }
           100% { left: 200%; }
         }
-        /* Safari flicker fix: disable pulse animation on Safari */
-        @supports (-webkit-hyphens: none) {
-          .safari-no-animate {
-            animation: none !important;
-          }
-        }
       `}</style>
-    </motion.div >
+    </div >
   );
 });
 

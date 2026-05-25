@@ -365,7 +365,7 @@ const ReturnRequests = () => {
                                                 <Truck size={16} className={selectedPartner === p._id ? 'text-blue-600' : 'text-slate-400'} />
                                             </div>
                                             <div className="text-left">
-                                                <p className="font-bold text-sm text-slate-900">{p.user?.name}</p>
+                                                <p className="font-bold text-sm text-slate-900">{p.name || 'Unnamed Rider'}</p>
                                                 <p className="text-[10px] text-slate-400 font-bold uppercase">{p.vehicleType}</p>
                                             </div>
                                         </div>

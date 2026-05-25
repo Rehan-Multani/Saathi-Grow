@@ -16,7 +16,7 @@ import { sendInvoiceEmail } from '../services/emailService.js';
  */
 export const createPOSOrder = async (req, res) => {
   try {
-    const { items, customerDetails, storeId, storeType } = req.body;
+    const { items, customerDetails, storeId, storeType, paymentMethod = 'cash' } = req.body;
 
     if (!items || items.length === 0) {
       return res.status(400).json({ message: 'Cart items are required' });
@@ -38,7 +38,12 @@ export const createPOSOrder = async (req, res) => {
     }
 
     // Recompute bill on backend for security and accuracy (applying latest tax configs)
-    const bill = await computeBillDetails(items, { storeId, storeType });
+    const bill = await computeBillDetails(items, { storeId, storeType, orderSource: 'pos' });
+
+    if (paymentMethod === 'cash') {
+      bill.totalAmount = Math.round(bill.totalAmount);
+      bill.vendorPayoutAmount = Math.round(bill.vendorPayoutAmount);
+    }
 
     // Fetch Store Details for Location/Address accuracy
     let store;
@@ -66,7 +71,7 @@ export const createPOSOrder = async (req, res) => {
       totalAmount: bill.totalAmount,
       platformCommission: bill.platformCommission,
       vendorPayoutAmount: bill.vendorPayoutAmount,
-      paymentMethod: 'cash',
+      paymentMethod: paymentMethod,
       paymentStatus: 'paid',
       status: 'delivered', // POS orders are instant delivery
       orderSource: 'pos',
@@ -94,7 +99,9 @@ export const createPOSOrder = async (req, res) => {
         //   • Vendor KEEPS the full cash payment physically
         //   • Platform DEDUCTS its share (Commission + Taxes + Fees) from vendor wallet balance
         //   • This creates a "debt" or reduces vendor's digital balance
-        const platformCut = (bill.totalAmount || 0) - (bill.vendorPayoutAmount || 0);
+        // Admin deducts its commission AND the collected tax from the vendor's digital balance.
+        // POS total is just subTotal + taxAmount. So platformCut is commission + tax.
+        const platformCut = (bill.platformCommission || 0) + (bill.taxAmount || 0);
 
         const vendorWallet = await Wallet.findOneAndUpdate(
           { owner: storeId, ownerModel: 'Vendor' },
@@ -109,16 +116,17 @@ export const createPOSOrder = async (req, res) => {
         );
 
         // 1. Record Sale as Informational Earnings (Vendor stats)
+        // We log totalAmount so the vendor sees exactly what they collected in cash/online
         await Wallet.findByIdAndUpdate(vendorWallet._id, {
-          $inc: { totalEarnings: bill.subTotal }
+          $inc: { totalEarnings: bill.totalAmount }
         });
 
         await Transaction.create({
           wallet: vendorWallet._id,
-          amount: bill.subTotal,
+          amount: bill.totalAmount,
           type: 'credit',
           category: 'order_revenue',
-          description: `POS Cash Sale Earned (Received In-Store): ${createdOrder.orderId}`,
+          description: `POS Sale Collected (${paymentMethod}): ${createdOrder.orderId}`,
           referenceId: createdOrder._id,
           referenceModel: 'Order'
         });
@@ -134,7 +142,7 @@ export const createPOSOrder = async (req, res) => {
             amount: platformCut,
             type: 'debit',
             category: 'platform_commission',
-            description: `POS Platform Share Deducted: ${createdOrder.orderId}`,
+            description: `POS Platform Share (Fee + Tax) Deducted: ${createdOrder.orderId}`,
             referenceId: createdOrder._id,
             referenceModel: 'Order'
           });
@@ -175,7 +183,7 @@ export const createPOSOrder = async (req, res) => {
           amount: revenue,
           type: 'credit',
           category: 'order_revenue',
-          description: `Internal POS Branch Sales Revenue: ${createdOrder.orderId}`,
+          description: `Internal POS Branch Sales Revenue (${paymentMethod}): ${createdOrder.orderId}`,
           referenceId: createdOrder._id,
           referenceModel: 'Order'
         });

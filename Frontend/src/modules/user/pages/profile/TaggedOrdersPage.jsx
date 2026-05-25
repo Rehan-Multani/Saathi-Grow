@@ -71,34 +71,6 @@ const TaggedOrdersPage = () => {
                                  const date = d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) + ', ' + d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
                                  
                                  const itemNames = order.items?.map((i, idx) => {
-                                     const product = i.product;
-                                     // If we don't have current product data, we can't determine stock
-                                     if (!product || typeof product !== 'object') return i.name;
-                                     
-                                     let availableStock = 0;
-                                     let threshold = product.lowStockThreshold || 0;
-                                     
-                                     const branchId = order.branchId?._id || order.branchId;
-                                     const vendorId = order.vendor?._id || order.vendor;
-                                     
-                                     if (branchId) {
-                                         const branchStock = product.branchStocks?.find(bs => (bs.branchId?._id || bs.branchId)?.toString() === branchId.toString());
-                                         availableStock = branchStock ? branchStock.stock : 0;
-                                         threshold = branchStock ? (branchStock.lowStockThreshold || 0) : threshold;
-                                     } else {
-                                         availableStock = product.stock || 0;
-                                     }
-                                     
-                                     // Check if item is definitively out of stock
-                                     const isOut = availableStock <= threshold;
-                                     
-                                     if (isOut) {
-                                         return (
-                                            <span key={`${order._id}-${idx}`}>
-                                                {i.name} <span className="text-red-600 font-bold ml-1">(Out of Stock)</span>
-                                            </span>
-                                         );
-                                     }
                                      return i.name;
                                  });
 

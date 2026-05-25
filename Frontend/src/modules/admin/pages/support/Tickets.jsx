@@ -41,11 +41,14 @@ const SupportTickets = () => {
         if (token) loadComplaints();
     }, [token]);
 
-    const filtered = complaints.filter(t_item =>
-        t_item.ticketId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        t_item.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        t_item.category?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filtered = complaints.filter(t_item => {
+        const search = searchTerm.toLowerCase();
+        return (
+            (t_item.ticketId && t_item.ticketId.toLowerCase().includes(search)) ||
+            (t_item.user?.name && t_item.user.name.toLowerCase().includes(search)) ||
+            (t_item.category && t_item.category.toLowerCase().includes(search))
+        );
+    });
 
     const totalFiltered = filtered.length;
     const totalPages = Math.ceil(totalFiltered / limit) || 1;

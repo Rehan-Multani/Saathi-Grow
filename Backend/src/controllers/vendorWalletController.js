@@ -196,7 +196,7 @@ export const getVendorEarningsStats = async (req, res) => {
     });
 
     const regularSales = deliveredOrders.reduce((sum, order) => sum + (order.vendorPayoutAmount || order.totalAmount), 0);
-    const posSales = posOrders.reduce((sum, order) => sum + (order.subTotal || order.totalAmount), 0);
+    const posSales = posOrders.reduce((sum, order) => sum + order.totalAmount, 0);
     const totalSales = regularSales + posSales;
 
     // Returns

@@ -1,17 +1,35 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Search, ChevronDown, CheckCircle, Package, Truck, Clock, Filter, Eye, MoreVertical, MapPin, Calendar, DollarSign, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useVendor } from '../../contexts/VendorContext';
 import { formatCurrency, formatDate } from '../../../../common/utils/formatUtils';
 
 const AllOrders = () => {
-    const { orders, updateOrderStatus } = useVendor();
+    const { orders, updateOrderStatus, fetchOrders } = useVendor();
     const navigate = useNavigate();
+    const location = useLocation();
     const [filter, setFilter] = useState('All');
     const [searchTerm, setSearchTerm] = useState('');
     const [showStatusMenu, setShowStatusMenu] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 8;
+
+    // Fetch fresh orders on component mount
+    useEffect(() => {
+        fetchOrders();
+    }, []);
+
+    // If URL has a ?search= param (e.g. from a notification click), use it and fetch latest orders
+    useEffect(() => {
+        const queryParams = new URLSearchParams(location.search);
+        const searchParam = queryParams.get('search');
+        if (searchParam) {
+            setSearchTerm(searchParam);
+            // Also fetch fresh orders in case the notification was for a newly placed order
+            // that is not yet in our local state
+            fetchOrders();
+        }
+    }, [location.search]);
 
     const statusColors = {
         'pending': 'text-amber-500 bg-amber-50 border-amber-100',
@@ -36,8 +54,10 @@ const AllOrders = () => {
 
     const filteredOrders = orders.filter(o => {
         const matchesStatus = filter === 'All' || o.status === filter.toLowerCase() || (filter === 'Pending' && (o.status === 'confirmed' || o.status === 'pending'));
-        const matchesSearch = o.orderId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            (o.user?.name || '').toLowerCase().includes(searchTerm.toLowerCase());
+        const query = searchTerm.trim().toLowerCase();
+        const matchesSearch = o.orderId.toLowerCase().includes(query) ||
+            (o.user?.name || '').toLowerCase().includes(query) ||
+            (o.shippingAddress?.name || '').toLowerCase().includes(query);
         return matchesStatus && matchesSearch;
     });
 
@@ -57,15 +77,35 @@ const AllOrders = () => {
                     <h1 className="text-lg lg:text-xl font-bold text-gray-900 tracking-tight">Order Management</h1>
                     <p className="text-xs text-gray-500 font-medium">Track and process all shop orders</p>
                 </div>
-                <div className="flex items-center gap-2 flex-1 max-w-md w-full sm:w-auto border border-gray-200 rounded-lg px-3 py-2 focus-within:border-[#0c831f] bg-white">
-                    <Search className="text-gray-400 shrink-0" size={15} />
-                    <input
-                        type="text"
-                        placeholder="Search order ID or customer name..."
-                        className="flex-1 bg-transparent focus:outline-none text-xs"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
+                <div className="flex items-center gap-3 w-full sm:w-auto flex-1 justify-end">
+                    <div className="flex items-center gap-2 flex-1 max-w-md w-full sm:w-auto border border-gray-200 rounded-lg px-3 py-2 focus-within:border-[#0c831f] bg-white">
+                        <Search className="text-gray-400 shrink-0" size={15} />
+                        <input
+                            type="text"
+                            placeholder="Search order ID or customer name..."
+                            className="flex-1 !bg-transparent !border-none !p-0 !m-0 focus:!outline-none focus:!ring-0 !shadow-none text-xs w-full"
+                            style={{ backgroundColor: 'transparent' }}
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+                    <div className="border border-gray-200 rounded-lg px-3 py-2 bg-white flex items-center gap-2 text-xs">
+                        <Filter size={15} className="text-gray-400" />
+                        <select 
+                            value={filter} 
+                            onChange={(e) => setFilter(e.target.value)}
+                            className="!bg-transparent !border-none !p-0 !m-0 focus:!ring-0 focus:!outline-none !shadow-none text-gray-600 font-bold uppercase tracking-wider cursor-pointer text-xs pr-6"
+                            style={{ backgroundColor: 'transparent' }}
+                        >
+                            <option value="All">All Status</option>
+                            <option value="Confirmed">Confirmed</option>
+                            <option value="Preparing">Preparing</option>
+                            <option value="Ready_for_pickup">Ready for pickup</option>
+                            <option value="Out_for_delivery">Out for delivery</option>
+                            <option value="Delivered">Delivered</option>
+                            <option value="Cancelled">Cancelled</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
@@ -97,34 +137,7 @@ const AllOrders = () => {
                             <tr>
                                 <th className="px-4 py-3 lg:py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">Order ID</th>
                                 <th className="px-4 py-3 lg:py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">Customer</th>
-                                <th className="px-4 py-3 lg:py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider relative">
-                                    <button
-                                        onClick={() => setShowStatusMenu(!showStatusMenu)}
-                                        className={`flex items-center gap-1 hover:text-gray-900 transition-colors uppercase ${filter !== 'All' ? 'text-[#0c831f]' : ''}`}
-                                    >
-                                        {filter === 'All' ? 'Status' : filter} <ChevronDown size={12} className={`transition-transform ${showStatusMenu ? 'rotate-180' : ''}`} />
-                                    </button>
-
-                                    {showStatusMenu && (
-                                        <>
-                                            <div className="fixed inset-0 z-10" onClick={() => setShowStatusMenu(false)} />
-                                            <div className="absolute top-full left-0 mt-2 w-36 bg-white rounded-lg shadow-xl border border-gray-100 py-1 z-20 flex flex-col overflow-hidden">
-                                                {['All', 'Confirmed', 'Preparing', 'Ready_for_pickup', 'Out_for_delivery', 'Delivered', 'Cancelled'].map((status) => (
-                                                    <button
-                                                        key={status}
-                                                        onClick={() => {
-                                                            setFilter(status);
-                                                            setShowStatusMenu(false);
-                                                        }}
-                                                        className={`w-full text-left px-4 py-2 text-[10px] font-bold uppercase tracking-wider hover:bg-gray-50 transition-colors ${filter === status ? 'text-[#0c831f] bg-green-50/30' : 'text-gray-600'}`}
-                                                    >
-                                                        {status}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        </>
-                                    )}
-                                </th>
+                                <th className="px-4 py-3 lg:py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider text-center">Status</th>
                                 <th className="px-4 py-3 lg:py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider text-right">Amount</th>
                                 <th className="px-4 py-3 lg:py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider text-center">View</th>
                             </tr>
@@ -161,9 +174,9 @@ const AllOrders = () => {
                                         </td>
 
                                         {/* Status Badge */}
-                                        <td className="px-4 py-3 lg:py-3 hidden sm:table-cell">
-                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${statusColors[order.status] || 'bg-gray-100 text-gray-400 border-gray-100'}`}>
-                                                {order.status?.replace('_', ' ')}
+                                        <td className="px-4 py-3 lg:py-3 hidden sm:table-cell text-center">
+                                            <span className={`inline-block px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${statusColors[order.status] || 'bg-gray-100 text-gray-400 border-gray-100'}`}>
+                                                {order.status.replace(/_/g, ' ')}
                                             </span>
                                         </td>
 

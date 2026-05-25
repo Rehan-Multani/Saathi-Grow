@@ -19,7 +19,8 @@ import {
   setOrderTag,
   removeOrderTag,
   getUserTags,
-  getOrdersByTag
+  getOrdersByTag,
+  submitOrderFeedback
 } from '../controllers/orderController.js';
 import { protect, protectAdmin, requirePermission } from '../middleware/authMiddleware.js';
 import { sensitiveAdminActionLimiter, auditAction, idempotencyGuard } from '../middleware/securityMiddleware.js';
@@ -38,6 +39,7 @@ router.post('/:id/cancel', protect, cancelOrderUser);
 router.post('/:id/return', protect, upload.array('images', 5), requestReturn);
 router.put('/:id/tag', protect, setOrderTag);
 router.delete('/:id/tag', protect, removeOrderTag);
+router.post('/:id/feedback', protect, submitOrderFeedback);
 
 router.post('/razorpay', protect, createRazorpayOrder);
 router.post('/verify', protect, verifyRazorpayPayment);

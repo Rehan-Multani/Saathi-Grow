@@ -145,6 +145,20 @@ export const notifyAdmins = async (notification, data = {}) => {
 };
 
 /**
+ * Send notification ONLY to Super Admins (role: 'Admin')
+ */
+export const notifySuperAdmins = async (notification, data = {}) => {
+  try {
+    const superAdmins = await Admin.find({ role: 'Admin', isActive: true });
+    for (const admin of superAdmins) {
+      await sendPushNotification(admin._id, 'Admin', notification, data, true);
+    }
+  } catch (error) {
+    console.error('Error notifying super admins:', error);
+  }
+};
+
+/**
  * Notify staff members with specific permissions, optionally scoped to a branch
  * @param {string} permission - Required permission string (e.g., 'MANAGE_ORDERS')
  * @param {string|null} branchId - Mongo ID of the branch (null for across all)

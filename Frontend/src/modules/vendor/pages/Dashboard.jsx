@@ -42,11 +42,11 @@ const Dashboard = () => {
     const authorizedStats = useMemo(() => {
         if (!stats) return [];
         return [
-            { label: 'Total Earnings', value: formatCurrency(stats.totalEarnings), icon: Wallet, color: '#3b82f6', desc: 'All time revenue' },
-            { label: 'Available Balance', value: formatCurrency(stats.balance), icon: DollarSign, color: '#10b981', desc: 'Ready for withdrawal' },
-            { label: 'Total Orders', value: stats.totalOrders?.toLocaleString() || '0', icon: ShoppingBag, color: '#8b5cf6', desc: 'Successfully delivered' },
-            { label: 'Total Products', value: stats.totalProducts?.toLocaleString() || '0', icon: Package, color: '#f59e0b', desc: 'Active in store' },
-            { label: 'Pending Orders', value: stats.pendingOrders?.toLocaleString() || '0', icon: Clock, color: '#f43f5e', desc: 'Needs action' }
+            { label: 'Total Earnings', value: formatCurrency(stats.totalEarnings), icon: Wallet, color: '#3b82f6', desc: 'All time revenue', route: '/vendor/earnings' },
+            { label: 'Available Balance', value: formatCurrency(stats.balance), icon: DollarSign, color: '#10b981', desc: 'Ready for withdrawal', route: '/vendor/earnings' },
+            { label: 'Total Orders', value: stats.totalOrders?.toLocaleString() || '0', icon: ShoppingBag, color: '#8b5cf6', desc: 'Successfully delivered', route: '/vendor/orders' },
+            { label: 'Total Products', value: stats.totalProducts?.toLocaleString() || '0', icon: Package, color: '#f59e0b', desc: 'Active in store', route: '/vendor/products' },
+            { label: 'Pending Orders', value: stats.pendingOrders?.toLocaleString() || '0', icon: Clock, color: '#f43f5e', desc: 'Needs action', route: '/vendor/orders' }
         ];
     }, [stats]);
 
@@ -64,16 +64,8 @@ const Dashboard = () => {
             {/* Header Section */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-8">
                 <div>
-                    <div className="flex items-center gap-2 mb-3">
-                        <div className="flex items-center gap-1.5 px-3 py-1 bg-green-50 text-green-700 border border-green-100 rounded-full text-[10px] font-bold uppercase tracking-wider">
-                             <Activity size={12} />
-                             <span>System Online</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-700 border border-blue-100 rounded-full text-[10px] font-bold uppercase tracking-wider">
-                            <ShieldCheck size={12} />
-                            <span>Vendor Account</span>
-                        </div>
-                    </div>
+
+
                     <div>
                         <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
                             {vendor?.shopName || 'Vendor Dashboard'}
@@ -93,11 +85,16 @@ const Dashboard = () => {
             {/* KPI Stats */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-8">
                 {authorizedStats.map((stat, i) => (
-                    <div key={i} className="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+                    <div
+                        key={i}
+                        onClick={() => navigate(stat.route)}
+                        className="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm hover:shadow-md hover:border-gray-200 hover:-translate-y-0.5 transition-all cursor-pointer group"
+                    >
                         <div className="flex items-center justify-between mb-4">
                             <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${stat.color}15`, color: stat.color }}>
                                 <stat.icon size={22} strokeWidth={2.5} />
                             </div>
+                            <ArrowUpRight size={16} className="text-gray-300 group-hover:text-gray-500 transition-colors" />
                         </div>
                         <h3 className="text-2xl font-bold text-gray-900 mb-1">{stat.value}</h3>
                         <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">{stat.label}</p>

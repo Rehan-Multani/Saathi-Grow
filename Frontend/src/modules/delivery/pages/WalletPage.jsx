@@ -22,23 +22,46 @@ const WalletPage = () => {
     const { token } = useDeliveryStore();
     const { wallet, transactions = [], stats, profile, walletPagination, refreshWallet } = useDelivery();
 
-    const handleExport = () => {
+    const handleExport = async () => {
         const toastId = toast.loading("Processing tactical audit...");
-        setTimeout(() => {
+        try {
             const csvContent = "date,order,type,amount,status\n" +
                 transactions.map(tx => `${new Date(tx.createdAt).toLocaleDateString()},${tx.order?.orderId || 'N/A'},${tx.type},${tx.amount},${tx.status}`).join("\n");
 
+            const fileName = `cash_audit_${new Date().toISOString().split('T')[0]}.csv`;
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const file = new File([blob], fileName, { type: 'text/csv' });
+
+            // Try Web Share API first (ideal for mobile WebViews to bypass storage permissions)
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                await navigator.share({
+                    files: [file],
+                    title: 'Cash Audit Export',
+                    text: 'Here is the cash audit export.'
+                });
+                toast.update(toastId, { render: "Audit Shared Successfully", type: "success", isLoading: false, autoClose: 2000 });
+                return;
+            }
+
+            // Fallback for desktop or browsers without Web Share API
             const url = URL.createObjectURL(blob);
             const link = document.createElement("a");
             link.setAttribute("href", url);
-            link.setAttribute("download", `cash_audit_${new Date().toISOString().split('T')[0]}.csv`);
+            link.setAttribute("download", fileName);
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+            URL.revokeObjectURL(url);
 
             toast.update(toastId, { render: "Audit Log Downloaded", type: "success", isLoading: false, autoClose: 2000 });
-        }, 1200);
+        } catch (error) {
+            console.error("Export failed:", error);
+            if (error.name !== 'AbortError') {
+                toast.update(toastId, { render: "Export Failed or Canceled", type: "error", isLoading: false, autoClose: 2000 });
+            } else {
+                toast.dismiss(toastId);
+            }
+        }
     };
 
     const cashLiability = wallet?.balance || 0;
@@ -132,24 +155,24 @@ const WalletPage = () => {
                 {/* Tactical Stats Sidebar */}
                 <div className="space-y-3 text-slate-900">
                     <div className="grid grid-cols-2 gap-3">
-                        <div className="bg-white p-3 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between">
+                        <div className="bg-white dark:bg-black p-3 rounded-2xl border border-slate-100 dark:border-white/10 shadow-sm flex flex-col justify-between">
                             <div className="flex items-center gap-2 mb-2">
-                                <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                                <div className="w-7 h-7 rounded-lg bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
                                     <TrendingUp size={14} />
                                 </div>
-                                <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest leading-none">Today's Catch</p>
+                                <p className="text-[7px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-none">Today's Catch</p>
                             </div>
-                            <h4 className="font-black text-sm text-slate-900">{formatCurrency(stats?.todayEarnings || 0)}</h4>
+                            <h4 className="font-black text-sm text-slate-900 dark:text-white">{formatCurrency(stats?.todayEarnings || 0)}</h4>
                         </div>
                         
-                        <div className="bg-white p-3 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between">
+                        <div className="bg-white dark:bg-black p-3 rounded-2xl border border-slate-100 dark:border-white/10 shadow-sm flex flex-col justify-between">
                             <div className="flex items-center gap-2 mb-2">
-                                <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0" >
+                                <div className="w-7 h-7 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0" >
                                     <UserCheck size={14} />
                                 </div>
-                                <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest leading-none">Missions</p>
+                                <p className="text-[7px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-none">Missions</p>
                             </div>
-                            <h4 className="font-black text-sm text-slate-900">{stats?.todayDeliveries || 0} Total</h4>
+                            <h4 className="font-black text-sm text-slate-900 dark:text-white">{stats?.todayDeliveries || 0} Total</h4>
                         </div>
                     </div>
  

@@ -199,12 +199,23 @@ const orderSchema = new mongoose.Schema({
         default: null,
         trim: true,
         maxlength: 30
+    },
+    feedback: {
+        rating: { type: Number, min: 1, max: 5, default: null },
+        comment: { type: String, default: null },
+        submittedAt: { type: Date, default: null }
     }
 }, {
     timestamps: true
 });
 
 orderSchema.index({ 'shippingAddress.location': '2dsphere' });
+orderSchema.index({ user: 1, createdAt: -1 });
+orderSchema.index({ vendor: 1, createdAt: -1 });
+orderSchema.index({ branchId: 1, createdAt: -1 });
+orderSchema.index({ deliveryPartnerId: 1, status: 1, createdAt: -1 });
+orderSchema.index({ status: 1, createdAt: -1 });
+orderSchema.index({ 'returnRequest.status': 1 });
 
 const Order = mongoose.model('Order', orderSchema);
 export default Order;

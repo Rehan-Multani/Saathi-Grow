@@ -72,7 +72,8 @@ const VendorEarnings = () => {
         return new Intl.NumberFormat('en-IN', {
             style: 'currency',
             currency: 'INR',
-            maximumFractionDigits: 0
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
         }).format(val || 0);
     };
 
@@ -241,8 +242,9 @@ const VendorEarnings = () => {
                                 <th className="px-8 py-5">{view === 'earnings' ? t('finance.earnings.table.order_id') : t('finance.earnings.table.payout_id')}</th>
                                 <th className="px-6 py-5">{t('finance.earnings.table.vendor')}</th>
                                 <th className="px-6 py-5">{t('finance.earnings.table.date')}</th>
-                                <th className="px-6 py-5">{t('finance.earnings.table.amount')}</th>
-                                <th className="px-6 py-5 text-center">{t('finance.earnings.table.status')}</th>
+                                <th className="px-6 py-5">{view === 'earnings' ? 'ORDER TOTAL' : t('finance.earnings.table.amount')}</th>
+                                <th className="px-6 py-5">{view === 'earnings' ? 'VENDOR EARNINGS' : 'STATUS'}</th>
+                                {view === 'earnings' && <th className="px-6 py-5 text-center">STATUS</th>}
                                 <th className="px-8 py-5 text-right uppercase">Detail</th>
                             </tr>
                         </thead>
@@ -258,17 +260,31 @@ const VendorEarnings = () => {
                                     <td className="px-6 py-5">
                                         <div className="text-[10px] font-bold text-slate-400 uppercase opacity-70">{r.date}</div>
                                     </td>
-                                    <td className={`px-6 py-5 text-xs font-black ${view === 'earnings' ? 'text-emerald-600' : 'text-blue-600'}`}>
-                                        {formatCurrency(r.amount)}
+                                    <td className={`px-6 py-5 text-xs font-black ${view === 'earnings' ? 'text-slate-800' : 'text-blue-600'}`}>
+                                        {view === 'earnings' ? formatCurrency(r.orderTotal || 0) : formatCurrency(r.amount)}
                                     </td>
-                                    <td className="px-6 py-5 text-center">
-                                        <span className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-tight border ${
-                                            r.status === 'Paid' || r.status === 'Delivered' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
-                                            r.status === 'Pending' ? 'bg-amber-50 text-amber-600 border-amber-100' : 'bg-rose-50 text-rose-500 border-rose-100'
-                                        }`}>
-                                            {r.status}
-                                        </span>
+                                    <td className={`px-6 py-5 text-xs font-black ${view === 'earnings' ? 'text-emerald-600' : 'text-center'}`}>
+                                        {view === 'earnings' ? (
+                                            formatCurrency(r.amount)
+                                        ) : (
+                                            <span className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-tight border ${
+                                                r.status === 'Paid' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                                                r.status === 'Pending' ? 'bg-amber-50 text-amber-600 border-amber-100' : 'bg-rose-50 text-rose-500 border-rose-100'
+                                            }`}>
+                                                {r.status}
+                                            </span>
+                                        )}
                                     </td>
+                                    {view === 'earnings' && (
+                                        <td className="px-6 py-5 text-center">
+                                            <span className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-tight border ${
+                                                r.status === 'Delivered' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                                                r.status === 'Pending' ? 'bg-amber-50 text-amber-600 border-amber-100' : 'bg-rose-50 text-rose-500 border-rose-100'
+                                            }`}>
+                                                {r.status}
+                                            </span>
+                                        </td>
+                                    )}
                                     <td className="px-8 py-5 text-right">
                                         {view === 'withdrawals' && (
                                             <button 
@@ -279,8 +295,18 @@ const VendorEarnings = () => {
                                             </button>
                                         )}
                                         {view === 'earnings' && (
-                                            <div className="p-2 text-slate-200">
-                                                <Activity size={18} />
+                                            <div className="flex flex-col items-end gap-0.5">
+                                                <span className="text-[10px] font-black text-rose-500 uppercase tracking-tight">
+                                                    Fee: {formatCurrency(r.commission || 0)}
+                                                </span>
+                                                {r.tax > 0 && (
+                                                    <span className="text-[10px] font-black text-orange-500 uppercase tracking-tight">
+                                                        Tax: {formatCurrency(r.tax)}
+                                                    </span>
+                                                )}
+                                                <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest bg-slate-100 px-1.5 py-0.5 rounded">
+                                                    {r.paymentMethod || 'N/A'}
+                                                </span>
                                             </div>
                                         )}
                                     </td>

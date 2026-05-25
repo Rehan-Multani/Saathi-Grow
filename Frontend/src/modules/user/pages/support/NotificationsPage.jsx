@@ -64,7 +64,7 @@ const NotificationsPage = () => {
                 </div>
 
                 {/* Notifications List */}
-                <div className="px-0 md:px-4 pt-20 border-t border-transparent md:pt-0">
+                <div className="px-0 md:px-4 pt-6 border-t border-transparent md:pt-0">
                     <div className="flex justify-between items-center mb-4 px-4 md:px-2">
                         <p className="text-sm font-semibold text-slate-500">Recently Received</p>
                         {notifications.length > 0 && (

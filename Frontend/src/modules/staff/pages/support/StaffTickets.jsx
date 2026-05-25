@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import { MessageSquare, Send, ArrowUpRight, CheckCircle, Search, Filter, Loader2, Package, User, ChevronLeft, ChevronRight, AlertCircle, X, Camera, Paperclip, ClipboardList, Inbox, RefreshCw, ShieldCheck } from 'lucide-react';
 import { useStaffAuth } from '../../context/StaffAuthContext';
 import * as complaintApi from '../../../../common/api/complaintApi';
@@ -36,6 +37,15 @@ const StaffTickets = () => {
 
     useEffect(() => { if (token) loadComplaints(); }, [token]);
     useEffect(() => { setCurrentPage(1); }, [searchQuery, filterStatus]);
+
+    useEffect(() => {
+        if (showDetailModal) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+        return () => { document.body.style.overflow = 'unset'; };
+    }, [showDetailModal]);
 
     const handleAction = async (action) => {
         try {
@@ -222,9 +232,9 @@ const StaffTickets = () => {
                 )}
             </div>
 
-            {showDetailModal && selectedTicket && (
-                <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4 text-left">
-                    <div className="bg-white rounded-[3rem] max-w-5xl w-full shadow-3xl overflow-hidden relative animate-in zoom-in-95 duration-300 border border-slate-200 flex flex-col md:flex-row min-h-[500px] max-h-[90vh] text-left">
+            {showDetailModal && selectedTicket && ReactDOM.createPortal(
+                <div className="fixed top-0 left-0 w-screen h-screen bg-slate-900/40 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 text-left" onClick={() => setShowDetailModal(false)}>
+                    <div className="bg-white rounded-[3rem] max-w-5xl w-full shadow-3xl overflow-hidden relative animate-in zoom-in-95 duration-300 border border-slate-200 flex flex-col md:flex-row min-h-[500px] max-h-[90vh] text-left" onClick={(e) => e.stopPropagation()}>
                         <button 
                             onClick={() => setShowDetailModal(false)} 
                             className="absolute top-8 right-8 w-10 h-10 bg-slate-50 text-slate-400 hover:text-red-500 rounded-2xl flex items-center justify-center transition-all z-[110] font-black shadow-sm"
@@ -362,7 +372,7 @@ const StaffTickets = () => {
                         </div>
                     </div>
                 </div>
-            )}
+            , document.body)}
             
             <style dangerouslySetInnerHTML={{ __html: `
                 .custom-scrollbar::-webkit-scrollbar { width: 4px; }

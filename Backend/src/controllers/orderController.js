@@ -19,7 +19,7 @@ import DeliveryRun from '../models/DeliveryRun.js';
 import { findOptimalSource, geocodeAddress, calculateDistance } from '../services/locationService.js';
 import PromoCode from '../models/PromoCode.js';
 import PromoUsage from '../models/PromoUsage.js';
-import { sendPushNotification, notifyByBranchAndPermission } from '../services/notificationService.js';
+import { sendPushNotification, notifyByBranchAndPermission, notifySuperAdmins } from '../services/notificationService.js';
 import { sendSystemNotificationEmail } from '../services/emailService.js';
 import { buildRouteCacheKey, getCachedRoute, setCachedRoute } from '../services/routeCacheService.js';
 
@@ -155,7 +155,7 @@ const validateStockAvailability = async (items, storeId, storeType) => {
 };
 
 export const computeBillDetails = async (items, options = {}) => {
-  const { promoId = null, userId = null } = options;
+  const { promoId = null, userId = null, orderSource = null } = options;
   let subTotal = 0;
 
   // Validate each item against the actual database to prevent frontend price manipulation
@@ -179,7 +179,13 @@ export const computeBillDetails = async (items, options = {}) => {
     deliveryFee = 0;
   }
 
-  const handlingFee = settings.handlingFee;
+  let handlingFee = settings.handlingFee;
+
+  // POS orders do not incur delivery or handling fees
+  if (orderSource === 'pos') {
+    deliveryFee = 0;
+    handlingFee = 0;
+  }
   
   // Base total without discount
   let totalAmount = subTotal + taxAmount + deliveryFee + handlingFee;
@@ -399,8 +405,16 @@ export const verifyRazorpayPayment = async (req, res) => {
       razorpaySignature: razorpaySignature
     });
 
+    // Dynamic Order Routing: Check if the order contains a vendor product first
+    const firstProductIdForRoute = orderData.items[0]?.product?._id || orderData.items[0]?.product;
+    const firstProductForRoute = await Product.findById(firstProductIdForRoute).select('vendor').lean();
+
+    if (firstProductForRoute && firstProductForRoute.vendor) {
+      order.vendor = firstProductForRoute.vendor;
+      order.branchId = undefined;
+    }
     // Priority 1: Use specific Store if provided by Frontend (Store-First Architecture)
-    if (orderData.storeId && orderData.storeType) {
+    else if (orderData.storeId && orderData.storeType) {
       if (orderData.storeType === 'branch') {
         order.branchId = orderData.storeId;
       } else {
@@ -442,11 +456,28 @@ export const verifyRazorpayPayment = async (req, res) => {
       body: `Your order ${createdOrder.orderId} was successful and is being processed.`
     }, { orderId: createdOrder.orderId, status: 'confirmed' });
 
-    // 2. Notify Branch Staff / Manager
-    notifyByBranchAndPermission('MANAGE_ORDERS', createdOrder.branchId || null, {
-      title: 'New Online Order',
-      body: `Order ${createdOrder.orderId} for ₹${createdOrder.totalAmount} is ready for processing.`
-    }, { orderId: createdOrder.orderId, action: 'VIEW_ORDER' });
+    // 2. Notify Staff/Admin/Vendor based on product ownership
+    if (createdOrder.vendor) {
+      sendPushNotification(createdOrder.vendor, 'Vendor', {
+        title: 'New Online Order',
+        body: `Order ${createdOrder.orderId} for ₹${createdOrder.totalAmount} is ready for processing.`
+      }, { orderId: createdOrder.orderId, action: 'VIEW_ORDER' });
+      
+      notifyAdmins({
+        title: 'New Online Order (Vendor)',
+        body: `Order ${createdOrder.orderId} placed for vendor for ₹${createdOrder.totalAmount}.`
+      }, { orderId: createdOrder.orderId, action: 'VIEW_ORDER' });
+    } else if (createdOrder.branchId) {
+      notifyByBranchAndPermission('MANAGE_ORDERS', createdOrder.branchId, {
+        title: 'New Online Order',
+        body: `Order ${createdOrder.orderId} for ₹${createdOrder.totalAmount} is ready for processing.`
+      }, { orderId: createdOrder.orderId, action: 'VIEW_ORDER' });
+    } else {
+      notifyAdmins({
+        title: 'New Online Order',
+        body: `Order ${createdOrder.orderId} for ₹${createdOrder.totalAmount} is ready for processing.`
+      }, { orderId: createdOrder.orderId, action: 'VIEW_ORDER' });
+    }
 
     // 3. Send Transactional Email to User
     if (req.user.email) {
@@ -902,8 +933,16 @@ export const createCODOrder = async (req, res) => {
       isImmediate: orderData.isImmediate ?? true,       // Sprint 2: ASAP flag
     });
 
+    // Dynamic Order Routing: Check if the order contains a vendor product first
+    const firstProductIdForRoute = orderData.items[0]?.product?._id || orderData.items[0]?.product;
+    const firstProductForRoute = await Product.findById(firstProductIdForRoute).select('vendor').lean();
+
+    if (firstProductForRoute && firstProductForRoute.vendor) {
+      order.vendor = firstProductForRoute.vendor;
+      order.branchId = undefined;
+    }
     // Priority 1: Use specific Store if provided by Frontend (Store-First Architecture)
-    if (orderData.storeId && orderData.storeType) {
+    else if (orderData.storeId && orderData.storeType) {
       if (orderData.storeType === 'branch') {
         order.branchId = orderData.storeId;
       } else {
@@ -945,11 +984,28 @@ export const createCODOrder = async (req, res) => {
       body: `Order ${createdOrder.orderId} placed successfully. Please keep ₹${createdOrder.totalAmount} ready for delivery.`
     }, { orderId: createdOrder.orderId, status: 'pending' });
 
-    // 2. Notify Branch Staff
-    notifyByBranchAndPermission('MANAGE_ORDERS', createdOrder.branchId || null, {
-      title: 'New COD Order',
-      body: `A new COD order ${createdOrder.orderId} needs confirmation.`
-    }, { orderId: createdOrder.orderId, action: 'CONFIRM_ORDER' });
+    // 2. Notify Staff/Admin/Vendor based on product ownership
+    if (createdOrder.vendor) {
+      sendPushNotification(createdOrder.vendor, 'Vendor', {
+        title: 'New COD Order',
+        body: `A new COD order ${createdOrder.orderId} needs confirmation.`
+      }, { orderId: createdOrder.orderId, action: 'CONFIRM_ORDER' });
+      
+      notifySuperAdmins({
+        title: 'New COD Order (Vendor)',
+        body: `A new COD order ${createdOrder.orderId} placed for vendor.`
+      }, { orderId: createdOrder.orderId, action: 'CONFIRM_ORDER' });
+    } else if (createdOrder.branchId) {
+      notifyByBranchAndPermission('MANAGE_ORDERS', createdOrder.branchId, {
+        title: 'New COD Order',
+        body: `A new COD order ${createdOrder.orderId} needs confirmation.`
+      }, { orderId: createdOrder.orderId, action: 'CONFIRM_ORDER' });
+    } else {
+      notifySuperAdmins({
+        title: 'New COD Order',
+        body: `A new COD order ${createdOrder.orderId} needs confirmation.`
+      }, { orderId: createdOrder.orderId, action: 'CONFIRM_ORDER' });
+    }
 
     // 3. Status Change Email
     if (req.user.email) {
@@ -1022,8 +1078,16 @@ export const createWalletOrder = async (req, res) => {
       isImmediate: orderData.isImmediate ?? true,       // Sprint 2: ASAP flag
     });
 
+    // Dynamic Order Routing: Check if the order contains a vendor product first
+    const firstProductIdForRoute = orderData.items[0]?.product?._id || orderData.items[0]?.product;
+    const firstProductForRoute = await Product.findById(firstProductIdForRoute).select('vendor').lean();
+
+    if (firstProductForRoute && firstProductForRoute.vendor) {
+      order.vendor = firstProductForRoute.vendor;
+      order.branchId = undefined;
+    }
     // Priority 1: Use specific Store if provided by Frontend (Store-First Architecture)
-    if (orderData.storeId && orderData.storeType) {
+    else if (orderData.storeId && orderData.storeType) {
       if (orderData.storeType === 'branch') {
         order.branchId = orderData.storeId;
       } else {
@@ -1081,11 +1145,28 @@ export const createWalletOrder = async (req, res) => {
       body: `Order ${createdOrder.orderId} was successful using your wallet balance.`
     }, { orderId: createdOrder.orderId, status: 'confirmed' });
 
-    // 2. Notify Branch Staff
-    notifyByBranchAndPermission('MANAGE_ORDERS', createdOrder.branchId || null, {
-      title: 'New Prepaid Order',
-      body: `Digital order ${createdOrder.orderId} for ₹${createdOrder.totalAmount} is confirmed.`
-    }, { orderId: createdOrder.orderId, action: 'PROCESS_ORDER' });
+    // 2. Notify Staff/Admin/Vendor
+    if (createdOrder.vendor) {
+      sendPushNotification(createdOrder.vendor, 'Vendor', {
+        title: 'New Prepaid Order',
+        body: `Digital order ${createdOrder.orderId} for ₹${createdOrder.totalAmount} is confirmed.`
+      }, { orderId: createdOrder.orderId, action: 'PROCESS_ORDER' });
+      
+      notifySuperAdmins({
+        title: 'New Prepaid Order (Vendor)',
+        body: `Digital order ${createdOrder.orderId} placed for vendor.`
+      }, { orderId: createdOrder.orderId, action: 'PROCESS_ORDER' });
+    } else if (createdOrder.branchId) {
+      notifyByBranchAndPermission('MANAGE_ORDERS', createdOrder.branchId, {
+        title: 'New Prepaid Order',
+        body: `Digital order ${createdOrder.orderId} for ₹${createdOrder.totalAmount} is confirmed.`
+      }, { orderId: createdOrder.orderId, action: 'PROCESS_ORDER' });
+    } else {
+      notifySuperAdmins({
+        title: 'New Prepaid Order',
+        body: `Digital order ${createdOrder.orderId} for ₹${createdOrder.totalAmount} is confirmed.`
+      }, { orderId: createdOrder.orderId, action: 'PROCESS_ORDER' });
+    }
 
     // 3. User Wallet Order Email
     if (req.user.email) {
@@ -1233,11 +1314,25 @@ export const requestReturn = async (req, res) => {
     const updatedOrder = await order.save();
     res.json({ success: true, order: updatedOrder });
 
-    // Notify Branch Staff of Return Request
+    // Notify Super Admins of Return Request
+    notifySuperAdmins({
+      title: 'New Return Request',
+      body: `Customer requested a return for Order #${updatedOrder.orderId}. Reason: ${reason}`
+    }, { orderId: updatedOrder.orderId, action: 'VIEW_RETURN_REQUEST' });
+
+    // Notify Branch Staff (Store Manager and Staff) of Return Request
     if (updatedOrder.branchId) {
       notifyByBranchAndPermission('MANAGE_REFUNDS_RETURNS', updatedOrder.branchId, {
         title: 'New Return Request',
         body: `Customer requested a return for Order #${updatedOrder.orderId}. Reason: ${reason}`
+      }, { orderId: updatedOrder.orderId, type: 'return_request' });
+    }
+
+    // Notify Vendor of Return Request
+    if (updatedOrder.vendor) {
+      sendPushNotification(updatedOrder.vendor, 'Vendor', {
+        title: '🔄 New Return Request',
+        body: `A customer has requested a return for Order #${updatedOrder.orderId}. Reason: ${reason}`
       }, { orderId: updatedOrder.orderId, type: 'return_request' });
     }
   } catch (error) {
@@ -1845,10 +1940,47 @@ export const getVendorOrders = async (req, res) => {
 
     const orders = await Order.find(query)
       .populate('user', 'name email phone')
+      .populate('deliveryPartnerId', 'name phone profileImage vehicleType vehicleNumber')
       .populate('items.product', 'name image unitValue unitType')
       .sort({ createdAt: -1 });
 
     res.json(orders);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Lookup a single vendor order by tracking / order ID
+// @route   GET /api/vendors/orders/lookup?trackingId=SG-xxx
+// @access  Private (Vendor)
+export const lookupVendorOrder = async (req, res) => {
+  try {
+    const vendorId = req.vendor._id;
+    const raw = (req.query.trackingId || req.query.search || '').trim();
+    if (!raw) {
+      return res.status(400).json({ message: 'Tracking ID is required' });
+    }
+
+    const escaped = raw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const buildQuery = (filter) =>
+      Order.findOne({ vendor: vendorId, ...filter })
+        .populate('user', 'name email phone')
+        .populate('deliveryPartnerId', 'name phone profileImage vehicleType vehicleNumber')
+        .populate('items.product', 'name image unitValue unitType');
+
+    let order = await buildQuery({ orderId: new RegExp(`^${escaped}$`, 'i') });
+    if (!order) {
+      order = await buildQuery({ orderId: new RegExp(escaped, 'i') });
+    }
+    if (!order && mongoose.Types.ObjectId.isValid(raw)) {
+      order = await buildQuery({ _id: raw });
+    }
+
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    res.json(order);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -1895,9 +2027,16 @@ export const getVendorReturnRequests = async (req, res) => {
     const status = (req.query.status || '').trim();
     const includeStats = req.query.includeStats === 'true';
 
-    let query = { 
+    // Find all vendor's product IDs for a broader product-level match
+    const vendorProducts = await Product.find({ vendor: vendorId }).select('_id').lean();
+    const vendorProductIds = vendorProducts.map(p => p._id);
+
+    let query = {
       'returnRequest.isRequested': true,
-      vendor: vendorId 
+      $or: [
+        { vendor: vendorId },
+        { 'items.product': { $in: vendorProductIds } }
+      ]
     };
 
     if (status && status.toLowerCase() !== 'all') {
@@ -2221,6 +2360,40 @@ export const getOrdersByTag = async (req, res) => {
     ]);
 
     res.json({ orders, total, page: parseInt(page), totalPages: Math.ceil(total / parseInt(limit)) });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Submit feedback/rating for a completed order
+// @route   POST /api/orders/:id/feedback
+// @access  Private (User)
+export const submitOrderFeedback = async (req, res) => {
+  try {
+    const { rating, comment } = req.body;
+    const order = await Order.findOne({ _id: req.params.id, user: req.user._id });
+
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    if (order.status !== 'delivered') {
+      return res.status(400).json({ message: 'Feedback can only be submitted for delivered orders.' });
+    }
+
+    if (order.feedback && order.feedback.rating) {
+      return res.status(400).json({ message: 'Feedback has already been submitted for this order.' });
+    }
+
+    order.feedback = {
+      rating: Number(rating),
+      comment: comment || null,
+      submittedAt: new Date()
+    };
+
+    await order.save();
+
+    res.json({ message: 'Feedback submitted successfully', feedback: order.feedback });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

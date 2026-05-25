@@ -46,8 +46,8 @@ const OrderManagement = () => {
             </div>
 
             {/* Sticky Tabs */}
-            <div className="sticky top-14 md:top-0 z-30 bg-slate-50/80 dark:bg-zinc-950/80 backdrop-blur-lg py-1 md:py-1.5 -mx-4 px-4 md:-mx-8 md:px-8 flex justify-center">
-                <div className="flex bg-white dark:bg-zinc-900 p-0.5 rounded-xl border border-slate-200/60 dark:border-zinc-800/60 shadow-sm relative w-full max-w-md">
+            <div className="sticky top-14 md:top-0 z-30 bg-slate-50/80 dark:bg-zinc-950/80 backdrop-blur-lg py-1 md:py-1.5 flex justify-center">
+                <div className="flex bg-white dark:bg-zinc-900 p-0.5 rounded-xl border border-slate-200/60 dark:border-zinc-800/60 shadow-sm relative w-full max-w-md mx-auto">
                     {tabs.map((tab) => (
                         <button
                             key={tab.id}
@@ -78,7 +78,7 @@ const OrderManagement = () => {
 
             {/* List */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <AnimatePresence mode="popLayout">
+                <AnimatePresence>
                     {displayRuns.length > 0 ? displayRuns.map((run, index) => {
                         const totalStops = run.orders?.length || 0;
                         const pendingStops = run.orders?.filter(o => o.status === 'pending' || o.status === 'out_for_delivery').length || 0;
@@ -87,7 +87,6 @@ const OrderManagement = () => {
 
                         return (
                             <motion.div
-                                layout
                                 key={run._id}
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
@@ -106,7 +105,7 @@ const OrderManagement = () => {
                                         </div>
                                         <div>
                                             <h4 className="font-black text-xs tracking-tight text-slate-800 dark:text-zinc-100 flex items-center gap-1.5 leading-none">
-                                                {run.runId}
+                                                {run.orders?.[0]?.order?.orderId ? `#${run.orders[0].order.orderId}` : run.runId}
                                             </h4>
                                             <p className="text-[8px] text-slate-400 font-bold tracking-wide mt-0.5 flex items-center gap-1">
                                                 {run.isImmediate ? <span className="text-warning flex items-center gap-1"><AlertCircle size={8} /> ASAP</span> : <span className="text-info flex items-center gap-1"><Clock size={8} /> Scheduled</span>}

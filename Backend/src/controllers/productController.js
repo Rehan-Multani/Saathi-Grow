@@ -495,9 +495,9 @@ export const getProducts = async (req, res) => {
 
     const total = await Product.countDocuments(query);
 
-    // Build Sort Object: Prioritize Saathi Grow, then apply user sort
-    let sortObj = { isSaathigro: -1 };
-    if (sort) {
+    // Build Sort Object: Prioritize Saathi Grow only on default sort, otherwise apply user sort directly
+    let sortObj = {};
+    if (sort && sort !== '-createdAt') {
       if (typeof sort === 'string') {
         const parts = sort.split(' ');
         parts.forEach(p => {
@@ -507,6 +507,7 @@ export const getProducts = async (req, res) => {
         });
       }
     } else {
+      sortObj.isSaathigro = -1;
       sortObj.createdAt = -1;
     }
 
@@ -517,7 +518,7 @@ export const getProducts = async (req, res) => {
 
     // If it's a public/user request (no admin/vendor), select only necessary fields
     if (!req.admin && !req.vendor) {
-      productQuery = productQuery.select('name image description basePrice mrp category status brandName unitType unitValue isVeg sku branchStocks vendor stock lowStockThreshold averageRating ratingCount');
+      productQuery = productQuery.select('name image gallery variants description basePrice mrp category status brandName unitType unitValue isVeg sku branchStocks vendor stock lowStockThreshold averageRating ratingCount');
     }
 
     let products = await productQuery
@@ -1108,20 +1109,26 @@ export const updateProduct = async (req, res) => {
         product.status = 'Draft';
       }
 
+      let finalGallery = [];
+      if (req.body.existingGallery) {
+        try {
+          finalGallery = JSON.parse(req.body.existingGallery);
+        } catch (e) {
+          finalGallery = [];
+        }
+      }
+
       if (req.files) {
         if (req.files.image && req.files.image[0]) {
           product.image = req.files.image[0].path;
         }
         if (req.files.gallery) {
           const newGalleryPaths = req.files.gallery.map(file => file.path);
-          // If we want to append or replace: let's replace for now or append if provided
-          // Usually in edit, we might want to keep old ones, but if new ones are uploaded via 'gallery' field, 
-          // we might want to either replace or append. Let's append for now to be safe, 
-          // or replace if the user intends to reset. 
-          // Given typical behavior, let's replace if gallery files are present.
-          product.gallery = newGalleryPaths;
+          finalGallery = [...finalGallery, ...newGalleryPaths];
         }
       }
+
+      product.gallery = finalGallery;
 
       const updatedProduct = await product.save();
 

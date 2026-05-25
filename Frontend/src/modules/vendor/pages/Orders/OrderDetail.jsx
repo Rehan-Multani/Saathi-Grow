@@ -126,7 +126,7 @@ const OrderDetail = () => {
                                     <div className="flex-1">
                                         <p className="text-sm font-bold text-gray-900">{item.product?.name || item.name || 'Unknown Product'}</p>
                                         {item.physicalLocation && <p className="text-[10px] font-bold text-amber-600 flex items-center gap-1 mt-0.5"><MapPin size={10} className="text-amber-500" />{item.physicalLocation}</p>}
-                                        <p className="text-xs text-gray-500">Qty: {item.quantity} � {formatCurrency(item.price)}</p>
+                                        <p className="text-xs text-gray-500">Qty: {item.quantity} × {formatCurrency(item.price)}</p>
                                     </div>
                                     <p className="text-sm font-bold text-gray-900">{formatCurrency(item.price * item.quantity)}</p>
                                 </div>
@@ -175,12 +175,32 @@ const OrderDetail = () => {
                             <div className="border-t border-gray-100 my-2" />
                             <div className="flex justify-between text-xs">
                                 <span className="text-gray-600">Items Total</span>
-                                <span className="font-bold text-gray-900">{formatCurrency(order.billDetails?.itemsTotal || order.totalAmount)}</span>
+                                <span className="font-bold text-gray-900">{formatCurrency(order.subTotal || order.totalAmount)}</span>
                             </div>
+                            {order.taxAmount > 0 && (
+                            <div className="flex justify-between text-xs">
+                                <span className="text-gray-600">Tax</span>
+                                <span className="font-bold text-gray-900">+{formatCurrency(order.taxAmount)}</span>
+                            </div>
+                            )}
+                            {order.deliveryFee > 0 && (
                             <div className="flex justify-between text-xs">
                                 <span className="text-gray-600">Delivery Fee</span>
-                                <span className="font-bold text-gray-900">{formatCurrency(order.billDetails?.deliveryFee || 0)}</span>
+                                <span className="font-bold text-gray-900">+{formatCurrency(order.deliveryFee)}</span>
                             </div>
+                            )}
+                            {order.handlingFee > 0 && (
+                            <div className="flex justify-between text-xs">
+                                <span className="text-gray-600">Handling Fee</span>
+                                <span className="font-bold text-gray-900">+{formatCurrency(order.handlingFee)}</span>
+                            </div>
+                            )}
+                            {order.discountAmount > 0 && (
+                            <div className="flex justify-between text-xs text-green-600">
+                                <span>Discount</span>
+                                <span className="font-bold">-{formatCurrency(order.discountAmount)}</span>
+                            </div>
+                            )}
                             <div className="border-t border-gray-100 my-2" />
                             <div className="flex justify-between text-sm">
                                 <span className="font-bold text-gray-900">Total Amount</span>

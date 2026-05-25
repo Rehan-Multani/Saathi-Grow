@@ -38,7 +38,16 @@ const StaffLayout = () => {
     useEffect(() => {
         fetchNotifications();
         const interval = setInterval(fetchNotifications, 30000);
-        return () => clearInterval(interval);
+        
+        const handleFirebaseMessage = (e) => {
+            fetchNotifications(); // Instant refresh when a push arrives
+        };
+        window.addEventListener('onFirebaseMessage', handleFirebaseMessage);
+        
+        return () => {
+            clearInterval(interval);
+            window.removeEventListener('onFirebaseMessage', handleFirebaseMessage);
+        };
     }, [staffToken]);
 
     const handleMarkAsRead = async (id) => {
@@ -65,7 +74,7 @@ const StaffLayout = () => {
 
     return (
         <div className="min-h-screen bg-[#f8fafc] flex font-sans selection:bg-blue-100 selection:text-blue-900 staff-portal-root overflow-x-hidden">
-            <FirebaseNotificationHandler token={staffToken} role="staff" />
+            <FirebaseNotificationHandler token={staffToken} role="staff" showToast={true} />
             
             <StaffSidebar
                 showMobile={showMobileSidebar}

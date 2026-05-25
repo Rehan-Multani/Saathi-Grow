@@ -152,7 +152,7 @@ const StaffDashboard = () => {
                                 <Activity size={14} className="animate-pulse" /> Unit Live
                             </div>
                         </div>
-                        <h1 className="text-4xl font-black tracking-tight leading-none uppercase italic font-black text-left">
+                        <h1 className="text-4xl font-black tracking-tight leading-none uppercase italic text-white text-left">
                             Branch <span className="text-blue-500">Hub</span>
                         </h1>
                         <p className="text-slate-400 text-[11px] font-bold uppercase tracking-[0.4em] italic font-black group-hover:text-slate-300 transition-colors text-left">Managed by {staffUser?.name || 'Local Lead'} at <span className="text-white border-b-2 border-blue-600/30 pb-1">{staffUser?.branchName || 'Main Center'}</span></p>
@@ -208,9 +208,9 @@ const StaffDashboard = () => {
                         <div className="px-10 py-8 border-b border-slate-50 flex items-center justify-between bg-white group/header transition-all">
                             <div className="flex items-center gap-4 text-left">
                                 <div className="w-2.5 h-8 bg-blue-600 rounded-full shadow-[0_0_15px_rgba(37,99,235,0.4)]" />
-                                <div className="text-left font-black">
-                                    <h3 className="font-black text-[12px] text-slate-900 uppercase tracking-[0.3em] italic leading-none font-black text-left">Sale Stream</h3>
-                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-2() leading-none italic font-black text-left">Live order feed tracker</p>
+                                <div className="text-left">
+                                    <h3 className="font-black text-lg text-slate-900 uppercase tracking-widest italic leading-none">Sale Stream</h3>
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2 leading-none italic">Live order feed tracker</p>
                                 </div>
                             </div>
                             <button
@@ -309,9 +309,9 @@ const StaffDashboard = () => {
                                 <div className="w-12 h-12 bg-slate-950 text-white rounded-2xl shadow-xl flex items-center justify-center rotate-3 group-hover:rotate-0 transition-all duration-500 italic">
                                     <MessageSquare size={20} />
                                 </div>
-                                <div className="text-left font-black">
-                                    <h4 className="font-black text-slate-900 text-xs uppercase tracking-[0.2em] leading-none italic font-black text-left">Triage</h4>
-                                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-2 leading-none italic font-black text-left">Support Desk</p>
+                                <div className="text-left">
+                                    <h4 className="font-black text-slate-900 text-lg uppercase tracking-widest leading-none italic">Triage</h4>
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2 leading-none italic">Support Desk</p>
                                 </div>
                             </div>
                             {(apiStats?.pendingTickets > 0) && (

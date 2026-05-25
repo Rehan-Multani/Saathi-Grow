@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
-import { useShop } from '../../context/ShopContext';
+import { useShop, useShopUI } from '../../context/ShopContext';
 import { fetchProducts, fetchBrands, fetchSubCategories } from '../../api/shopApi';
 import ProductCard from '../../components/product/ProductCard';
 import { ChevronRight, Filter, ArrowLeft, Search, X, SlidersHorizontal, Leaf, Info, TrendingUp, Apple, Cookie, ShoppingBag } from 'lucide-react';
@@ -134,7 +134,7 @@ const CategoryPage = () => {
             setIsLoading(false);
             setIsFetchingMore(false);
         }
-    }, [categoryName, debouncedSearch, sortOption, isVegOnly, isMainListView, selectedSubCat]);
+    }, [categoryName, debouncedSearch, sortOption, isVegOnly, isMainListView, selectedSubCat, selectedBrands, activeStore]);
 
     // Initial load and filter change
     useEffect(() => {
@@ -152,7 +152,7 @@ const CategoryPage = () => {
         setLocalSearch('');
     }, [slug, querySub]);
 
-    const { setIsBottomSheetOpen } = useShop();
+    const { setIsBottomSheetOpen } = useShopUI();
 
     useEffect(() => {
         setIsBottomSheetOpen(isFilterOpen);

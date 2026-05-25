@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Send, ShieldCheck, CheckCircle, Camera, Loader2 } from 'lucide-react';
+import { ArrowLeft, Send, ShieldCheck, CheckCircle, Camera, Loader2, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import * as complaintApi from '../../api/complaintApi';
 import { toast } from 'react-toastify';
@@ -25,13 +25,11 @@ const RaiseComplaintPage = () => {
 
     const handleImageChange = (e) => {
         const files = Array.from(e.target.files);
-        // Simple mock for production - usually upload to Cloudinary directly or send as part of form
-        if (files.length > 3) {
-            toast.warn('You can upload up to 3 images.');
+        if (images.length + files.length > 3) {
+            toast.warn('You can upload up to 3 images in total.');
             return;
         }
-        setImages(files);
-        toast.info(`${files.length} images added.`);
+        setImages([...images, ...files]);
     };
 
     const submitRequest = async () => {
@@ -132,12 +130,31 @@ const RaiseComplaintPage = () => {
                     {/* Image Upload */}
                     <div>
                         <p className="!text-[9px] md:!text-sm font-black text-gray-400 tracking-[0.2em] mb-4 px-1 uppercase">Upload Evidence (Optional)</p>
-                        <label className="flex flex-col items-center justify-center py-6 bg-gray-50/50 dark:bg-white/5 border-2 border-dashed border-gray-200 dark:border-white/10 rounded-2xl cursor-pointer hover:bg-[#0c831f]/5 transition-all group">
-                            <input type="file" multiple accept="image/*" className="hidden" onChange={handleImageChange} />
-                            <Camera size={24} className="text-gray-400 group-hover:text-[#0c831f] transition-all mb-2" />
-                            <span className="text-[10px] md:text-sm font-black text-gray-400 group-hover:text-[#0c831f] transition-all uppercase tracking-widest">{images.length > 0 ? `${images.length} images selected` : 'Click to upload photos'}</span>
-                            <p className="text-[8px] text-gray-300 mt-1">MAX 3 IMAGES · DAMAGED OR WRONG ITEMS</p>
-                        </label>
+                        
+                        {images.length > 0 && (
+                            <div className="flex flex-wrap gap-3 mb-4">
+                                {images.map((img, index) => (
+                                    <div key={index} className="relative w-24 h-24 rounded-xl overflow-hidden border border-gray-200 dark:border-white/10 shadow-sm">
+                                        <img src={URL.createObjectURL(img)} alt={`Preview ${index}`} className="w-full h-full object-cover" />
+                                        <button 
+                                            onClick={() => setImages(images.filter((_, i) => i !== index))}
+                                            className="absolute top-1 right-1 bg-black/60 text-white rounded-full p-1 hover:bg-red-500 transition-colors backdrop-blur-sm"
+                                        >
+                                            <X size={14} strokeWidth={3} />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        {images.length < 3 && (
+                            <label className="flex flex-col items-center justify-center py-6 bg-gray-50/50 dark:bg-white/5 border-2 border-dashed border-gray-200 dark:border-white/10 rounded-2xl cursor-pointer hover:bg-[#0c831f]/5 transition-all group">
+                                <input type="file" multiple accept="image/*" className="hidden" onChange={handleImageChange} />
+                                <Camera size={24} className="text-gray-400 group-hover:text-[#0c831f] transition-all mb-2" />
+                                <span className="text-[10px] md:text-sm font-black text-gray-400 group-hover:text-[#0c831f] transition-all uppercase tracking-widest">Click to upload photos</span>
+                                <p className="text-[8px] text-gray-300 mt-1 uppercase tracking-widest font-bold">MAX {3 - images.length} MORE {3 - images.length === 1 ? 'IMAGE' : 'IMAGES'}</p>
+                            </label>
+                        )}
                     </div>
 
                     {/* Comments */}

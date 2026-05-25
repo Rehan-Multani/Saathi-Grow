@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, MessageSquare, AlertCircle, RefreshCw, XCircle, ChevronRight, Package, Truck, CheckCircle, Navigation as NavIcon, Shield, ShoppingBag, Tag, X, Check, Pencil } from 'lucide-react';
+import { ArrowLeft, MessageSquare, AlertCircle, RefreshCw, XCircle, ChevronRight, Package, Truck, CheckCircle, Navigation as NavIcon, Shield, ShieldCheck, ShoppingBag, Tag, X, Check, Pencil, Star } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import * as orderApi from '../../api/orderApi';
 import { toast } from 'react-toastify';
@@ -18,6 +18,12 @@ const OrderDetailsPage = () => {
     const [tagInput, setTagInput] = useState('');
     const [userTags, setUserTags] = useState([]);
     const [tagLoading, setTagLoading] = useState(false);
+    
+    // Feedback State
+    const [feedbackRating, setFeedbackRating] = useState(0);
+    const [feedbackComment, setFeedbackComment] = useState('');
+    const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
+    const [hoverRating, setHoverRating] = useState(0);
 
     useEffect(() => {
         const processOrderData = (data) => {
@@ -136,6 +142,23 @@ const OrderDetailsPage = () => {
             toast.error('Failed to remove tag');
         } finally {
             setTagLoading(false);
+        }
+    };
+
+    const handleFeedbackSubmit = async () => {
+        if (!feedbackRating) {
+            toast.error('Please select a rating');
+            return;
+        }
+        setIsSubmittingFeedback(true);
+        try {
+            const res = await orderApi.submitOrderFeedback(token, id, feedbackRating, feedbackComment);
+            toast.success('Feedback submitted successfully!');
+            setRawOrder(prev => ({ ...prev, feedback: res.feedback }));
+        } catch (err) {
+            toast.error(err.message || 'Failed to submit feedback');
+        } finally {
+            setIsSubmittingFeedback(false);
         }
     };
 
@@ -321,6 +344,61 @@ const OrderDetailsPage = () => {
                     )}
 
                 <div className="space-y-4 animate-in fade-in duration-500">
+                    
+                    {/* Order Feedback / Rating Section */}
+                    {order.status === 'delivered' && (
+                        <div className="bg-white dark:bg-[#1c1c1c] border border-gray-100 dark:border-white/5 rounded-2xl p-4 shadow-sm">
+                            <div className="flex items-center gap-2 mb-3">
+                                <Star size={13} className="text-[#0c831f]" />
+                                <h3 className="text-[10px] font-black text-gray-400 tracking-widest uppercase">Order Feedback</h3>
+                            </div>
+                            {rawOrder?.feedback?.rating ? (
+                                <div className="space-y-2">
+                                    <div className="flex items-center gap-1">
+                                        {[1, 2, 3, 4, 5].map((star) => (
+                                            <Star key={star} size={16} className={star <= rawOrder.feedback.rating ? "text-yellow-400 fill-yellow-400" : "text-gray-300 dark:text-gray-600"} />
+                                        ))}
+                                    </div>
+                                    {rawOrder.feedback.comment && (
+                                        <p className="text-[12px] text-gray-600 dark:text-gray-300 italic">"{rawOrder.feedback.comment}"</p>
+                                    )}
+                                    <p className="text-[10px] text-gray-400 font-bold">Thank you for your feedback!</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-4">
+                                    <p className="text-[12px] font-bold text-gray-800 dark:text-gray-200">How was your order experience?</p>
+                                    <div className="flex items-center gap-2">
+                                        {[1, 2, 3, 4, 5].map((star) => (
+                                            <button 
+                                                key={star} 
+                                                type="button"
+                                                onClick={() => setFeedbackRating(star)}
+                                                onMouseEnter={() => setHoverRating(star)}
+                                                onMouseLeave={() => setHoverRating(0)}
+                                                className="focus:outline-none transition-transform hover:scale-110 active:scale-95"
+                                            >
+                                                <Star size={24} className={(hoverRating || feedbackRating) >= star ? "text-yellow-400 fill-yellow-400" : "text-gray-200 dark:text-white/10"} />
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <textarea
+                                        value={feedbackComment}
+                                        onChange={(e) => setFeedbackComment(e.target.value)}
+                                        placeholder="Tell us what you liked or how we can improve..."
+                                        className="w-full bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-xl p-3 text-[12px] font-medium outline-none focus:border-[#0c831f] resize-none h-20"
+                                    ></textarea>
+                                    <button 
+                                        onClick={handleFeedbackSubmit}
+                                        disabled={!feedbackRating || isSubmittingFeedback}
+                                        className="w-full py-3 rounded-xl bg-[#0c831f] text-white text-[12px] font-black uppercase tracking-widest disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+                                    >
+                                        {isSubmittingFeedback ? <RefreshCw size={14} className="animate-spin" /> : 'Submit Feedback'}
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
                     {/* Order Items */}
                     <div className="bg-white dark:bg-[#1c1c1c] border border-gray-100 dark:border-white/5 rounded-2xl p-4 shadow-sm">
                         <p className="text-[10px] font-black text-gray-400 tracking-[0.2em] mb-3 uppercase">Ordered items</p>

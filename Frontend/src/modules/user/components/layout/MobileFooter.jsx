@@ -9,30 +9,61 @@ const MobileFooter = ({ setIsMenuOpen, isBottomSheetOpen }) => {
     const [isKeyboardOpen, setIsKeyboardOpen] = React.useState(false);
 
     React.useEffect(() => {
-        const handleResize = () => {
-            if (window.visualViewport) {
-                // If visual viewport height is significantly less than window innerHeight, keyboard is open
-                setIsKeyboardOpen(window.visualViewport.height < window.innerHeight - 150);
+        let timeoutId;
+        const MIN_KEYBOARD_HEIGHT = 150; // Minimum height to be considered a keyboard
+        const initialHeight = window.innerHeight;
+
+        const handleFocusIn = (e) => {
+            const target = e.target;
+            if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT') {
+                clearTimeout(timeoutId);
+                setIsKeyboardOpen(true);
             }
         };
 
+        const handleFocusOut = () => {
+            timeoutId = setTimeout(() => {
+                setIsKeyboardOpen(false);
+            }, 100);
+        };
+
+        const handleResize = () => {
+            // Fallback for visual viewport or standard resize
+            const currentHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+            // If height decreased significantly, keyboard is likely open
+            if (initialHeight - currentHeight > MIN_KEYBOARD_HEIGHT) {
+                clearTimeout(timeoutId);
+                setIsKeyboardOpen(true);
+            } else if (currentHeight >= initialHeight - MIN_KEYBOARD_HEIGHT) {
+                // Height returned to normal
+                setIsKeyboardOpen(false);
+            }
+        };
+
+        window.addEventListener('focusin', handleFocusIn);
+        window.addEventListener('focusout', handleFocusOut);
+        window.addEventListener('resize', handleResize);
+        
         if (window.visualViewport) {
             window.visualViewport.addEventListener('resize', handleResize);
-            return () => window.visualViewport.removeEventListener('resize', handleResize);
-        } else {
-            const initialHeight = window.innerHeight;
-            const fallbackResize = () => {
-                setIsKeyboardOpen(window.innerHeight < initialHeight - 150);
-            };
-            window.addEventListener('resize', fallbackResize);
-            return () => window.removeEventListener('resize', fallbackResize);
         }
+
+        return () => {
+            clearTimeout(timeoutId);
+            window.removeEventListener('focusin', handleFocusIn);
+            window.removeEventListener('focusout', handleFocusOut);
+            window.removeEventListener('resize', handleResize);
+            if (window.visualViewport) {
+                window.visualViewport.removeEventListener('resize', handleResize);
+            }
+        };
     }, []);
 
     // Do not show on auth pages, checkout, or tracking
     const hideOnPages = ['/login', '/register', '/checkout', '/order-success'];
     const isTrackingPage = location.pathname.includes('/tracking');
-    const isActuallyHidden = hideOnPages.includes(location.pathname) || isTrackingPage || isKeyboardOpen;
+    const isComplaintPage = location.pathname.includes('/complaint') || location.pathname.includes('/support/raise-ticket');
+    const isActuallyHidden = hideOnPages.includes(location.pathname) || isTrackingPage || isComplaintPage || isKeyboardOpen;
 
     const navItems = [
         { path: '/', label: 'Home', icon: Home },

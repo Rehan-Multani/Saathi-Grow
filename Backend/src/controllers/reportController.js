@@ -836,8 +836,12 @@ export const getAdminVendorEarnings = async (req, res) => {
         vendor: r.vendor?.storeName || 'Unknown',
         date: r.createdAt.toISOString().split('T')[0],
         amount: view === 'earnings' ? r.vendorPayoutAmount : r.amount,
+        orderTotal: view === 'earnings' ? r.totalAmount : undefined,
         status: view === 'earnings' ? 'Delivered' : r.status,
-        type: view === 'earnings' ? 'Earnings' : 'Withdrawal'
+        type: view === 'earnings' ? 'Earnings' : 'Withdrawal',
+        commission: view === 'earnings' ? r.platformCommission : undefined,
+        tax: view === 'earnings' ? r.taxAmount : undefined,
+        paymentMethod: view === 'earnings' ? r.paymentMethod : undefined
       })),
       pagination: {
         total,

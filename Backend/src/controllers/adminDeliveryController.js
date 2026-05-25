@@ -310,7 +310,8 @@ export const getAvailablePartners = async (req, res) => {
 
     const partners = await DeliveryPartner.find({
       authStatus: 'Active',
-      assignmentStatus: 'Free'
+      assignmentStatus: 'Free',
+      dutyStatus: 'Online'
     })
       .select('name phone uniqueId vehicleType vehicleNumber profileImage authStatus dutyStatus assignmentStatus currentLocation activeOrder createdAt')
       .lean();
@@ -557,6 +558,7 @@ export const autoAssignOrder = async (req, res) => {
       const nearestPartner = await DeliveryPartner.findOne({
         authStatus: 'Active',
         assignmentStatus: 'Free',
+        dutyStatus: 'Online',
         currentLocation: {
           $near: {
             $geometry: {
@@ -759,7 +761,7 @@ export const getCashSettlementList = async (req, res) => {
     const stats = summaryStats[0] || { totalPendingCash: 0, activeCollectors: 0 };
 
     const listQuery = DeliveryPartner.find(query)
-      .select('name phone uniqueId cashInHand profileImage lastSettledAt')
+      .select('name phone uniqueId cashInHand profileImage lastSettledAt dutyStatus assignmentStatus')
       .sort({ cashInHand: -1 })
       .lean();
 

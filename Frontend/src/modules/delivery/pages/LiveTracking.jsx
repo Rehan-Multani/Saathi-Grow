@@ -115,6 +115,7 @@ const LiveTracking = () => {
     const [trimmedRoute, setTrimmedRoute] = useState([]);
     const [isFOLLOWING, setIsFOLLOWING] = useState(true);
     const [otpInput, setOtpInput] = useState('');
+    const [codCollected, setCodCollected] = useState({});
     const [map, setMap] = useState(null);
     const { mapLoaded } = useLocation();
 
@@ -217,13 +218,13 @@ const LiveTracking = () => {
         }
     }, [partnerPos, routeCoordinates, map, isFOLLOWING]);
 
-    if (isLoading || !mapLoaded) return <div className="h-screen flex flex-col items-center justify-center bg-zinc-950 text-white"><Loader2 className="animate-spin text-emerald-500 mb-4" size={48} /><p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-40">Syncing Pilot...</p></div>;
+    if (isLoading || !mapLoaded) return <div className="h-screen flex flex-col items-center justify-center bg-slate-50 text-slate-900"><Loader2 className="animate-spin text-emerald-500 mb-4" size={48} /><p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-40">Syncing Pilot...</p></div>;
 
     const isReturn = run.runType === 'return';
     const allStopsDone = run.orders.every(o => isReturn ? o.status === 'picked_up' : (o.status === 'delivered' || o.status === 'failed'));
 
     return (
-        <div className="fixed inset-0 w-full h-full z-[100] bg-zinc-950 text-white font-sans overflow-hidden flex flex-col">
+        <div className="fixed inset-0 w-full h-full z-[100] bg-slate-50 text-slate-900 font-sans overflow-hidden flex flex-col">
             <div className={`flex-1 w-full h-full relative transition-all duration-500 ${isExpanded ? 'opacity-40 scale-105' : 'opacity-100'}`}>
                 <GoogleMap
                     mapContainerStyle={mapContainerStyle}
@@ -273,16 +274,16 @@ const LiveTracking = () => {
 
             {/* Overlays - Mission Style */}
             <div className="absolute top-6 left-4 right-4 z-[1000] flex justify-between items-center">
-                <button onClick={() => navigate(-1)} className="w-10 h-10 flex items-center justify-center bg-[#2d2d2d] text-white shadow-xl active:scale-95 transition-all rounded-none border border-white/5">
+                <button onClick={() => navigate(-1)} className="w-10 h-10 flex items-center justify-center bg-blue-600 text-white shadow-xl active:scale-95 transition-all rounded-none border border-slate-200">
                     <ChevronLeft size={20} strokeWidth={3} />
                 </button>
 
                 <div className="flex flex-col items-center justify-center flex-1 mx-2">
-                    <div className="bg-[#2d2d2d] w-[110px] h-[44px] rounded-[100px] shadow-2xl flex items-center justify-center relative px-4 border border-white/5">
+                    <div className="bg-white w-[110px] h-[44px] rounded-[100px] shadow-2xl flex items-center justify-center relative px-4 border border-slate-200">
                         <div className={`absolute left-3 w-1.5 h-3.5 ${isReturn ? 'bg-emerald-500 shadow-[0_0_8px_#10b981]' : 'bg-[#00c982] shadow-[0_0_8px_#00c982]'} rounded-full animate-pulse`}></div>
                         <div className="flex flex-col items-center">
-                            <span className="text-[9px] font-black uppercase tracking-[0.15em] text-white leading-none mb-0.5">{isReturn ? 'Return' : 'Delivery'}</span>
-                            <span className="text-[9px] font-black uppercase tracking-[0.15em] text-white leading-none">Mission</span>
+                            <span className="text-[9px] font-black uppercase tracking-[0.15em] text-slate-900 leading-none mb-0.5">{isReturn ? 'Return' : 'Delivery'}</span>
+                            <span className="text-[9px] font-black uppercase tracking-[0.15em] text-slate-900 leading-none">Mission</span>
                         </div>
                     </div>
                     <div className="mt-1">
@@ -301,7 +302,7 @@ const LiveTracking = () => {
                             map.fitBounds(bounds, { top: 120, bottom: 250, left: 50, right: 50 });
                         }
                     }}
-                    className={`w-10 h-10 flex items-center justify-center shadow-2xl transition-all rounded-none border border-white/5 ${isFOLLOWING ? (isReturn ? 'bg-emerald-600' : 'bg-[#00965e]') + ' text-white font-bold' : 'bg-[#2d2d2d] text-gray-400'}`}
+                    className={`w-10 h-10 flex items-center justify-center shadow-2xl transition-all rounded-none border border-slate-200 ${isFOLLOWING ? (isReturn ? 'bg-emerald-600' : 'bg-[#00965e]') + ' text-slate-900 font-bold' : 'bg-white text-slate-500'}`}
                 >
                     <Navigation size={20} className={isFOLLOWING ? 'fill-white' : ''} />
                 </button>
@@ -309,9 +310,9 @@ const LiveTracking = () => {
 
             {/* Bottom Sheet */}
             <div className={`absolute bottom-0 left-0 right-0 z-[100] transition-all duration-500 ease-in-out ${isExpanded ? 'h-[65vh]' : 'h-[100px]'}`}>
-                <div className="bg-[#1a1a1a] rounded-t-[2.5rem] shadow-2xl border-t border-white/5 w-full h-full flex flex-col relative overflow-hidden">
+                <div className="bg-white rounded-t-[2.5rem] shadow-2xl border-t border-slate-200 w-full h-full flex flex-col relative overflow-hidden">
                     <div className="w-full h-10 flex items-center justify-center cursor-pointer flex-shrink-0" onClick={() => setIsExpanded(!isExpanded)}>
-                        <div className="w-12 h-1 bg-white/10 rounded-full" />
+                        <div className="w-12 h-1 bg-slate-200 rounded-full" />
                     </div>
 
                     <div className="px-6 pb-6 pt-2 h-full flex flex-col overflow-hidden">
@@ -320,12 +321,12 @@ const LiveTracking = () => {
                                 <p className="text-[#00c982] font-black text-[9px] uppercase tracking-[0.2em] mb-1">
                                     PHASE: {run.status.replace(/_/g, ' ')}
                                 </p>
-                                <h2 className="text-xl font-black text-white tracking-tight leading-none capitalize">
+                                <h2 className="text-xl font-black text-slate-900 tracking-tight leading-none capitalize">
                                     {run.status === 'assigned' ? 'New Batch' : run.status === 'in_progress' ? 'On Mission' : 'Finishing'}
                                 </h2>
                             </div>
                             {run.status === 'assigned' ? (
-                                <button onClick={() => handleAction('start')} className="px-5 py-2.5 bg-white text-zinc-950 rounded-xl font-black text-[9px] uppercase tracking-widest shadow-xl flex items-center justify-center gap-2 active:scale-95 transition-all"><span>Start Mission</span><ArrowRight size={12} strokeWidth={3} /></button>
+                                <button onClick={() => handleAction('start')} className="px-5 py-2.5 bg-slate-900 text-white rounded-xl font-black text-[9px] uppercase tracking-widest shadow-xl flex items-center justify-center gap-2 active:scale-95 transition-all"><span>Start Mission</span><ArrowRight size={12} strokeWidth={3} /></button>
                             ) : allStopsDone && (
                                 <button onClick={() => handleAction('complete')} className="px-5 py-2.5 bg-emerald-500 text-white rounded-xl font-black text-[9px] uppercase tracking-widest shadow-xl shadow-emerald-500/20 active:scale-95 transition-all">{isReturn ? 'Finalize Returns' : 'Complete Batch'}</button>
                             )}
@@ -337,23 +338,28 @@ const LiveTracking = () => {
                                 const isDone = isReturn ? stop.status === 'picked_up' : stop.status === 'delivered';
                                 
                                 return (
-                                    <div key={stop._id} className={`p-4 rounded-2xl transition-all duration-300 ${isActive ? 'bg-white/5 shadow-xl border border-white/5' : 'opacity-20'}`}>
+                                    <div key={stop._id} className={`p-4 rounded-2xl transition-all duration-300 ${isActive ? 'bg-slate-50 shadow-xl border border-slate-200' : 'opacity-20'}`}>
                                         <div className="flex justify-between items-start mb-3">
                                             <div className="flex items-center gap-3">
-                                                <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${isDone ? 'bg-emerald-500/20 text-emerald-500' : 'bg-zinc-800 text-zinc-500'}`}>
+                                                <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${isDone ? 'bg-emerald-500/20 text-emerald-500' : 'bg-slate-100 text-slate-500'}`}>
                                                     {isDone ? <Check size={18} strokeWidth={3} /> : <span className="font-black text-sm">{i + 1}</span>}
                                                 </div>
                                                 <div>
-                                                    <h4 className="font-black text-sm text-white">{stop.order?.user?.name}</h4>
-                                                    <p className="text-[10px] text-zinc-500 font-bold">{stop.order?.user?.phone}</p>
+                                                    <h4 className="font-black text-sm text-slate-900">{stop.order?.user?.name}</h4>
+                                                    <p className="text-[10px] text-slate-500 font-bold">{stop.order?.user?.phone}</p>
                                                 </div>
                                             </div>
-                                            <div className="text-right">
-                                                <p className="font-black text-[13px] text-zinc-200 tracking-tight">₹{stop.order?.totalAmount}</p>
-                                                <p className="text-[7.5px] font-black uppercase tracking-wider text-emerald-500 mt-0.5">{stop.status.replace(/_/g, ' ')}</p>
+                                            <div className="text-right flex flex-col items-end">
+                                                <p className="font-black text-[13px] text-slate-800 tracking-tight leading-none">₹{stop.order?.totalAmount}</p>
+                                                {stop.order?.paymentMethod === 'cod' ? (
+                                                    <span className="text-[8px] bg-amber-500 text-white px-1.5 py-0.5 rounded font-black uppercase mt-1.5">COD: Collect Cash</span>
+                                                ) : (
+                                                    <span className="text-[8px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded font-black uppercase mt-1.5">PREPAID</span>
+                                                )}
+                                                <p className="text-[7.5px] font-black uppercase tracking-wider text-slate-500 mt-1.5">{stop.status.replace(/_/g, ' ')}</p>
                                             </div>
                                         </div>
-                                        <div className="flex items-start gap-2 text-zinc-400 mb-4 bg-black/30 p-2.5 rounded-xl">
+                                        <div className="flex items-start gap-2 text-slate-500 mb-4 bg-slate-100 p-2.5 rounded-xl">
                                             <MapPin size={12} className="mt-0.5 flex-shrink-0 text-emerald-500" />
                                             <p className="text-[10px] font-bold leading-relaxed">{stop.order?.shippingAddress?.street}, {stop.order?.shippingAddress?.city}</p>
                                         </div>
@@ -361,20 +367,28 @@ const LiveTracking = () => {
                                             <div className="flex gap-2">
                                                 {isReturn ? (
                                                     <div className="flex-1 flex flex-col gap-2">
-                                                        <input type="text" maxLength={4} placeholder="Enter OTP Code" className="w-full h-11 bg-black border border-white/10 rounded-xl text-center font-black text-sm tracking-[0.3em] text-white placeholder:text-zinc-600 placeholder:tracking-normal placeholder:text-xs" value={otpInput} onChange={e => setOtpInput(e.target.value)} />
+                                                        <input type="text" maxLength={4} placeholder="Enter OTP Code" className="w-full h-11 bg-white border border-slate-200 rounded-xl text-center font-black text-sm tracking-[0.3em] text-slate-900 placeholder:text-slate-400 placeholder:tracking-normal placeholder:text-xs" value={otpInput} onChange={e => setOtpInput(e.target.value)} />
                                                         <button onClick={() => handleAction('stop', stop.order._id, 'picked_up', otpInput)} disabled={!otpInput} className="w-full h-11 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg active:scale-95 disabled:opacity-30 transition-all">Verify & Collect</button>
                                                     </div>
                                                 ) : (
                                                     stop.status === 'pending' ? (
                                                             <button onClick={() => handleAction('stop', stop.order._id, 'out_for_delivery')} className="flex-1 h-10 bg-emerald-600 text-white rounded-xl font-black text-[9px] uppercase tracking-widest active:scale-95">Go to Customer</button>
                                                     ) : (
-                                                            <div className="flex-1 flex flex-col gap-2">
-                                                                <input type="text" maxLength={4} placeholder="Enter OTP Code" className="w-full h-11 bg-black border border-white/10 rounded-xl text-center font-black text-sm tracking-[0.3em] text-white placeholder:text-zinc-600 placeholder:tracking-normal placeholder:text-xs" value={otpInput} onChange={e => setOtpInput(e.target.value)} />
-                                                                <button onClick={() => handleAction('stop', stop.order._id, 'delivered', otpInput)} disabled={!otpInput} className="w-full h-11 bg-white text-zinc-950 rounded-xl font-black text-[10px] uppercase tracking-widest active:scale-95 disabled:opacity-30 transition-all">Verify & Deliver</button>
-                                                            </div>
+                                                            stop.order?.paymentMethod === 'cod' && !codCollected[stop.order._id] ? (
+                                                                <div className="flex-1 flex flex-col gap-2 bg-amber-500/10 p-2 rounded-xl border border-amber-500/20">
+                                                                    <p className="text-center text-[9px] font-black text-amber-500 uppercase tracking-widest leading-tight">Please collect ₹{stop.order?.totalAmount} in cash from customer</p>
+                                                                    <button onClick={() => setCodCollected({...codCollected, [stop.order._id]: true})} className="w-full h-10 bg-amber-500 text-white rounded-xl font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all">Cash Collected</button>
+                                                                </div>
+                                                            ) : (
+                                                                <div className="flex-1 flex flex-col gap-2">
+                                                                    {stop.order?.paymentMethod === 'cod' && <p className="text-center text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-[-4px]">COD Collected ✓</p>}
+                                                                    <input type="text" maxLength={4} placeholder="Enter OTP Code" className="w-full h-11 bg-white border border-slate-200 rounded-xl text-center font-black text-sm tracking-[0.3em] text-slate-900 placeholder:text-slate-400 placeholder:tracking-normal placeholder:text-xs" value={otpInput} onChange={e => setOtpInput(e.target.value)} />
+                                                                    <button onClick={() => handleAction('stop', stop.order._id, 'delivered', otpInput)} disabled={!otpInput} className="w-full h-11 bg-slate-900 text-white rounded-xl font-black text-[10px] uppercase tracking-widest active:scale-95 disabled:opacity-30 transition-all">Verify & Deliver</button>
+                                                                </div>
+                                                            )
                                                     )
                                                 )}
-                                                <a href={`tel:${stop.order?.user?.phone}`} className="h-10 w-10 bg-zinc-800 border border-white/5 rounded-xl text-zinc-400 flex items-center justify-center active:scale-95"><Phone size={16} /></a>
+                                                <a href={`tel:${stop.order?.user?.phone}`} className="h-10 w-10 bg-slate-100 border border-slate-200 rounded-xl text-slate-500 flex items-center justify-center active:scale-95"><Phone size={16} /></a>
                                             </div>
                                         )}
                                     </div>

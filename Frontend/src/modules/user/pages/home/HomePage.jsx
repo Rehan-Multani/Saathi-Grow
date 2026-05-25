@@ -42,8 +42,17 @@ const HomePage = ({ }) => {
 
     // Update window width on resize & Handle Pull-to-Refresh
     useEffect(() => {
-        const handleResize = () => setWindowWidth(window.innerWidth);
-        window.addEventListener('resize', handleResize);
+        let resizeTicking = false;
+        const handleResize = () => {
+            if (!resizeTicking) {
+                window.requestAnimationFrame(() => {
+                    setWindowWidth(window.innerWidth);
+                    resizeTicking = false;
+                });
+                resizeTicking = true;
+            }
+        };
+        window.addEventListener('resize', handleResize, { passive: true });
 
         const handleRefresh = () => refreshShopData(false); // silent refresh
         window.addEventListener('saathi_refresh', handleRefresh);
@@ -123,28 +132,57 @@ const HomePage = ({ }) => {
 
     const [startX, setStartX] = useState(0);
     const [isDragging, setIsDragging] = useState(false);
+    const [dragOffset, setDragOffset] = useState(0);
 
     const handlePointerDown = (e) => {
         setStartX(e.clientX);
         setIsDragging(true);
+        setDragOffset(0);
     };
 
     const handlePointerMove = (e) => {
         if (!isDragging) return;
         const currentX = e.clientX;
         const diff = startX - currentX;
-        if (Math.abs(diff) > 50) {
+        setDragOffset(-diff);
+        
+        if (Math.abs(diff) > 60) {
             if (diff > 0) {
                 handleNextOffer(e);
             } else {
                 handlePrevOffer(e);
             }
             setIsDragging(false);
+            setDragOffset(0);
         }
     };
 
     const handlePointerUp = () => {
         setIsDragging(false);
+        setDragOffset(0);
+    };
+
+    const handleTouchStart = (e) => {
+        setStartX(e.touches[0].clientX);
+        setIsDragging(true);
+        setDragOffset(0);
+    };
+
+    const handleTouchMove = (e) => {
+        if (!isDragging) return;
+        const currentX = e.touches[0].clientX;
+        const diff = startX - currentX;
+        setDragOffset(-diff);
+
+        if (Math.abs(diff) > 60) {
+            if (diff > 0) {
+                handleNextOffer(e);
+            } else {
+                handlePrevOffer(e);
+            }
+            setIsDragging(false);
+            setDragOffset(0);
+        }
     };
 
     // Auto-scroll logic for Banner
@@ -164,17 +202,26 @@ const HomePage = ({ }) => {
     const [canScrollRight, setCanScrollRight] = useState(true);
 
     const handleCategoryScroll = () => {
-        if (scrollContainerRef.current) {
-            const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
-            setCanScrollLeft(scrollLeft > 20);
-            setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 20);
+        if (!scrollContainerRef.current) return;
+        if (!scrollContainerRef.current._ticking) {
+            window.requestAnimationFrame(() => {
+                if (scrollContainerRef.current) {
+                    const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
+                    setCanScrollLeft(scrollLeft > 20);
+                    setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 20);
+                }
+                if (scrollContainerRef.current) {
+                    scrollContainerRef.current._ticking = false;
+                }
+            });
+            scrollContainerRef.current._ticking = true;
         }
     };
 
     useEffect(() => {
         const container = scrollContainerRef.current;
         if (container) {
-            container.addEventListener('scroll', handleCategoryScroll);
+            container.addEventListener('scroll', handleCategoryScroll, { passive: true });
             return () => container.removeEventListener('scroll', handleCategoryScroll);
         }
     }, [loading]);
@@ -251,9 +298,13 @@ const HomePage = ({ }) => {
                                 onPointerMove={handlePointerMove}
                                 onPointerUp={handlePointerUp}
                                 onPointerLeave={handlePointerUp}
-                                className={`flex cursor-grab active:cursor-grabbing ${isTransitioning && isCarousel ? 'transition-transform duration-700 ease-in-out' : ''}`}
+                                onPointerCancel={handlePointerUp}
+                                onTouchStart={handleTouchStart}
+                                onTouchMove={handleTouchMove}
+                                onTouchEnd={handlePointerUp}
+                                className={`flex cursor-grab active:cursor-grabbing ${isTransitioning && isCarousel && !isDragging ? 'transition-transform duration-700 ease-in-out' : ''}`}
                                 style={{
-                                    transform: isCarousel ? `translateX(-${offerIndex * (100 / itemsToShow)}%)` : 'none',
+                                    transform: isCarousel ? `translateX(calc(-${offerIndex * (100 / itemsToShow)}% + ${dragOffset}px))` : 'none',
                                     gap: itemsToShow === 1 ? '0px' : '12px',
                                     touchAction: 'pan-y'
                                 }}
@@ -504,7 +555,7 @@ const ProductRow = ({ category, loading: globalLoading }) => {
         }
     }, [category.name, activeStore?.id]);
 
-    // Intersection Observer to trigger fetch only when visible
+    // Intersection Observer to trigger fetch before it becomes fully visible for smooth loading
     useEffect(() => {
         const observer = new IntersectionObserver(
             ([entry]) => {
@@ -513,7 +564,7 @@ const ProductRow = ({ category, loading: globalLoading }) => {
                     observer.unobserve(entry.target);
                 }
             },
-            { rootMargin: '200px' } // Start fetching 200px before it enters view
+            { rootMargin: '150px' } // Fetch 150px before it enters view to prevent network waterfall
         );
 
         if (observerRef.current) {
@@ -526,20 +577,29 @@ const ProductRow = ({ category, loading: globalLoading }) => {
     }, []);
 
     useEffect(() => {
-        // Skip if activeStore is not yet initialized to prevent redundant fetches
-        if (!activeStore && !hasEntredViewport) return;
+        // Must have activeStore loaded before fetching to prevent initial double-fetch
+        if (!activeStore?.id) return;
 
         if (hasEntredViewport) {
             setPage(1);
             fetchItems(1);
         }
-    }, [hasEntredViewport, category.name, activeStore?.id]);
+    }, [hasEntredViewport, category.name, activeStore?.id, fetchItems]);
 
     const handleScroll = () => {
-        if (sectionRef.current) {
-            const { scrollLeft, scrollWidth, clientWidth } = sectionRef.current;
-            setShowLeft(scrollLeft > 20);
-            setShowRight(scrollLeft + clientWidth < scrollWidth - 20);
+        if (!sectionRef.current) return;
+        if (!sectionRef.current._ticking) {
+            window.requestAnimationFrame(() => {
+                if (sectionRef.current) {
+                    const { scrollLeft, scrollWidth, clientWidth } = sectionRef.current;
+                    setShowLeft(scrollLeft > 20);
+                    setShowRight(scrollLeft + clientWidth < scrollWidth - 20);
+                }
+                if (sectionRef.current) {
+                    sectionRef.current._ticking = false;
+                }
+            });
+            sectionRef.current._ticking = true;
         }
     };
 
@@ -571,7 +631,7 @@ const ProductRow = ({ category, loading: globalLoading }) => {
     };
 
     return (
-        <div ref={observerRef} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 md:py-8 border-b border-gray-50 dark:border-white/5 last:border-0 mb-6 md:mb-10">
+        <div ref={observerRef} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 md:py-8 border-b border-gray-50 dark:border-white/5 last:border-0 mb-6 md:mb-10" style={{ contentVisibility: 'auto', containIntrinsicSize: '350px' }}>
             <div className="flex items-center justify-between mb-2 md:mb-6">
                 <h2 className="text-[15px] md:text-xl font-bold text-[#1e293b] dark:text-gray-300 tracking-tight capitalize">
                     {category.name}
@@ -686,7 +746,7 @@ const OccasionSection = ({
                     observer.unobserve(entry.target);
                 }
             },
-            { rootMargin: '250px' }
+            { rootMargin: '150px' }
         );
 
         if (observerRef.current) {
@@ -710,10 +770,19 @@ const OccasionSection = ({
     }, [hasEntredViewport, initialProducts, totalProductsCount, activeStore?.id]);
 
     const handleScroll = () => {
-        if (sectionRef.current) {
-            const { scrollLeft, scrollWidth, clientWidth } = sectionRef.current;
-            setShowLeft(scrollLeft > 20);
-            setShowRight(scrollLeft + clientWidth < scrollWidth - 20);
+        if (!sectionRef.current) return;
+        if (!sectionRef.current._ticking) {
+            window.requestAnimationFrame(() => {
+                if (sectionRef.current) {
+                    const { scrollLeft, scrollWidth, clientWidth } = sectionRef.current;
+                    setShowLeft(scrollLeft > 20);
+                    setShowRight(scrollLeft + clientWidth < scrollWidth - 20);
+                }
+                if (sectionRef.current) {
+                    sectionRef.current._ticking = false;
+                }
+            });
+            sectionRef.current._ticking = true;
         }
     };
 
@@ -763,7 +832,7 @@ const OccasionSection = ({
     };
 
     return (
-        <div ref={observerRef} className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 mb-6 md:mb-10 rounded-xl relative transition-all duration-300 ${className || ''}`} style={{ backgroundColor: isDarkMode ? '' : bgColor }}>
+        <div ref={observerRef} className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 mb-6 md:mb-10 rounded-xl relative transition-all duration-300 ${className || ''}`} style={{ backgroundColor: isDarkMode ? '' : bgColor, contentVisibility: 'auto', containIntrinsicSize: '350px' }}>
             <div className="flex items-center justify-between mb-1">
                 <div className="flex flex-col">
                     <h2 className="text-lg md:text-xl font-bold tracking-tight" style={{ color: isDarkMode ? 'var(--text-primary)' : themeColor }}>

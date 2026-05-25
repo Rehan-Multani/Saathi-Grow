@@ -85,7 +85,8 @@ const VendorManageOffer = () => {
   };
 
   const handleDiscountChange = (e) => {
-    const percent = Number(e.target.value);
+    const val = e.target.value;
+    const percent = val === '' ? 0 : Number(val);
     setFormData(prev => ({ ...prev, discountPercentage: percent }));
     if (selectedProducts.length > 0) {
       setSelectedProducts(prev =>
@@ -206,6 +207,9 @@ const VendorManageOffer = () => {
     );
   }
 
+  const todayDate = new Date();
+  const minDateStr = `${todayDate.getFullYear()}-${String(todayDate.getMonth() + 1).padStart(2, '0')}-${String(todayDate.getDate()).padStart(2, '0')}`;
+
   return (
     <div className="min-h-screen bg-gray-50/50 pb-28">
       {/* Header */}
@@ -295,9 +299,11 @@ const VendorManageOffer = () => {
                       <input
                         type="number"
                         min={0} max={100}
-                        value={formData.discountPercentage}
+                        value={formData.discountPercentage === 0 ? '' : formData.discountPercentage}
+                        placeholder="0"
                         onChange={handleDiscountChange}
-                        className="flex-1 bg-transparent text-sm outline-none"
+                        className="flex-1 !bg-transparent !border-none !p-0 !m-0 focus:!outline-none focus:!ring-0 !shadow-none text-sm"
+                        style={{ backgroundColor: 'transparent' }}
                       />
                     </div>
                   </div>
@@ -354,6 +360,7 @@ const VendorManageOffer = () => {
                   <input
                     type="date"
                     name="expiryDate"
+                    min={minDateStr}
                     value={formData.expiryDate}
                     onChange={handleChange}
                     className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:border-[#0c831f]"
@@ -389,17 +396,16 @@ const VendorManageOffer = () => {
               </div>
 
               <label className="flex items-center gap-3 cursor-pointer group">
-                <div className="relative">
+                <div className="relative inline-block w-11 h-6">
                   <input
                     type="checkbox"
                     name="isActive"
                     checked={formData.isActive}
                     onChange={handleChange}
-                    className="sr-only"
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10 !m-0 !p-0"
                   />
-                  <div className={`w-11 h-6 rounded-full transition-colors ${formData.isActive ? 'bg-[#0c831f]' : 'bg-gray-300'}`}>
-                    <div className={`w-4 h-4 bg-white rounded-full shadow-sm transition-transform m-1 ${formData.isActive ? 'translate-x-5' : 'translate-x-0'}`} />
-                  </div>
+                  <div className={`absolute inset-0 rounded-full transition-colors ${formData.isActive ? 'bg-[#0c831f]' : 'bg-gray-300'}`} />
+                  <div className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow-sm transition-transform pointer-events-none ${formData.isActive ? 'translate-x-5' : 'translate-x-0'}`} />
                 </div>
                 <span className="text-sm font-medium text-gray-600">This offer is live and visible</span>
               </label>

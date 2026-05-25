@@ -201,6 +201,19 @@ input:focus, select:focus, textarea:focus {
     outline: none !important;
 }
 
+/* Inline search bars — no inner input box */
+input.search-input-plain,
+input.search-input-plain:focus {
+    width: auto !important;
+    background-color: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    outline: none !important;
+    font-weight: 500 !important;
+    padding: 0 !important;
+}
+
 .dark input:focus, .dark select:focus, .dark textarea:focus {
     background-color: rgba(255, 255, 255, 0.08) !important;
     border-color: #0c831f !important;

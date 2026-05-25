@@ -59,11 +59,11 @@ const CustomerDetailsModal = ({ show, onHide, customer, onSendMessage }) => {
                             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{t('modals.profile.stats.orders')}</span>
                         </div>
                         <div className="p-4 bg-blue-600 rounded-2xl shadow-lg shadow-blue-50 flex flex-col items-center justify-center gap-0.5">
-                            <span className="text-lg font-bold text-white">Γé╣{(customer.stats?.totalSpent || 0).toLocaleString()}</span>
+                            <span className="text-lg font-bold text-white">₹{(customer.stats?.totalSpent || 0).toLocaleString()}</span>
                             <span className="text-[10px] font-bold text-blue-100 uppercase tracking-wider">{t('modals.profile.stats.spend')}</span>
                         </div>
                         <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex flex-col items-center justify-center gap-0.5">
-                            <span className="text-lg font-bold text-slate-900">Γé╣{(customer.walletBalance || 0).toLocaleString()}</span>
+                            <span className="text-lg font-bold text-slate-900">₹{(customer.walletBalance || 0).toLocaleString()}</span>
                             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{t('modals.profile.wallet_info')}</span>
                         </div>
                     </div>
@@ -109,7 +109,7 @@ const CustomerDetailsModal = ({ show, onHide, customer, onSendMessage }) => {
                                                 {addr.isDefault && <span className="text-[8px] font-bold bg-slate-200 text-slate-600 px-1 py-0.5 rounded leading-none uppercase">Default</span>}
                                             </div>
                                             <p className="text-[11px] font-semibold text-slate-500 leading-normal">
-                                                {addr.street}, {addr.city}, {addr.state} - {addr.zipCode}
+                                                {[addr.street, addr.city, addr.state].filter(Boolean).join(', ')} {addr.zipCode ? `- ${addr.zipCode}` : ''}
                                             </p>
                                         </div>
                                     </div>
@@ -141,7 +141,7 @@ const CustomerDetailsModal = ({ show, onHide, customer, onSendMessage }) => {
                                             </div>
                                         </div>
                                         <div className="text-right">
-                                            <div className="text-xs font-bold text-slate-900 mb-0.5">Γé╣{order.totalAmount.toLocaleString()}</div>
+                                            <div className="text-xs font-bold text-slate-900 mb-0.5">₹{order.totalAmount.toLocaleString()}</div>
                                             <span className={`text-[9px] font-bold uppercase px-2 py-0.5 rounded border ${
                                                 order.status === 'delivered' ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 
                                                 order.status === 'cancelled' ? 'bg-rose-50 border-rose-100 text-rose-600' : 'bg-blue-50 border-blue-100 text-blue-600'

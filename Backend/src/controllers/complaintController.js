@@ -233,7 +233,7 @@ export const resolveComplaintByStore = async (req, res) => {
  */
 export const closeTicket = async (req, res) => {
   try {
-    const { ticketId, processRefund, refundAmount: customAmount } = req.body;
+    const { ticketId, processRefund, refundAmount: customAmount, adminNotes } = req.body;
     const complaint = await Complaint.findOne({ ticketId }).populate('order user');
     if (!complaint) return res.status(404).json({ success: false, message: 'Ticket not found' });
 
@@ -246,7 +246,7 @@ export const closeTicket = async (req, res) => {
       const UserTransaction = (await import('../models/UserTransaction.js')).default;
       const User = (await import('../models/User.js')).default;
 
-      const amountToRefund = customAmount || complaint.order.totalAmount;
+      const amountToRefund = Number(customAmount) || complaint.order.totalAmount;
       const user = await User.findById(complaint.user._id || complaint.user);
       
       if (user) {
@@ -275,11 +275,15 @@ export const closeTicket = async (req, res) => {
       }
     }
 
+    if (adminNotes) {
+      complaint.adminNotes = adminNotes;
+    }
+
     complaint.resolutionThread.push({
       sender: req.admin._id,
       senderModel: 'Admin',
       senderName: req.admin.name || 'System Admin',
-      message: `Ticket closed by Admin.${complaint.refundProcessed ? ` Refund of ₹${complaint.refundAmount} processed.` : ""}`
+      message: `Ticket closed by Admin. ${adminNotes ? `Notes: ${adminNotes}` : ''} ${complaint.refundProcessed ? `Refund of ₹${complaint.refundAmount} processed.` : ""}`
     });
 
     await complaint.save();

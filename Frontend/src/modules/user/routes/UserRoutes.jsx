@@ -12,7 +12,7 @@ import FloatingCartStrip from '../components/cart/FloatingCartStrip';
 import MobileFooter from '../components/layout/MobileFooter';
 import SearchOverlay from '../components/search/SearchOverlay';
 import { useTheme } from '../context/ThemeContext';
-import { ShopProvider, useShop } from '../context/ShopContext';
+import { ShopProvider, useShop, useShopUI } from '../context/ShopContext';
 import { useStore } from '../context/StoreContext';
 // import StoreSelector from '../components/location/StoreSelector';
 
@@ -21,6 +21,7 @@ import FirebaseNotificationHandler from '../../../common/components/FirebaseNoti
 import { useState } from 'react';
 import OfferTicker from '../components/layout/OfferTicker';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ReactLenis } from 'lenis/react';
 
 // Standard Imports for Order Flow (to prevent lazy loading white screen issues)
 import OrdersPage from '../pages/profile/OrdersPage';
@@ -91,11 +92,13 @@ const LoadingFallback = () => (
     </div>
 );
 
+const isTouchDevice = typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
+
 const UserLayout = () => {
     const [isMenuOpen, setIsMenuOpen] = React.useState(false);
     const location = useLocation();
     const { isDarkMode } = useTheme();
-    const { isBottomSheetOpen } = useShop();
+    const { isBottomSheetOpen } = useShopUI();
     const authNoChromePaths = ['/logout-confirmation', '/login', '/register', '/order-success'];
     const hideDesktopChrome = authNoChromePaths.includes(location.pathname);
     
@@ -124,7 +127,7 @@ const UserLayout = () => {
     const isFocusedPath = focusedPaths.some(path => location.pathname.startsWith(path)) || 
                           location.pathname.startsWith('/legal/') ||
                           location.pathname.startsWith('/edit-address/') ||
-                          (location.pathname.startsWith('/category/') && location.pathname !== '/category'); // Only hide on individual category pages, not the main list
+                          location.pathname.startsWith('/category');
 
     const hideNavbarMobile = isFocusedPath || hideDesktopChrome;
 
@@ -132,6 +135,10 @@ const UserLayout = () => {
     const occasionMatch = matchPath("/occasion/:slug", location.pathname);
     const occasionSlug = occasionMatch?.params?.slug;
     const occasionConfig = occasionSlug ? getOccasionConfig(occasionSlug) : null;
+
+    // Check if we should hide the OfferTicker
+    const isCategoryPage = location.pathname.startsWith('/category');
+    const showOfferTicker = !isCategoryPage && !hideDesktopChrome;
 
     // Check for Lowest Prices Page
     const isLowestPricesPage = matchPath("/lowest-prices", location.pathname);
@@ -193,18 +200,18 @@ const UserLayout = () => {
         return <Navigate to="/login" replace />;
     }
 
-    return (
+    const content = (
         <div className="user-module-root flex flex-col min-h-screen">
-            <FirebaseNotificationHandler token={token} role="user" isApp={isWebView} />
+            <FirebaseNotificationHandler token={token} role="user" isApp={isWebView} showToast={true} />
             <ScrollToTop />
 
             <div className={`fixed top-0 left-0 right-0 z-[100] ${hideDesktopChrome ? 'hidden md:hidden' : ''} ${hideNavbarMobile && !hideDesktopChrome ? 'hidden md:block' : ''}`}>
-                <OfferTicker />
+                {showOfferTicker && <OfferTicker />}
                 <Navbar isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} customTheme={customTheme} />
             </div>
             {/* Spacer for fixed Navbar + Ticker */}
             {!hideDesktopChrome && (
-                <div className={`h-[165px] md:h-28 flex-shrink-0 w-full ${hideNavbarMobile ? 'hidden md:block' : 'block'}`}></div>
+                <div className={`flex-shrink-0 w-full ${hideNavbarMobile ? 'hidden md:block' : 'block'} ${!showOfferTicker ? 'h-[135px] md:h-[80px]' : 'h-[165px] md:h-28'}`}></div>
             )}
             <CartSidebar />
             <LocationModal />
@@ -258,6 +265,16 @@ const UserLayout = () => {
             {/* Mobile Navigation */}
             <MobileFooter setIsMenuOpen={setIsMenuOpen} isBottomSheetOpen={isBottomSheetOpen} />
         </div>
+    );
+
+    if (isTouchDevice) {
+        return content;
+    }
+
+    return (
+        <ReactLenis root>
+            {content}
+        </ReactLenis>
     );
 };
 

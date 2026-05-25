@@ -78,9 +78,6 @@ const WalletPage = () => {
                                 <Plus size={16} strokeWidth={3} />
                                 Add Money
                             </button>
-                            <button className="w-12 h-12 md:w-12 md:h-12 border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 flex items-center justify-center rounded-full active:scale-95 transition-all shadow-sm">
-                                <History size={20} className="text-gray-600 dark:text-gray-400" />
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -99,17 +96,17 @@ const WalletPage = () => {
                     ) : (
                         <div className="divide-y divide-gray-100 dark:divide-white/5 md:divide-none grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 md:gap-4 transition-all">
                             {transactions.map((tx) => (
-                                <div key={tx._id} className="w-full py-4 px-6 md:py-5 md:px-5 flex items-center justify-between active:bg-gray-50/50 transition-all bg-transparent md:bg-white dark:md:bg-[#141414] border-none md:border md:border-gray-100 dark:md:border-white/5 shadow-none md:shadow-sm md:rounded-2xl">
-                                    <div className="flex items-center gap-4">
-                                        <div className={`w-11 h-11 rounded-full flex items-center justify-center shadow-sm ${tx.type === 'credit' ? 'bg-green-50 text-green-500 dark:bg-green-900/20' : 'bg-red-50 text-red-500 dark:bg-red-900/20'}`}>
+                                <div key={tx._id} className="w-full py-4 px-6 md:py-5 md:px-5 flex items-center justify-between gap-3 active:bg-gray-50/50 transition-all bg-transparent md:bg-white dark:md:bg-[#141414] border-none md:border md:border-gray-100 dark:md:border-white/5 shadow-none md:shadow-sm md:rounded-2xl">
+                                    <div className="flex items-center gap-3 md:gap-4 flex-1 min-w-0">
+                                        <div className={`w-10 h-10 md:w-11 md:h-11 flex-shrink-0 rounded-full flex items-center justify-center shadow-sm ${tx.type === 'credit' ? 'bg-green-50 text-green-500 dark:bg-green-900/20' : 'bg-red-50 text-red-500 dark:bg-red-900/20'}`}>
                                             {tx.type === 'credit' ? <TrendingUp size={18} /> : <CreditCard size={18} />}
                                         </div>
-                                        <div>
-                                            <h4 className="!text-[13px] md:!text-base font-black text-gray-800 dark:text-gray-100 leading-none mb-1">{tx.description}</h4>
-                                            <p className="!text-[10px] md:!text-xs text-gray-400 font-bold tracking-tight uppercase opacity-60 font-mono">{formatDate(tx.createdAt)}</p>
+                                        <div className="min-w-0 flex-1">
+                                            <h4 className="!text-[12px] md:!text-[14px] font-black text-gray-800 dark:text-gray-100 leading-snug mb-0.5 line-clamp-2 md:line-clamp-none pr-1">{tx.description}</h4>
+                                            <p className="!text-[9px] md:!text-[10px] text-gray-400 font-bold tracking-widest uppercase opacity-80">{formatDate(tx.createdAt)}</p>
                                         </div>
                                     </div>
-                                    <div className="text-right flex flex-col items-end">
+                                    <div className="text-right flex flex-col items-end flex-shrink-0">
                                         <p className={`!text-[14px] md:!text-lg font-black ${tx.type === 'credit' ? 'text-[#0c831f]' : 'text-gray-900 dark:text-gray-100'}`}>
                                             {tx.type === 'credit' ? '+' : '-'}{formatCurrency(tx.amount)}
                                         </p>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Download, Package, User, MapPin, CreditCard, Clock, X, Truck, Zap, CheckCircle } from 'lucide-react';
+import { Download, Package, User, MapPin, CreditCard, Clock, X, Truck, Zap, CheckCircle, Star } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { getAvailablePartners, assignOrder, autoAssignOrder } from '../../api/adminDeliveryApi';
 import { getOrderDetails, updateOrderStatus } from '../../api/orderApi';
@@ -298,6 +298,31 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
                                                 </button>
                                             </div>
                                         )
+                                    )}
+                                </div>
+                            )}
+
+                            {displayOrder.feedback?.rating && (
+                                <div className="mb-6 p-4 rounded-lg bg-yellow-50 border border-yellow-100 print:hidden">
+                                    <p className="text-[10px] font-bold text-yellow-600 uppercase mb-3 flex items-center gap-2">
+                                        <Star size={14} className="fill-yellow-500 text-yellow-500" /> Order Feedback
+                                    </p>
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <div className="flex gap-0.5">
+                                            {[1, 2, 3, 4, 5].map(s => (
+                                                <Star key={s} size={14} className={s <= displayOrder.feedback.rating ? "fill-yellow-500 text-yellow-500" : "text-yellow-200"} />
+                                            ))}
+                                        </div>
+                                        {displayOrder.feedback.submittedAt && (
+                                            <span className="text-xs text-slate-500 font-medium ml-2">
+                                                {new Date(displayOrder.feedback.submittedAt).toLocaleDateString()}
+                                            </span>
+                                        )}
+                                    </div>
+                                    {displayOrder.feedback.comment && (
+                                        <p className="text-xs text-slate-700 italic bg-white p-3 rounded border border-yellow-200 mt-2 font-medium">
+                                            "{displayOrder.feedback.comment}"
+                                        </p>
                                     )}
                                 </div>
                             )}

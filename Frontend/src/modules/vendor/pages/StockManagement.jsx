@@ -172,14 +172,14 @@ const StockManagement = () => {
 
             {/* Filters */}
             <div className="bg-white p-3 rounded-xl shadow-sm border border-gray-100 flex flex-col md:flex-row gap-3 sticky top-16 z-20 md:static">
-                <div className="flex items-center gap-2 flex-1 border border-gray-200 rounded-lg px-3 py-1.5 focus-within:border-[#0c831f] bg-white">
+                <div className="flex items-center gap-2 flex-1 min-w-0 border border-gray-200 rounded-lg px-3 py-2 focus-within:border-[#0c831f] transition-colors">
                     <Search className="text-gray-400 shrink-0" size={15} />
                     <input
                         type="text"
                         placeholder="Search products by name..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="flex-1 bg-transparent focus:outline-none text-xs"
+                        className="search-input-plain flex-1 min-w-0 text-xs text-gray-700 placeholder:text-gray-400"
                     />
                 </div>
                 <div className="flex gap-2 text-xs font-bold overflow-x-auto pb-1 md:pb-0 scrollbar-hide">
@@ -294,7 +294,7 @@ const StockManagement = () => {
                                     <div className="flex justify-between items-start">
                                         <div>
                                             <h3 className="text-sm font-bold text-gray-900 truncate">{product.name}</h3>
-                                            <p className="text-[10px] text-gray-500 font-medium">{product.category} ? {formatCurrency(product.basePrice)}</p>
+                                            <p className="text-[10px] text-gray-500 font-medium">{product.category} · {formatCurrency(product.basePrice)}</p>
                                         </div>
                                         <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${currentStock === 0 ? 'bg-red-50 text-red-600 border-red-100' :
                                             currentStock <= (product.lowStockThreshold || 10) ? 'bg-yellow-50 text-yellow-700 border-yellow-100' :
@@ -364,8 +364,8 @@ const StockManagement = () => {
                                             key={pageNumber}
                                             onClick={() => paginate(pageNumber)}
                                             className={`w-8 h-8 flex items-center justify-center rounded-lg text-xs font-bold transition-all ${currentPage === pageNumber
-                                                    ? 'bg-[#0c831f] text-white shadow-sm'
-                                                    : 'text-gray-600 hover:bg-gray-50 border border-transparent hover:border-gray-200'
+                                                ? 'bg-[#0c831f] text-white shadow-sm'
+                                                : 'text-gray-600 hover:bg-gray-50 border border-transparent hover:border-gray-200'
                                                 }`}
                                         >
                                             {pageNumber}

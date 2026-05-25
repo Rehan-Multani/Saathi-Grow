@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import * as authApi from '../api/userAuthApi';
 import { toast } from 'react-toastify';
 import { isWebView as checkWebView } from '../../../utils/deviceUtils';
@@ -49,7 +49,7 @@ export const AuthProvider = ({ children }) => {
         verifyAuth();
     }, []); // Only on mount
 
-    const login = async (credentials) => {
+    const login = useCallback(async (credentials) => {
         setLoading(true);
         try {
             const data = await authApi.verifyOTP(credentials);
@@ -64,9 +64,9 @@ export const AuthProvider = ({ children }) => {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
-    const register = async (credentials) => {
+    const register = useCallback(async (credentials) => {
         setLoading(true);
         try {
             const data = await authApi.verifyOTP(credentials);
@@ -81,7 +81,7 @@ export const AuthProvider = ({ children }) => {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
     const isFetchingProfile = useRef(false);
 
@@ -114,7 +114,7 @@ export const AuthProvider = ({ children }) => {
         }
     }, [token]); // Only changes when token changes
 
-    const updateUser = async (formData) => {
+    const updateUser = useCallback(async (formData) => {
         setLoading(true);
         try {
             const data = await authApi.updateProfile(token, formData);
@@ -127,33 +127,33 @@ export const AuthProvider = ({ children }) => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [token]);
 
-    const logout = () => {
+    const logout = useCallback(() => {
         setUser(null);
         setToken(null);
         localStorage.removeItem('sathiGro_cart'); // clear stale cart data on logout
         toast.info('Logged out');
-    };
+    }, []);
 
-    const openLogin = () => {
+    const openLogin = useCallback(() => {
         setLoginView('login');
         setShowLoginModal(true);
-    };
+    }, []);
 
-    const openRegister = () => {
+    const openRegister = useCallback(() => {
         setLoginView('register');
         setShowLoginModal(true);
-    };
+    }, []);
 
-    const closeLoginModal = () => setShowLoginModal(false);
+    const closeLoginModal = useCallback(() => setShowLoginModal(false), []);
 
     /**
      * Helper to protect actions. 
      * If logged in, executes the action.
      * If not logged in, opens login modal (on web) or redirects (on APK).
      */
-    const protectAction = (action) => {
+    const protectAction = useCallback((action) => {
         if (token) {
             action();
         } else {
@@ -166,30 +166,34 @@ export const AuthProvider = ({ children }) => {
                 openLogin();
             }
         }
-    };
+    }, [token, isWebView, openLogin]);
+
+    const contextValue = useMemo(() => ({
+        user,
+        token,
+        loading,
+        login,
+        register,
+        updateUser,
+        logout,
+        showLoginModal,
+        openLogin,
+        openRegister,
+        closeLoginModal,
+        loginView,
+        setLoginView,
+        refreshProfile,
+        isWebView,
+        setLoading,
+        protectAction
+    }), [
+        user, token, loading, login, register, updateUser, logout,
+        showLoginModal, openLogin, openRegister, closeLoginModal,
+        loginView, refreshProfile, isWebView, protectAction
+    ]);
 
     return (
-        <AuthContext.Provider
-            value={{
-                user,
-                token,
-                loading,
-                login,
-                register,
-                updateUser,
-                logout,
-                showLoginModal,
-                openLogin,
-                openRegister,
-                closeLoginModal,
-                loginView,
-                setLoginView,
-                refreshProfile,
-                isWebView,
-                setLoading,
-                protectAction
-            }}
-        >
+        <AuthContext.Provider value={contextValue}>
             {children}
         </AuthContext.Provider>
     );

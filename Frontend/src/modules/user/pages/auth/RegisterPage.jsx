@@ -99,10 +99,10 @@ const RegisterPage = () => {
     };
 
     return (
-        <div className="fixed inset-0 z-50 h-[100dvh] w-screen overflow-hidden flex items-center justify-center px-4 sm:px-6 lg:px-8 bg-white dark:bg-black">
+        <div className="fixed inset-0 z-50 h-[100dvh] w-screen overflow-hidden flex items-center justify-center px-4 sm:px-6 lg:px-8 bg-slate-900">
             {/* Background Image with Blur */}
             <div
-                className="absolute inset-0 bg-cover bg-center z-0"
+                className="absolute inset-0 bg-cover bg-center z-0 bg-slate-900"
                 style={{
                     backgroundImage: 'url("https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=2574&auto=format&fit=crop")',
                     filter: 'blur(8px)',
@@ -110,7 +110,7 @@ const RegisterPage = () => {
                 }}
             ></div>
             {/* Overlay */}
-            <div className="absolute inset-0 bg-black/30 z-0"></div>
+            <div className="absolute inset-0 bg-black/40 z-0"></div>
 
             <div className="bg-white dark:bg-black rounded-xl shadow-xl w-full max-w-[340px] overflow-hidden border border-gray-100 dark:border-gray-800 animate-in fade-in zoom-in duration-300 relative z-10">
                 <div className="p-6">

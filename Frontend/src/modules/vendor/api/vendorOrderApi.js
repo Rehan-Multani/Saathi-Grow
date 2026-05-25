@@ -12,6 +12,14 @@ export const getVendorOrders = async (token, params = {}) => {
   return data;
 };
 
+export const lookupVendorOrder = async (token, trackingId) => {
+  const { data } = await axios.get(`${API_URL}/orders/lookup`, {
+    headers: { Authorization: `Bearer ${token}` },
+    params: { trackingId: trackingId.trim() },
+  });
+  return data;
+};
+
 export const updateVendorOrderStatus = async (token, orderId, status) => {
   const config = {
     headers: { Authorization: `Bearer ${token}` }

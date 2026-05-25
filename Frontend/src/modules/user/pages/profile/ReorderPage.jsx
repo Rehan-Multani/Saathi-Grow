@@ -42,7 +42,7 @@ const ReorderPage = () => {
                             availableStock = product?.stock || 0;
                         }
 
-                        const isOutOfStock = availableStock < threshold;
+                        const isOutOfStock = availableStock <= 0;
 
                         return {
                             productId: product?._id || item.product,

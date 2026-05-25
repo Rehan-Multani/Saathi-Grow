@@ -4,15 +4,20 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { API_BASE_URL } from '../../../config/apiConfig';
 import { formatDistanceToNow } from 'date-fns';
+import { useVendor } from '../contexts/VendorContext';
 
 const Notifications = () => {
     const [notifications, setNotifications] = useState([]);
     const [loading, setLoading] = useState(true);
-    const vendorToken = localStorage.getItem('sathiGro_vendor_token');
+    const { vendor } = useVendor();
+    const vendorToken = vendor?.token;
 
     useEffect(() => {
         const fetchNotifications = async () => {
-            if (!vendorToken) return;
+            if (!vendorToken) {
+                setLoading(false);
+                return;
+            }
             try {
                 const res = await axios.get(`${API_BASE_URL}/notifications/my`, {
                     headers: { Authorization: `Bearer ${vendorToken}` }

@@ -238,6 +238,16 @@ export const getVendorDashboardStats = async (req, res) => {
   try {
     const vendorId = req.vendor._id;
 
+    const vendorProducts = await Product.find({ vendor: vendorId }).select('_id').lean();
+    const vendorProductIds = vendorProducts.map(p => p._id);
+
+    const vendorOrderQuery = {
+      $or: [
+        { vendor: vendorId },
+        { 'items.product': { $in: vendorProductIds } }
+      ]
+    };
+
     // 1. Core Summary Stats
     const [
       totalProducts,
@@ -250,16 +260,19 @@ export const getVendorDashboardStats = async (req, res) => {
       pendingTickets
     ] = await Promise.all([
       Product.countDocuments({ vendor: vendorId }),
-      Order.countDocuments({ vendor: vendorId }),
-      Order.countDocuments({ vendor: vendorId, status: { $in: ['pending', 'confirmed', 'preparing'] } }),
+      Order.countDocuments(vendorOrderQuery),
+      Order.countDocuments({ ...vendorOrderQuery, status: { $in: ['pending', 'confirmed', 'preparing'] } }),
       Wallet.findOne({ owner: vendorId, ownerModel: 'Vendor' }),
-      Order.find({ vendor: vendorId })
+      Order.find(vendorOrderQuery)
         .sort({ createdAt: -1 })
         .limit(5)
         .populate('user', 'name'),
-      Product.find({ vendor: vendorId, stock: { $lte: 10 } })
-        .limit(5),
-      Order.countDocuments({ vendor: vendorId, 'returnRequest.isRequested': true, status: 'confirmed' }),
+      Product.aggregate([
+        { $match: { vendor: vendorId, status: { $ne: 'Draft' } } },
+        { $match: { $expr: { $lte: ["$stock", { $ifNull: ["$lowStockThreshold", 10] }] } } },
+        { $limit: 5 }
+      ]),
+      Order.countDocuments({ ...vendorOrderQuery, 'returnRequest.isRequested': true, status: 'confirmed' }),
       Complaint.countDocuments({ store: vendorId, status: 'ESCALATED_TO_STORE' })
     ]);
 
@@ -271,15 +284,15 @@ export const getVendorDashboardStats = async (req, res) => {
     const analyticsData = await Order.aggregate([
       {
         $match: {
-          vendor: vendorId,
+          ...vendorOrderQuery,
           status: { $ne: 'cancelled' },
           createdAt: { $gte: sevenDaysAgo }
         }
       },
       {
         $group: {
-          _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
-          revenue: { $sum: "$totalAmount" },
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt", timezone: "Asia/Kolkata" } },
+          revenue: { $sum: { $cond: [{ $gt: ["$vendorPayoutAmount", 0] }, "$vendorPayoutAmount", "$totalAmount"] } },
           orders: { $sum: 1 }
         }
       },
@@ -290,7 +303,12 @@ export const getVendorDashboardStats = async (req, res) => {
     for (let i = 0; i < 7; i++) {
       const d = new Date();
       d.setDate(d.getDate() - (6 - i));
-      const dateStr = d.toISOString().split('T')[0];
+      // Format as YYYY-MM-DD in local time
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const dateStr = `${year}-${month}-${day}`;
+      
       const match = analyticsData.find(h => h._id === dateStr);
       finalAnalytics.push({
         name: d.toLocaleDateString('en-US', { weekday: 'short' }),
@@ -326,7 +344,7 @@ export const getVendorDashboardStats = async (req, res) => {
         id: p._id,
         name: p.name,
         stock: p.stock,
-        image: p.image
+        image: p.gallery && p.gallery.length > 0 ? p.gallery[0] : null
       }))
     });
 

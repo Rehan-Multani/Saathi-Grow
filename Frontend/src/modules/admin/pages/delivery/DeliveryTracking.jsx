@@ -15,7 +15,7 @@ import {
     MarkerClusterer 
 } from '@react-google-maps/api';
 import * as api from '../../api/adminDeliveryApi';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import polyline from '@mapbox/polyline';
 
 const mapContainerStyle = {
@@ -61,6 +61,7 @@ const mapOptions = {
 
 const DeliveryTracking = () => {
     const { t } = useTranslation('admin_delivery');
+    const location = useLocation();
     const [activeDeliveries, setActiveDeliveries] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -131,22 +132,45 @@ const DeliveryTracking = () => {
         }
     };
 
-    // Auto-center on first available rider with VALID location
+    // Auto-center on first available rider with VALID location or specific rider from state
     useEffect(() => {
-        if (activeDeliveries.length > 0 && !selectedDelivery && map) {
-            const firstWithLoc = activeDeliveries.find(d => {
-                const loc = d.deliveryPartnerId?.currentLocation?.coordinates;
-                return loc && (loc[0] !== 0 || loc[1] !== 0);
-            });
+        if (activeDeliveries.length > 0 && map) {
+            let targetDelivery = selectedDelivery;
+
+            if (!targetDelivery && location.state?.riderId) {
+                targetDelivery = activeDeliveries.find(d => d.deliveryPartnerId?._id === location.state.riderId);
+                if (targetDelivery) {
+                    setSelectedDelivery(targetDelivery);
+                }
+            }
+
+            if (!targetDelivery) {
+                const firstWithLoc = activeDeliveries.find(d => {
+                    const loc = d.deliveryPartnerId?.currentLocation?.coordinates;
+                    return loc && (loc[0] !== 0 || loc[1] !== 0);
+                });
+                if (firstWithLoc) targetDelivery = firstWithLoc;
+            }
             
-            if (firstWithLoc) {
-                const loc = firstWithLoc.deliveryPartnerId.currentLocation.coordinates;
-                const position = { lat: loc[1], lng: loc[0] };
-                setCurrentCenter(position);
-                map.panTo(position);
+            if (targetDelivery) {
+                const loc = targetDelivery.deliveryPartnerId?.currentLocation?.coordinates;
+                if (loc && (loc[0] !== 0 || loc[1] !== 0)) {
+                    const position = { lat: loc[1], lng: loc[0] };
+                    setCurrentCenter(position);
+                    map.panTo(position);
+                    if (location.state?.riderId) map.setZoom(16);
+                } else {
+                    const custLoc = targetDelivery.shippingAddress?.location?.coordinates;
+                    if (custLoc && (custLoc[0] !== 0 || custLoc[1] !== 0)) {
+                        const position = { lat: custLoc[1], lng: custLoc[0] };
+                        setCurrentCenter(position);
+                        map.panTo(position);
+                        if (location.state?.riderId) map.setZoom(15);
+                    }
+                }
             }
         }
-    }, [activeDeliveries.length, map, selectedDelivery]);
+    }, [activeDeliveries.length, map, selectedDelivery, location.state]);
 
     if (!isLoaded || (loading && !refreshing)) {
         return (
@@ -353,7 +377,7 @@ const DeliveryTracking = () => {
 
                                     <div className="mt-4 flex gap-2">
                                         <Link 
-                                            to={`/admin/delivery/partners/${d.deliveryPartnerId?._id}`}
+                                            to={`${window.location.pathname.startsWith('/vendor') ? '/vendor' : (window.location.pathname.startsWith('/store-manager') ? '/store-manager' : '/admin')}/delivery/partners/${d.deliveryPartnerId?._id}`}
                                             className="flex-1 py-2 rounded-xl border border-slate-100 text-[9px] font-bold text-slate-400 uppercase tracking-widest text-center hover:bg-slate-100 transition-all"
                                         >
                                             View Profile

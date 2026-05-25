@@ -40,7 +40,7 @@ const AdminLayout = () => {
     return (
         <div className="min-h-screen bg-slate-50 font-sans">
             <FirebaseNotificationHandler token={adminToken} role="admin" />
-            <NewOrderPopup />
+            {adminUser?.role === 'Admin' && <NewOrderPopup />}
             <AdminSidebar
                 showMobile={showMobileSidebar}
                 onClose={() => setShowMobileSidebar(false)}

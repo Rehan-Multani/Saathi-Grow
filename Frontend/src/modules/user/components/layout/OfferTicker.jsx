@@ -2,29 +2,13 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useShop } from '../../context/ShopContext';
 import { Flame, Clock, Zap } from 'lucide-react';
 
-const OfferTicker = () => {
-    const { offers, loading } = useShop();
+const CountdownTimer = ({ expiryDate }) => {
     const [timeLeft, setTimeLeft] = useState(null);
 
-    // Find the offer with the nearest expiry date
-    const nearestExpiry = useMemo(() => {
-        if (!offers || offers.length === 0) return null;
-
-        const expiringOffers = offers
-            .filter(o => o.expiryDate)
-            .map(o => ({ ...o, expiryDateDt: new Date(o.expiryDate) }))
-            .filter(o => o.expiryDateDt > new Date())
-            .sort((a, b) => a.expiryDateDt - b.expiryDateDt);
-
-        return expiringOffers.length > 0 ? expiringOffers[0] : null;
-    }, [offers]);
-
     useEffect(() => {
-        if (!nearestExpiry) return;
-
         const timer = setInterval(() => {
             const now = new Date().getTime();
-            const distance = new Date(nearestExpiry.expiryDate).getTime() - now;
+            const distance = new Date(expiryDate).getTime() - now;
 
             if (distance < 0) {
                 setTimeLeft("00:00:00");
@@ -41,14 +25,27 @@ const OfferTicker = () => {
         }, 1000);
 
         return () => clearInterval(timer);
-    }, [nearestExpiry]);
+    }, [expiryDate]);
+
+    if (!timeLeft) return null;
+
+    return (
+        <div className="flex items-center gap-1.5 bg-black/20 px-2 py-0.5 rounded-full border border-white/5 ml-1 md:ml-2">
+            <Clock size={11} className="text-white/80" />
+            <span className="font-mono font-bold text-[9px] md:text-[12px]">{timeLeft}</span>
+        </div>
+    );
+};
+
+const OfferTicker = () => {
+    const { offers, loading } = useShop();
 
     const renderTickerItems = useMemo(() => {
         if (loading || !offers || offers.length === 0) return null;
 
         const singleTicker = offers.map(offer => {
             const isFlash = offer.discountPercentage >= 40 || offer.title.toLowerCase().includes('flash');
-            const hasCountdown = nearestExpiry && nearestExpiry._id === offer._id && timeLeft;
+            const hasCountdown = offer.expiryDate && new Date(offer.expiryDate) > new Date();
 
             return (
                 <div key={offer._id} className="flex items-center gap-2 md:gap-4 mx-6 md:mx-10 whitespace-nowrap">
@@ -76,10 +73,7 @@ const OfferTicker = () => {
 
                     {/* Countdown Detail */}
                     {hasCountdown && (
-                        <div className="flex items-center gap-1.5 bg-black/20 px-2 py-0.5 rounded-full border border-white/5 ml-1 md:ml-2">
-                            <Clock size={11} className="text-white/80" />
-                            <span className="font-mono font-bold text-[9px] md:text-[12px]">{timeLeft}</span>
-                        </div>
+                        <CountdownTimer expiryDate={offer.expiryDate} />
                     )}
                 </div>
             );
@@ -95,7 +89,7 @@ const OfferTicker = () => {
                 ))}
             </div>
         );
-    }, [offers, loading, timeLeft, nearestExpiry]);
+    }, [offers, loading]);
 
     if (!renderTickerItems) return null;
 

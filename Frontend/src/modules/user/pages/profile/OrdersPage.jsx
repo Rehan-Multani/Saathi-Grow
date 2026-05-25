@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, ShoppingBag, Package, ChevronRight, Clock } from 'lucide-react';
+import { ArrowLeft, ShoppingBag, Package, ChevronRight, Clock, Loader2 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import * as orderApi from '../../api/orderApi';
@@ -51,32 +51,6 @@ const OrdersPage = () => {
                         date: formattedDate,
                         amount: '₹' + o.totalAmount.toFixed(2),
                         items: o.items.map((item, idx) => {
-                            const product = item.product;
-                            if (!product || typeof product !== 'object') return item.name;
-
-                            let availableStock = 0;
-                            let threshold = product.lowStockThreshold || 0;
-                            
-                            const branchId = o.branchId?._id || o.branchId;
-                            const vendorId = o.vendor?._id || o.vendor;
-
-                            if (branchId) {
-                                const branchStock = product.branchStocks?.find(bs => (bs.branchId?._id || bs.branchId)?.toString() === branchId.toString());
-                                availableStock = branchStock ? branchStock.stock : 0;
-                                threshold = branchStock ? (branchStock.lowStockThreshold || 0) : threshold;
-                            } else {
-                                availableStock = product.stock || 0;
-                            }
-
-                            const isOut = availableStock <= threshold;
-
-                            if (isOut) {
-                                return (
-                                    <span key={`${o._id}-${idx}`}>
-                                        {item.name} <span className="text-red-600 font-bold ml-1">(Out of Stock)</span>
-                                    </span>
-                                );
-                            }
                             return item.name;
                         }).reduce((acc, curr, i) => {
                              return i === 0 ? [curr] : [...acc, ', ', curr];
@@ -177,8 +151,15 @@ const OrdersPage = () => {
                         ))}
                     </div>
                 </div>
+                
+                {isLoading && (
+                    <div className="flex flex-col items-center justify-center py-24 md:py-32 text-center">
+                        <Loader2 className="animate-spin text-[#0c831f] mb-4" size={32} />
+                        <p className="text-[10px] md:text-xs text-gray-400 font-bold tracking-widest uppercase">Fetching Order History...</p>
+                    </div>
+                )}
 
-                {orders.length === 0 && (
+                {!isLoading && orders.length === 0 && (
                     <div className="flex flex-col items-center justify-center py-24 md:py-32 text-center px-6">
                         <div className="w-16 h-16 md:w-24 md:h-24 bg-gray-50 dark:bg-white/5 rounded-full flex items-center justify-center mb-6 md:mb-8 shadow-inner">
                             <ShoppingBag size={32} className="text-gray-300 md:w-10 md:h-10" />

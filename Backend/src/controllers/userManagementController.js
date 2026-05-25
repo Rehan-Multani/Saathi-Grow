@@ -105,9 +105,18 @@ export const getUserById = async (req, res) => {
     const user = await User.findById(userId).lean();
     if (!user) return res.status(404).json({ message: 'User not found' });
 
+    // Build match condition for orders (App orders + POS orders)
+    const orderMatchCondition = {
+      $or: [
+        { user: user._id }
+      ]
+    };
+    if (user.phone) orderMatchCondition.$or.push({ 'posCustomer.phone': user.phone });
+    if (user.email) orderMatchCondition.$or.push({ 'posCustomer.email': user.email });
+
     // Fetch Statistics
     const [stats] = await Order.aggregate([
-      { $match: { user: user._id, status: 'delivered' } },
+      { $match: { ...orderMatchCondition, status: 'delivered' } },
       {
         $group: {
           _id: null,
@@ -118,10 +127,10 @@ export const getUserById = async (req, res) => {
     ]);
 
     // Fetch Total Orders (all statuses)
-    const totalOrdersCount = await Order.countDocuments({ user: user._id });
+    const totalOrdersCount = await Order.countDocuments(orderMatchCondition);
 
     // Fetch Last 3 Orders
-    const recentOrders = await Order.find({ user: user._id })
+    const recentOrders = await Order.find(orderMatchCondition)
       .sort({ createdAt: -1 })
       .limit(3)
       .select('orderId totalAmount status createdAt')

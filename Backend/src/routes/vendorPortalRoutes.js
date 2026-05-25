@@ -32,6 +32,7 @@ import {
   getVendorReturnRequests,
   handleStoreReturnAction,
   getVendorOrders,
+  lookupVendorOrder,
   updateVendorOrderStatus
 } from '../controllers/orderController.js';
 import {
@@ -91,6 +92,7 @@ router.put('/locations/:id', protectVendor, updateVendorLocation);
 router.delete('/locations/:id', protectVendor, deleteVendorLocation);
 
 router.get('/orders', protectVendor, getVendorOrders);
+router.get('/orders/lookup', protectVendor, lookupVendorOrder);
 router.put('/orders/:id/status', protectVendor, updateVendorOrderStatus);
 
 // Return Request management for vendor (vendor store orders only)

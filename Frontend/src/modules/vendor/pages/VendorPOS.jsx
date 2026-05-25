@@ -8,8 +8,9 @@ import {
   CheckCircle,
   Printer,
   Zap,
-  RotateCcw,
-  Monitor
+  Monitor,
+  User,
+  Phone,
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
@@ -29,7 +30,7 @@ const VendorPOS = () => {
   const [loading, setLoading] = useState(false);
   const [settings, setSettings] = useState(null);
   const [customerDetails, setCustomerDetails] = useState({ name: '', email: '', phone: '' });
-  const [paymentMethod] = useState('cash');
+  const [paymentMethod, setPaymentMethod] = useState('cash');
   const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
@@ -163,14 +164,18 @@ const VendorPOS = () => {
   </table>
   <div class="divider"></div>
   <table>
-    <tr><td style="font-size:12px;padding:2px 0;">Subtotal</td><td style="text-align:right;font-size:12px;">₹${(order.subtotal || order.totalAmount)?.toLocaleString('en-IN')}</td></tr>
-    ${(order.discountAmount > 0) ? `<tr><td style="font-size:12px;padding:2px 0;">Discount</td><td style="text-align:right;font-size:12px;color:green;">-₹${order.discountAmount?.toLocaleString('en-IN')}</td></tr>` : ''}
-    <tr class="total-row"><td>TOTAL</td><td style="text-align:right;">₹${order.totalAmount?.toLocaleString('en-IN')}</td></tr>
+    <tr><td style="font-size:12px;padding:2px 0;">Subtotal</td><td style="text-align:right;font-size:12px;">₹${order.paymentMethod === 'cash' ? Math.round(order.subTotal || order.totalAmount) : (order.subTotal || order.totalAmount).toFixed(2)}</td></tr>
+    ${(order.taxAmount > 0) ? `<tr><td style="font-size:12px;padding:2px 0;">Tax</td><td style="text-align:right;font-size:12px;">+₹${order.paymentMethod === 'cash' ? Math.round(order.taxAmount) : order.taxAmount.toFixed(2)}</td></tr>` : ''}
+    ${(order.discountAmount > 0) ? `<tr><td style="font-size:12px;padding:2px 0;">Discount</td><td style="text-align:right;font-size:12px;color:green;">-₹${order.paymentMethod === 'cash' ? Math.round(order.discountAmount) : order.discountAmount.toFixed(2)}</td></tr>` : ''}
+    <tr class="total-row"><td>TOTAL</td><td style="text-align:right;">₹${order.paymentMethod === 'cash' ? Math.round(order.totalAmount) : order.totalAmount.toFixed(2)}</td></tr>
   </table>
   <div class="divider"></div>
   <div style="font-size:12px;margin:6px 0;">
-    <div>Payment: <span class="bold">${(order.paymentMethod || 'Cash').toUpperCase()}</span></div>
-    <div>Status: <span class="bold" style="color:${order.paymentStatus === 'paid' ? 'green' : 'orange'}">${(order.paymentStatus || 'Paid').toUpperCase()}</span></div>
+    <table style="width: 100%;">
+      <tr><td style="padding: 2px 0;">Payment Method:</td><td style="text-align: right;" class="bold">${(order.paymentMethod || 'Cash').toUpperCase()}</td></tr>
+      <tr><td style="padding: 2px 0;">Payment Status:</td><td style="text-align: right; color: ${order.paymentStatus === 'paid' ? 'green' : 'orange'};" class="bold">${(order.paymentStatus || 'Paid').toUpperCase()}</td></tr>
+      <tr><td style="padding: 2px 0;">Amount Paid:</td><td style="text-align: right;" class="bold">₹${order.paymentMethod === 'cash' ? Math.round(order.totalAmount) : order.totalAmount.toFixed(2)}</td></tr>
+    </table>
   </div>
   <div class="divider-solid"></div>
   <div class="center" style="margin-top:12px;">
@@ -198,10 +203,12 @@ const VendorPOS = () => {
 
   const handleCompleteOrder = async () => {
     if (cart.length === 0) return;
+    if (customerDetails.phone && customerDetails.phone.length !== 10) {
+      return toast.warning('Customer phone number must be exactly 10 digits');
+    }
     const result = await Swal.fire({
       title: 'Complete Order?',
       text: 'Are you sure you want to process this order? Stock will be updated automatically.',
-      icon: 'question',
       showCancelButton: true,
       confirmButtonColor: '#0c831f',
       confirmButtonText: 'Yes, Place Order',
@@ -211,7 +218,7 @@ const VendorPOS = () => {
 
     setIsProcessing(true);
     try {
-      const created = await createPOSOrder({ items: cart, customerDetails, storeId, storeType }, vendor?.token);
+      const created = await createPOSOrder({ items: cart, customerDetails, paymentMethod, storeId, storeType }, vendor?.token);
       const placedOrder = created?.order || created;
 
       setCart([]);
@@ -225,7 +232,7 @@ const VendorPOS = () => {
           <div style="color:#64748b;font-size:13px;margin-bottom:4px;">
             Order <strong style="color:#1e293b">#${placedOrder?.orderId || placedOrder?._id?.slice(-8).toUpperCase() || ''}</strong> placed successfully.
           </div>
-          <div style="font-size:22px;font-weight:900;color:#1e293b;margin:8px 0;">₹${totalAmount.toFixed(0)}</div>
+          <div style="font-size:22px;font-weight:900;color:#1e293b;margin:8px 0;">₹${paymentMethod === 'cash' ? Math.round(totalAmount) : totalAmount.toFixed(2)}</div>
           <div style="color:#94a3b8;font-size:11px;">Would you like to print the bill?</div>
         `,
         showCancelButton: true,
@@ -264,7 +271,7 @@ const VendorPOS = () => {
               <input 
                 type="text" 
                 placeholder="Search products by name or SKU..."
-                className="flex-1 bg-transparent text-sm font-medium text-gray-900 placeholder:text-gray-500 focus:outline-none"
+                className="search-input-plain flex-1 min-w-0 text-sm font-medium text-gray-900 placeholder:text-gray-500"
                 value={searchTerm}
                 onChange={e => { setSearchTerm(e.target.value); fetchProducts(e.target.value); }}
               />
@@ -272,9 +279,6 @@ const VendorPOS = () => {
         </div>
 
         <div className="flex items-center gap-2">
-            <button onClick={() => fetchProducts(searchTerm)} className="w-10 h-10 flex items-center justify-center text-gray-500 hover:bg-gray-100 rounded-lg transition-colors border border-gray-200 bg-white" title="Refresh products">
-                <RotateCcw size={18} />
-            </button>
             <button onClick={() => window.print()} className="w-10 h-10 flex items-center justify-center text-gray-500 hover:bg-gray-100 rounded-lg transition-colors border border-gray-200 bg-white" title="Print">
                 <Printer size={18} />
             </button>
@@ -362,28 +366,86 @@ const VendorPOS = () => {
               )}
            </div>
 
-           <div className="p-4 bg-white border-t border-gray-100 shadow-[0_-10px_20px_rgba(0,0,0,0.02)] z-10">
-              <div className="space-y-2 mb-4">
-                 <div className="flex justify-between text-xs font-medium text-gray-500">
+             <div className="p-3 bg-white border-t border-gray-100 shadow-[0_-10px_20px_rgba(0,0,0,0.02)] z-10 shrink-0">
+              {/* Customer Form */}
+              <div className="bg-gray-50/50 p-2.5 rounded-xl mb-2 border border-gray-100 shadow-sm">
+                <div className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-1.5 flex items-center gap-1.5 opacity-90">
+                  <User size={10} className="text-gray-400" /> Walk-in Customer Details
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="relative">
+                    <User className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" size={12} />
+                    <input
+                      type="text"
+                      placeholder="Name"
+                      className="w-full bg-white border border-gray-200 hover:border-gray-300 focus:border-[#0c831f] rounded-lg py-1.5 pl-7 pr-2 text-[11px] focus:ring-1 focus:ring-[#0c831f] transition-all font-semibold text-gray-700 placeholder-gray-400"
+                      value={customerDetails.name}
+                      onChange={(e) => {
+                        const cleanValue = e.target.value.replace(/[^a-zA-Z\s\u0900-\u097F]/g, '');
+                        setCustomerDetails({ ...customerDetails, name: cleanValue });
+                      }}
+                    />
+                  </div>
+                  <div className="relative">
+                    <Phone className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" size={12} />
+                    <input
+                      type="tel"
+                      placeholder="Mobile (10 digits)"
+                      className="w-full bg-white border border-gray-200 hover:border-gray-300 focus:border-[#0c831f] rounded-lg py-1.5 pl-7 pr-2 text-[11px] focus:ring-1 focus:ring-[#0c831f] transition-all font-semibold text-gray-700 placeholder-gray-400"
+                      value={customerDetails.phone}
+                      onChange={(e) => {
+                        const cleanValue = e.target.value.replace(/\D/g, '');
+                        if (cleanValue.length <= 10) {
+                          setCustomerDetails({ ...customerDetails, phone: cleanValue });
+                        }
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Payment Method */}
+              <div className="bg-gray-50/50 p-2.5 rounded-xl mb-2 border border-gray-100 shadow-sm">
+                <div className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-1.5 flex items-center gap-1.5 opacity-90">
+                  <Zap size={10} className="text-gray-400" /> Payment Method
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <button 
+                    onClick={() => setPaymentMethod('cash')}
+                    className={`py-1.5 text-[11px] font-bold rounded-lg border transition-all ${paymentMethod === 'cash' ? 'bg-[#0c831f] text-white border-[#0c831f]' : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'}`}
+                  >
+                    Cash
+                  </button>
+                  <button 
+                    onClick={() => setPaymentMethod('online')}
+                    className={`py-1.5 text-[11px] font-bold rounded-lg border transition-all ${paymentMethod === 'online' ? 'bg-[#0c831f] text-white border-[#0c831f]' : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'}`}
+                  >
+                    Online / UPI
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-1.5 mb-2.5">
+                 <div className="flex justify-between text-[11px] font-medium text-gray-500">
                     <span>Subtotal</span>
                     <span>₹{subTotal}</span>
                  </div>
-                 <div className="flex justify-between text-xs font-medium text-gray-500">
+                 <div className="flex justify-between text-[11px] font-medium text-gray-500">
                     <span>Tax ({taxRate}%)</span>
                     <span>₹{taxAmount.toFixed(2)}</span>
                  </div>
-                 <div className="flex justify-between items-end pt-3 border-t border-gray-100 mt-1">
-                    <span className="text-sm font-bold text-gray-900">Total</span>
-                    <span className="text-xl font-bold text-[#0c831f]">₹{totalAmount.toFixed(0)}</span>
+                 <div className="flex justify-between items-end pt-2 border-t border-gray-100 mt-1">
+                    <span className="text-xs font-bold text-gray-900">Total</span>
+                    <span className="text-lg font-bold text-[#0c831f]">₹{paymentMethod === 'cash' ? Math.round(totalAmount) : totalAmount.toFixed(2)}</span>
                  </div>
               </div>
               <button 
                 disabled={isProcessing || cart.length === 0}
                 onClick={handleCompleteOrder}
-                className={`w-full py-3.5 rounded-xl text-sm font-bold flex flex-col items-center justify-center transition-all shadow-sm ${cart.length === 0 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-[#0c831f] text-white hover:bg-[#0a6b19] active:scale-95'}`}
+                className={`w-full py-2.5 rounded-xl text-[13px] font-bold flex flex-col items-center justify-center transition-all shadow-sm ${cart.length === 0 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-[#0c831f] text-white hover:bg-[#0a6b19] active:scale-95'}`}
               >
                 {isProcessing ? 'Processing Order...' : 'Place Order Now'}
-                {cart.length > 0 && <span className="text-[10px] font-normal opacity-80 mt-0.5">₹{totalAmount.toFixed(0)} via Cash</span>}
+                {cart.length > 0 && <span className="text-[9px] font-normal opacity-80 mt-0.5">₹{paymentMethod === 'cash' ? Math.round(totalAmount) : totalAmount.toFixed(2)} via {paymentMethod === 'cash' ? 'Cash' : 'Online'}</span>}
               </button>
            </div>
         </aside>

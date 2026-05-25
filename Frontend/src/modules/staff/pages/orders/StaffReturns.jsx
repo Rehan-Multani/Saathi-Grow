@@ -72,6 +72,17 @@ const StaffReturns = () => {
         return () => clearTimeout(timer);
     }, [page, activeTab, searchTerm]);
 
+    useEffect(() => {
+        if (selected) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, [selected]);
+
     const handleAction = async (id, action) => {
         let reason = null;
         if (action === 'Rejected') {
@@ -136,7 +147,7 @@ const StaffReturns = () => {
                             placeholder="Find by ID or user..."
                             className="w-full pl-14 pr-6 py-3.5 bg-white border border-slate-200 rounded-2xl outline-none text-sm font-bold transition-all focus:ring-4 focus:ring-blue-400/10 focus:border-blue-400 shadow-sm font-black lowercase tracking-widest text-left"
                             value={searchTerm}
-                            onChange={e => { setSearchTerm(e.target.value); setPage(1); }}
+                            onChange={e => { setSearchTerm(e.target.value.replace(/\s/g, '')); setPage(1); }}
                         />
                     </div>
                 </div>

@@ -34,7 +34,7 @@ const DeliveryRoutes = () => {
     const { token } = useDeliveryStore();
     return (
         <div className="delivery-module-root min-h-screen">
-            <FirebaseNotificationHandler token={token} role="delivery" isApp={isWebView()} />
+            <FirebaseNotificationHandler token={token} role="delivery" isApp={isWebView()} showToast={true} />
             {token && <NewOrderDeliveryPopup />}
             <NotificationProvider>
                 <Suspense fallback={<Loading />}>

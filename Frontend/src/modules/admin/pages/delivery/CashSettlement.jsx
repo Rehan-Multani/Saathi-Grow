@@ -114,7 +114,9 @@ const CashSettlement = () => {
     };
 
     const filteredPartners = partners.filter(p => 
-        p.name.toLowerCase().includes(searchTerm.toLowerCase())
+        p.name.toLowerCase().includes(searchTerm.trim().toLowerCase()) ||
+        p.uniqueId?.toLowerCase().includes(searchTerm.trim().toLowerCase()) ||
+        p.phone?.includes(searchTerm.trim())
     );
 
     const totalCash = partners.reduce((sum, p) => sum + p.cashInHand, 0);
@@ -139,7 +141,11 @@ const CashSettlement = () => {
                             placeholder="Search rider..."
                             className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500/50 transition-all text-xs font-bold text-slate-700 shadow-sm"
                             value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
+                            onChange={(e) => {
+                                const val = e.target.value;
+                                if (val.startsWith(' ')) return;
+                                setSearchTerm(val);
+                            }}
                         />
                     </div>
                     <button
@@ -226,7 +232,7 @@ const CashSettlement = () => {
                                             <span className={`px-2 py-0.5 rounded-lg text-[10px] font-bold border uppercase tracking-tight ${
                                                 item.dutyStatus === 'Online' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-slate-50 text-slate-400 border-slate-100'
                                             }`}>
-                                                {item.dutyStatus}
+                                                {item.dutyStatus || 'Offline'}
                                             </span>
                                         </td>
                                         <td className="px-6 py-6 text-center font-bold">

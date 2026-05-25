@@ -482,6 +482,16 @@ const OfferPage = () => {
                 </div >
 
                 <div className="px-3 py-2 space-y-3">
+                    {/* Display Actual Banner Image on Mobile if available */}
+                    {(offer.bannerImage || offer.image) && (
+                        <div className="w-full rounded-3xl overflow-hidden shadow-md border border-gray-100 dark:border-white/10 mb-2">
+                            <img 
+                                src={offer.bannerImage || offer.image} 
+                                alt={offer.title} 
+                                className="w-full h-auto object-cover"
+                            />
+                        </div>
+                    )}
 
                     {/* Mobile Hero Section (Premium Rebuild) */}
                     <div 

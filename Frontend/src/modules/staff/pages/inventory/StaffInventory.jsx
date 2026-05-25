@@ -96,6 +96,39 @@ const StaffInventory = () => {
         setIsStockModalOpen(true);
     };
 
+    const handleExportList = () => {
+        try {
+            const branchId = staffUser?.branchId?._id || staffUser?.branchId;
+            const headers = ['SKU', 'Name', 'Category', 'SubCategory', 'Status', 'Stock', 'Price'];
+            const csvRows = filteredProducts.map(p => {
+                const stockItem = p.branchStocks?.find(bs => bs.branchId?._id === branchId || bs.branchId === branchId);
+                const stock = stockItem ? stockItem.stock : 0;
+                return [
+                    p.sku || '',
+                    `"${(p.name || '').replace(/"/g, '""')}"`,
+                    `"${(p.category || '').replace(/"/g, '""')}"`,
+                    `"${(p.subCategory || '').replace(/"/g, '""')}"`,
+                    p.status || '',
+                    stock,
+                    p.price || 0
+                ].join(',');
+            });
+
+            const csvContent = [headers.join(','), ...csvRows].join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `staff_inventory_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            toast.success("Inventory exported successfully!");
+        } catch (error) {
+            toast.error("Failed to export inventory");
+        }
+    };
+
     return (
         <div className="space-y-6 animate-in fade-in duration-700">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 px-1 text-left">
@@ -110,7 +143,7 @@ const StaffInventory = () => {
                 </div>
 
                 <div className="flex items-center gap-3 w-full md:w-auto">
-                    <button className="flex-1 md:flex-none flex items-center justify-center gap-2.5 px-6 py-3.5 bg-white text-slate-900 border border-slate-200 rounded-2xl font-black text-[11px] uppercase tracking-[0.1em] hover:bg-slate-50 transition-all shadow-sm active:scale-95 group">
+                    <button onClick={handleExportList} className="flex-1 md:flex-none flex items-center justify-center gap-2.5 px-6 py-3.5 bg-white text-slate-900 border border-slate-200 rounded-2xl font-black text-[11px] uppercase tracking-[0.1em] hover:bg-slate-50 transition-all shadow-sm active:scale-95 group">
                         <FileSpreadsheet size={18} className="text-emerald-500" /> Export List
                     </button>
                 </div>

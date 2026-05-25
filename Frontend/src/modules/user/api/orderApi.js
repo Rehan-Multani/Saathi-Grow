@@ -217,3 +217,10 @@ export const getOrdersByTag = async (token, tag, page = 1) => {
   });
   return data;
 };
+
+export const submitOrderFeedback = async (token, orderId, rating, comment) => {
+  const { data } = await axios.post(`${API_URL}/${orderId}/feedback`, { rating, comment }, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return data;
+};

@@ -11,22 +11,46 @@ const MyComplaintsPage = () => {
   const [complaints, setComplaints] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const loadComplaints = async () => {
+  const loadComplaints = async (isPolling = false) => {
     try {
-      setIsLoading(true);
+      if (!isPolling) setIsLoading(true);
       const res = await complaintApi.getUserComplaints(token);
       if (res.success) {
-        setComplaints(res.complaints);
+        setComplaints(prev => {
+          if (isPolling) {
+            res.complaints.forEach(newComp => {
+              const oldComp = prev.find(c => c.ticketId === newComp.ticketId);
+              if (oldComp) {
+                if (!oldComp.adminNotes && newComp.adminNotes) {
+                  toast.info(`Support replied to ticket ${newComp.ticketId}`, { icon: '💬' });
+                } else if (oldComp.adminNotes && newComp.adminNotes && oldComp.adminNotes !== newComp.adminNotes) {
+                  toast.info(`Support updated reply for ${newComp.ticketId}`, { icon: '💬' });
+                }
+                
+                if (!oldComp.resolutionSolution && newComp.resolutionSolution) {
+                  toast.success(`Ticket ${newComp.ticketId} has been resolved!`);
+                }
+              }
+            });
+          }
+          return res.complaints;
+        });
       }
     } catch (error) {
-      toast.error('Failed to load your complaints');
+      if (!isPolling) toast.error('Failed to load your complaints');
     } finally {
-      setIsLoading(false);
+      if (!isPolling) setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    if (token) loadComplaints();
+    if (token) {
+      loadComplaints();
+      const interval = setInterval(() => {
+        loadComplaints(true);
+      }, 5000);
+      return () => clearInterval(interval);
+    }
   }, [token]);
 
   const statusMap = {
@@ -113,6 +137,16 @@ const MyComplaintsPage = () => {
                         <div>
                           <p className="text-[10px] md:text-[11px] font-black text-[#0c831f] uppercase tracking-[0.2em] mb-1.5">Official Resolution</p>
                           <p className="text-[12px] md:text-[15px] font-black text-gray-900 dark:text-gray-100 leading-snug">{c.resolutionSolution}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {c.adminNotes && (
+                      <div className="flex gap-3 md:gap-4 p-4 md:p-6 bg-blue-50/80 dark:bg-blue-500/10 rounded-[28px] border border-blue-100 dark:border-blue-500/20 shadow-sm">
+                        <MessageCircle size={16} className="text-blue-600 flex-shrink-0 mt-0.5 md:w-6 md:h-6 md:mt-0" strokeWidth={3} />
+                        <div>
+                          <p className="text-[10px] md:text-[11px] font-black text-blue-600 uppercase tracking-[0.2em] mb-1.5">Support Team Reply</p>
+                          <p className="text-[12px] md:text-[15px] font-black text-gray-900 dark:text-gray-100 leading-snug">{c.adminNotes}</p>
                         </div>
                       </div>
                     )}

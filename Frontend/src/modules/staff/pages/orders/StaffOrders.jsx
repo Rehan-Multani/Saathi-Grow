@@ -55,9 +55,10 @@ const StaffOrders = () => {
     const filteredOrders = orders.filter(order => {
         const orderId = order.orderId || order._id;
         const customerName = order.user?.name || 'Guest';
+        const query = searchTerm.trim().toLowerCase();
         const matchesSearch =
-            orderId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            customerName.toLowerCase().includes(searchTerm.toLowerCase());
+            orderId.toLowerCase().includes(query) ||
+            customerName.toLowerCase().includes(query);
         const matchesStatus = statusFilter === 'All' || order.status === statusFilter;
         return matchesSearch && matchesStatus;
     });
@@ -111,7 +112,7 @@ const StaffOrders = () => {
                             placeholder="Find ID or user..."
                             className="w-full bg-white border border-slate-200 rounded-2xl py-3.5 pl-14 pr-6 text-sm font-bold text-slate-700 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-400/10 placeholder:text-slate-300 transition-all shadow-sm font-black lowercase tracking-widest text-left"
                             value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
+                            onChange={(e) => setSearchTerm(e.target.value.trimStart())}
                         />
                     </div>
                     <div className="relative">
@@ -182,9 +183,6 @@ const StaffOrders = () => {
                                         </td>
                                         <td className="px-8 py-5 text-left border-0">
                                             <div className="flex items-center gap-4 text-left">
-                                               <div className="w-10 h-10 rounded-2xl bg-slate-50 border border-slate-100 shadow-sm overflow-hidden flex items-center justify-center shrink-0">
-                                                  {order.user?.profileImage ? <img src={order.user.profileImage} className="w-full h-full object-cover" alt="p" /> : <User size={16} className="text-slate-300" />}
-                                               </div>
                                                <div className="text-left font-black">
                                                   <div className="text-[12px] font-black text-slate-900 uppercase group-hover/row:text-blue-600 transition-colors italic font-black leading-none text-left">{order.user?.name || 'Guest User'}</div>
                                                   <div className="flex items-center gap-1.5 text-[9px] font-bold text-slate-400 uppercase tracking-tighter mt-2.5 leading-none italic font-black text-left">

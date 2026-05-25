@@ -256,8 +256,8 @@ const OrderTrackingPage = () => {
         </div>
         <h1 className="text-4xl font-black mb-2 uppercase tracking-tight">Delivered!</h1>
         <p className="text-emerald-100 font-bold mb-8 text-lg">Your order has been successfully delivered.</p>
-        <button onClick={() => navigate(-1)} className="px-8 py-4 bg-white text-emerald-600 rounded-2xl text-sm font-black uppercase tracking-widest hover:bg-emerald-50 transition-all shadow-xl active:scale-95">
-          Back to Orders
+        <button onClick={() => navigate('/')} className="px-8 py-4 bg-white text-emerald-600 rounded-2xl text-sm font-black uppercase tracking-widest hover:bg-emerald-50 transition-all shadow-xl active:scale-95">
+          Back to Home Page
         </button>
       </div>
     );
@@ -392,13 +392,13 @@ const OrderTrackingPage = () => {
           initial={{ y: '100%' }}
           animate={{ y: 0 }}
           transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-          className="bg-white dark:bg-[#1a1a1a] rounded-t-[2.5rem] shadow-[0_-10px_40px_rgba(0,0,0,0.1)] dark:shadow-2xl w-full max-w-2xl mx-auto overflow-hidden border-t border-gray-100 dark:border-white/5"
+          className="bg-white dark:bg-[#1a1a1a] rounded-t-[2.5rem] shadow-[0_-10px_40px_rgba(0,0,0,0.1)] dark:shadow-2xl w-full max-w-2xl mx-auto border-t border-gray-100 dark:border-white/5 max-h-[75vh] flex flex-col"
         >
-          <div className="w-full pt-4 pb-1 flex justify-center">
+          <div className="w-full pt-4 pb-2 flex justify-center flex-shrink-0">
             <div className="w-12 h-1 bg-gray-200 dark:bg-white/10 rounded-full" />
           </div>
 
-          <div className="px-6 pb-8 pt-2">
+          <div className="px-6 pb-8 pt-2 overflow-y-auto custom-scrollbar flex-1">
             <div className="flex items-end justify-between gap-4 mb-6">
               <div className="flex-1">
                 <p className="text-[#00c982] font-black text-[10px] uppercase tracking-[0.2em] mb-1.5">
@@ -441,7 +441,7 @@ const OrderTrackingPage = () => {
                   </span>
                   <div className="w-1 h-1 rounded-full bg-gray-300 dark:bg-white/20" />
                   <span className="text-[10px] text-gray-500 dark:text-gray-400 font-black uppercase tracking-widest truncate">
-                    {order.deliveryPartnerId?.vehicleNumber || 'Verified Driver'}
+                    Verified Driver
                   </span>
                 </div>
               </div>

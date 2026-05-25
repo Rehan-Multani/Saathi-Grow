@@ -1,15 +1,24 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import { fetchCategories, fetchProducts, fetchActiveCampaigns, fetchActiveOfferDeals } from '../api/shopApi';
 import { useStore } from './StoreContext';
 import { useCart } from './CartContext';
 import { toast } from 'react-toastify';
 
 const ShopContext = createContext();
+const ShopUIContext = createContext();
 
 export const useShop = () => {
   const context = useContext(ShopContext);
   if (!context) {
     throw new Error('useShop must be used within a ShopProvider');
+  }
+  return context;
+};
+
+export const useShopUI = () => {
+  const context = useContext(ShopUIContext);
+  if (!context) {
+    throw new Error('useShopUI must be used within a ShopProvider');
   }
   return context;
 };
@@ -36,7 +45,7 @@ export const ShopProvider = ({ children }) => {
 
   const [settings, setSettings] = useState(null);
 
-  const refreshShopData = async (showLoading = true) => {
+  const refreshShopData = useCallback(async (showLoading = true) => {
     if (showLoading) setLoading(true);
     try {
       const fetchParams = activeStore ? { storeId: activeStore.id, storeType: activeStore.type } : {};
@@ -70,7 +79,7 @@ export const ShopProvider = ({ children }) => {
     } finally {
       if (showLoading) setLoading(false);
     }
-  };
+  }, [activeStore]);
 
   // Watch for store changes to clear cart and refresh data
   useEffect(() => {
@@ -88,33 +97,41 @@ export const ShopProvider = ({ children }) => {
     refreshShopData();
   }, []);
 
-  const getProductsByCategory = (categoryName) => {
+  const getProductsByCategory = useCallback((categoryName) => {
     if (!categoryName) return [];
     return products.filter(p =>
       p.category === categoryName ||
       p.category?.toLowerCase() === categoryName?.toLowerCase()
     );
-  };
+  }, [products]);
 
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
-  
+
+  const uiContextValue = useMemo(() => ({
+    isBottomSheetOpen,
+    setIsBottomSheetOpen
+  }), [isBottomSheetOpen]);
+
+  const contextValue = useMemo(() => ({
+    categories,
+    products,
+    campaigns,
+    offers,
+    loading,
+    error,
+    settings,
+    refreshShopData,
+    getProductsByCategory
+  }), [
+    categories, products, campaigns, offers, loading, error, settings,
+    refreshShopData, getProductsByCategory
+  ]);
+
   return (
-    <ShopContext.Provider
-      value={{
-        categories,
-        products,
-        campaigns,
-        offers,
-        loading,
-        error,
-        settings,
-        refreshShopData,
-        getProductsByCategory,
-        isBottomSheetOpen,
-        setIsBottomSheetOpen
-      }}
-    >
-      {children}
+    <ShopContext.Provider value={contextValue}>
+      <ShopUIContext.Provider value={uiContextValue}>
+        {children}
+      </ShopUIContext.Provider>
     </ShopContext.Provider>
   );
 };

@@ -50,10 +50,20 @@ const ManagerCustomers = () => {
         else setActiveDropdown(id);
     };
 
-    const handleViewProfile = (customer) => {
-        setSelectedCustomer(customer);
-        setShowDetailsModal(true);
+    const handleViewProfile = async (customer) => {
         setActiveDropdown(null);
+        try {
+            setLoading(true);
+            const detailedCustomer = await customerApi.getCustomerById(managerUser.token, customer._id);
+            setSelectedCustomer(detailedCustomer);
+            setShowDetailsModal(true);
+        } catch (error) {
+            toast.error(error.message || 'Failed to fetch customer details');
+            setSelectedCustomer(customer);
+            setShowDetailsModal(true);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleSendMessage = (customer, type) => {
@@ -151,8 +161,11 @@ const ManagerCustomers = () => {
                                             </div>
                                         </td>
                                         <td className="px-6 py-5">
-                                            <div className="flex items-center gap-2 text-sm text-slate-700 font-medium">
-                                                <MapPin size={14} className="text-slate-400 shrink-0" /> <span className="truncate">{c.addresses?.[0]?.city || 'Location N/A'}</span>
+                                            <div className="flex items-center gap-2 text-sm text-slate-700 font-medium max-w-[200px]" title={c.addresses?.[0] ? [c.addresses[0].street, c.addresses[0].city, c.addresses[0].state].filter(Boolean).join(', ') : 'Location N/A'}>
+                                                <MapPin size={14} className="text-slate-400 shrink-0" /> 
+                                                <span className="truncate">
+                                                    {c.addresses?.[0] ? [c.addresses[0].street, c.addresses[0].city, c.addresses[0].state].filter(Boolean).join(', ') : 'Location N/A'}
+                                                </span>
                                             </div>
                                         </td>
                                         <td className="px-6 py-5 text-center">

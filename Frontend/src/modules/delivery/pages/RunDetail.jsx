@@ -74,7 +74,7 @@ const RunDetail = () => {
                         {isReturn ? 'Reverse Logistics' : 'Dispatch Batch'}
                     </h1>
                     <p className="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em] mt-0.5">
-                        Mission ID: {run.runId}
+                        Mission ID: {run.orders?.[0]?.order?.orderId ? `#${run.orders[0].order.orderId}` : run.runId}
                     </p>
                 </div>
             </div>
@@ -94,7 +94,7 @@ const RunDetail = () => {
                             {run.status.replace('_', ' ')}
                         </div>
                         <h2 className="text-3xl font-black mb-1">
-                            {activeStopsCount} <span className="text-slate-400 text-xl font-bold">Stops Remaining</span>
+                            {activeStopsCount} <span className="text-slate-400 text-xl font-bold">Task</span>
                         </h2>
                         <p className="text-sm font-medium text-slate-500 flex items-center gap-1">
                             <MapPin size={14} className="text-[#028A0F]" />
@@ -166,14 +166,14 @@ const RunDetail = () => {
                                         <div key={idx} className="flex items-center gap-3">
                                             <div className="w-10 h-10 rounded-xl bg-slate-50 overflow-hidden border border-slate-100">
                                                 <img 
-                                                    src={item.product?.images?.[0] || item.product?.image || 'https://via.placeholder.com/100'} 
-                                                    alt={item.product?.name || item.name} 
+                                                    src={item.image || item.product?.images?.[0] || item.product?.image || 'https://via.placeholder.com/100'} 
+                                                    alt={item.name || item.product?.name} 
                                                     className="w-full h-full object-cover"
                                                 />
                                             </div>
                                             <div>
                                                 <p className="font-bold text-sm text-slate-700 dark:text-zinc-300">
-                                                    {item.quantity}x {item.product?.name || item.name || 'Product'}
+                                                    {item.quantity}x {item.name || item.product?.name || 'Product'}
                                                 </p>
                                                 {isReturn && item.returnReason && (
                                                     <p className="text-[10px] text-red-500 font-bold uppercase tracking-wider mt-0.5">

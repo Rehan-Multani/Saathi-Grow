@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Save, X, ArrowUpRight, CheckCircle, Package, User, Image as ImageIcon, MessageSquare, AlertCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAdminAuth } from '../../context/AdminAuthContext';
@@ -16,6 +16,17 @@ const TicketEditModal = ({ show, onHide, ticket, onEscalate, onRefresh }) => {
 
     const [isProcessing, setIsProcessing] = useState(false);
 
+    useEffect(() => {
+        if (show) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, [show]);
+
     if (!show || !ticket) return null;
 
     const handleAction = async (action) => {
@@ -24,7 +35,7 @@ const TicketEditModal = ({ show, onHide, ticket, onEscalate, onRefresh }) => {
             if (action === 'ESCALATE') {
                 await onEscalate(ticket.ticketId, adminNotes);
             } else if (action === 'CLOSE') {
-                const res = await complaintApi.closeTicket(token, ticket.ticketId, processRefund, refundAmount);
+                const res = await complaintApi.closeTicket(token, ticket.ticketId, processRefund, refundAmount, adminNotes);
                 if (res.success) {
                     toast.success(t('tickets.modal.update_success'));
                     onRefresh();

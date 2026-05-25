@@ -49,6 +49,8 @@ const complaintSchema = new mongoose.Schema({
       'Wallet Issue',
       'App Glitch',
       'Account Issue',
+      'Payment Failure',
+      'Store Experience',
       'Other'
     ]
   },
@@ -88,6 +90,7 @@ const complaintSchema = new mongoose.Schema({
       required: true,
       enum: ['User', 'Admin', 'Vendor', 'Branch', 'DeliveryPartner']
     },
+    senderName: String,
     message: String,
     timestamp: {
       type: Date,

@@ -5,7 +5,7 @@ import { useTheme } from '../../context/ThemeContext';
 import { useStore } from '../../context/StoreContext';
 import { fetchCampaignMetadata, fetchProducts } from '../../api/shopApi';
 import { normalizeProduct } from '../home/HomePage';
-import { useShop } from '../../context/ShopContext';
+import { useShop, useShopUI } from '../../context/ShopContext';
 import ProductCard from '../../components/product/ProductCard';
 import { toast } from 'react-toastify';
 import SEO from '../../../../common/components/SEO';
@@ -16,7 +16,7 @@ const CampaignProductsPage = () => {
   const navigate = useNavigate();
   const { isDarkMode } = useTheme();
   const { activeStore } = useStore();
-  const { setIsBottomSheetOpen } = useShop();
+  const { setIsBottomSheetOpen } = useShopUI();
 
   const [campaign, setCampaign] = useState(null);
   const [products, setProducts] = useState([]);

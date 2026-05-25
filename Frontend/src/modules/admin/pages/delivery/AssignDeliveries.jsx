@@ -124,7 +124,9 @@ const AssignDeliveries = () => {
         setLoadingDrivers(true);
         try {
             const drivers = await getAvailablePartners(selectedOrders);
-            setAvailableDrivers(drivers);
+            // Only show drivers who are currently online
+            const onlineDrivers = drivers.filter(d => d.dutyStatus === 'Online');
+            setAvailableDrivers(onlineDrivers);
         } catch (error) {
             // toast.error("Failed to load available riders");
         } finally {
@@ -294,11 +296,18 @@ const AssignDeliveries = () => {
                                     </thead>
                                     <tbody className="divide-y divide-slate-100 text-xs font-medium">
                                         {(() => {
+                                            const getAreaKey = (order) => {
+                                                const zip = order.shippingAddress?.zipCode?.trim();
+                                                const city = order.shippingAddress?.city?.trim() || 'Unknown Area';
+                                                return zip ? `${city} - ${zip}` : city;
+                                            };
+
                                             const sortedOrders = locationSort
                                                 ? [...group.data.orders].sort((a, b) => {
-                                                    const cityA = (a.shippingAddress?.city || '').toLowerCase().trim();
-                                                    const cityB = (b.shippingAddress?.city || '').toLowerCase().trim();
-                                                    if (cityA !== cityB) return cityA.localeCompare(cityB);
+                                                    const areaA = getAreaKey(a).toLowerCase();
+                                                    const areaB = getAreaKey(b).toLowerCase();
+                                                    if (areaA !== areaB) return areaA.localeCompare(areaB);
+                                                    
                                                     const streetA = (a.shippingAddress?.street || '').toLowerCase().trim();
                                                     const streetB = (b.shippingAddress?.street || '').toLowerCase().trim();
                                                     return streetA.localeCompare(streetB);
@@ -306,24 +315,24 @@ const AssignDeliveries = () => {
                                                 : group.data.orders;
 
                                             const rows = [];
-                                            let lastCity = null;
+                                            let lastArea = null;
 
                                             sortedOrders.forEach((order, idx) => {
-                                                const city = order.shippingAddress?.city?.trim() || 'Unknown Area';
+                                                const areaKey = getAreaKey(order);
                                                 const isSelected = selectedOrders.includes(order._id);
                                                 const isDisabled = currentSlotContext && currentSlotContext !== group.id && selectedOrders.length > 0;
 
-                                                // City group header divider row
-                                                if (locationSort && city !== lastCity) {
-                                                    lastCity = city;
-                                                    const cityCount = sortedOrders.filter(o => (o.shippingAddress?.city?.trim() || 'Unknown Area') === city).length;
+                                                // Area group header divider row
+                                                if (locationSort && areaKey !== lastArea) {
+                                                    lastArea = areaKey;
+                                                    const areaCount = sortedOrders.filter(o => getAreaKey(o) === areaKey).length;
                                                     rows.push(
-                                                        <tr key={`city-header-${city}-${idx}`} className="bg-slate-50 border-y border-slate-200">
+                                                        <tr key={`area-header-${areaKey}-${idx}`} className="bg-slate-50 border-y border-slate-200">
                                                             <td colSpan="5" className="px-4 py-2">
                                                                 <div className="flex items-center gap-2">
                                                                     <MapPin size={12} className="text-blue-500 shrink-0" />
-                                                                    <span className="text-[10px] font-black text-slate-700 uppercase tracking-widest">{city}</span>
-                                                                    <span className="text-[9px] font-bold text-slate-400 bg-white border border-slate-200 px-1.5 py-0.5 rounded-full">{cityCount} order{cityCount !== 1 ? 's' : ''}</span>
+                                                                    <span className="text-[10px] font-black text-slate-700 uppercase tracking-widest">{areaKey}</span>
+                                                                    <span className="text-[9px] font-bold text-slate-400 bg-white border border-slate-200 px-1.5 py-0.5 rounded-full">{areaCount} order{areaCount !== 1 ? 's' : ''}</span>
                                                                 </div>
                                                             </td>
                                                         </tr>

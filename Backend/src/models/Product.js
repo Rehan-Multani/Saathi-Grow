@@ -70,10 +70,11 @@ const productSchema = new mongoose.Schema({
   },
   gallery: [String],
   variants: [{
-    type: { type: String },
+    type: { type: String }, // e.g., 'Weight', 'Color', 'Size'
     value: String,
     stock: Number,
-    price: Number
+    price: Number,
+    image: String
   }],
   physicalLocation: {
     type: String,

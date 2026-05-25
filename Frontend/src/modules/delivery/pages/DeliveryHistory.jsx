@@ -59,23 +59,44 @@ const DeliveryHistory = () => {
         ) : all;
     }, [history, searchQuery]);
 
-    const handleDownloadReport = () => {
+    const handleDownloadReport = async () => {
         const id = toast.loading("Generating delivery history report...");
-        setTimeout(() => {
+        try {
             const csvContent = "Order ID,Date,Customer,Location,Status,Amount\n" +
                 historicalOrders.map(o => `${o.id},${o.date},${o.customer},${o.location},${o.status},${o.amount}`).join("\n");
 
+            const fileName = `delivery_history_${new Date().toISOString().split('T')[0]}.csv`;
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const file = new File([blob], fileName, { type: 'text/csv' });
+
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                await navigator.share({
+                    files: [file],
+                    title: 'Delivery History Export',
+                    text: 'Here is the delivery history export.'
+                });
+                toast.update(id, { render: "Report Shared Successfully", type: "success", isLoading: false, autoClose: 2000 });
+                return;
+            }
+
             const url = URL.createObjectURL(blob);
             const link = document.createElement("a");
             link.setAttribute("href", url);
-            link.setAttribute("download", `delivery_history_${new Date().toISOString().split('T')[0]}.csv`);
+            link.setAttribute("download", fileName);
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+            URL.revokeObjectURL(url);
 
             toast.update(id, { render: "Report downloaded successfully", type: "success", isLoading: false, autoClose: 2000 });
-        }, 1500);
+        } catch (error) {
+            console.error("Export failed:", error);
+            if (error.name !== 'AbortError') {
+                toast.update(id, { render: "Export Failed or Canceled", type: "error", isLoading: false, autoClose: 2000 });
+            } else {
+                toast.dismiss(id);
+            }
+        }
     };
 
     const handleDateSelect = () => {

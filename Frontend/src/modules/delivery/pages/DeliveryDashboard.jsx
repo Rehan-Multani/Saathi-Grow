@@ -231,7 +231,7 @@ const DeliveryDashboard = () => {
 
                             <button
                                 onClick={() => navigate(`/delivery/run/${activeRun._id}`)}
-                                className="mission-btn-override w-full py-2 bg-slate-900 text-white font-black text-[8px] uppercase tracking-[0.2em] shadow-xl shadow-slate-200 flex items-center justify-center gap-2 active:scale-[0.98] transition-all"
+                                className="mission-btn-override w-full py-2 bg-white text-slate-900 dark:bg-black dark:text-white font-black text-[8px] uppercase tracking-[0.2em] shadow-xl shadow-slate-200 dark:shadow-none flex items-center justify-center gap-2 active:scale-[0.98] transition-all border border-slate-100 dark:border-white/10"
                             >
                                 View Detailed Mission <ArrowUpRight size={14} />
                             </button>

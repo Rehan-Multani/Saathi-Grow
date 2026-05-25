@@ -20,7 +20,8 @@ const PartnerDetails = () => {
 
     // Role check
     const isVendor = window.location.pathname.startsWith('/vendor');
-    const portalPrefix = isVendor ? '/vendor' : '/admin';
+    const isStoreManager = window.location.pathname.startsWith('/store-manager');
+    const portalPrefix = isVendor ? '/vendor' : (isStoreManager ? '/store-manager' : '/admin');
 
     const fetchDetails = async (isRefresh = false) => {
         try {
@@ -34,6 +35,95 @@ const PartnerDetails = () => {
         } finally {
             setLoading(false);
             setRefreshing(false);
+        }
+    };
+
+    const handleSettle = async (partnerData) => {
+        if (partnerData.cashInHand <= 0) {
+            Swal.fire({
+                title: 'No Pending Cash',
+                text: 'There is no cash to settle.',
+                icon: 'info',
+                customClass: { popup: 'rounded-[2rem]' }
+            });
+            return;
+        }
+
+        const result = await Swal.fire({
+            title: '<span class="text-xl font-black text-slate-800 tracking-tight uppercase">Handover Verification</span>',
+            html: `
+                <div class="text-left space-y-3 p-5 bg-slate-50/50 rounded-[1.5rem] border border-slate-100 mt-4 font-sans">
+                    <div class="flex justify-between items-center border-b pb-2.5 border-slate-200/60">
+                        <span class="text-slate-400 font-bold uppercase text-[9px] tracking-widest">Collector Node</span>
+                        <span class="text-slate-800 font-extrabold text-xs uppercase tracking-tight">${partnerData.name}</span>
+                    </div>
+                    <div class="flex justify-between items-center pt-1">
+                        <span class="text-slate-400 font-bold uppercase text-[9px] tracking-widest">Handover Amount</span>
+                        <span class="text-emerald-600 font-black text-xl tracking-tighter">₹${partnerData.cashInHand}</span>
+                    </div>
+                </div>
+                
+                <div class="mt-8 text-center font-sans px-2">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3 block">Enter Admin PIN</label>
+                    <div class="relative max-w-[180px] mx-auto">
+                        <input type="password" id="settlementPin" 
+                            class="swal2-input !m-0 !w-full !text-center !text-2xl !font-black !tracking-[0.5em] !py-4 !bg-white !border-2 !border-slate-200 !rounded-[1.25rem] !outline-none focus:!border-emerald-500 focus:!ring-4 focus:!ring-emerald-500/10 !transition-all shadow-sm" 
+                            placeholder="••••" maxlength="6" autofocus>
+                    </div>
+                </div>
+
+                <div class="mt-8 py-3 px-4 bg-amber-50 rounded-2xl border border-amber-100/50 flex items-start gap-3">
+                    <div class="mt-0.5 shrink-0">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-amber-600"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    </div>
+                    <p class="text-[10px] text-amber-700 font-bold text-left leading-relaxed">Confirm physical cash receipt before proceeding. This action is irreversible.</p>
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonColor: '#059669',
+            cancelButtonColor: '#94a3b8',
+            confirmButtonText: 'Collected',
+            cancelButtonText: 'Cancel',
+            padding: '2.5rem',
+            customClass: {
+                popup: 'rounded-[2.5rem] border-none shadow-2xl',
+                confirmButton: 'rounded-2xl px-8 py-3 text-[11px] font-black uppercase tracking-widest shadow-lg shadow-emerald-500/20 m-2',
+                cancelButton: 'rounded-2xl px-8 py-3 text-[11px] font-bold uppercase tracking-widest text-slate-500 m-2'
+            },
+            preConfirm: () => {
+                const pin = Swal.getPopup().querySelector('#settlementPin').value;
+                if (!pin) {
+                    Swal.showValidationMessage('Please enter the settlement PIN');
+                }
+                return { pin };
+            }
+        });
+
+        if (result.isConfirmed) {
+            try {
+                const { pin } = result.value;
+                await api.settleRiderCash(partnerData._id, pin);
+                Swal.fire({
+                    title: 'Collection Verified',
+                    text: `₹${partnerData.cashInHand} added to settlement history`,
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false,
+                    customClass: {
+                        popup: 'rounded-[2rem]'
+                    }
+                });
+                fetchDetails();
+            } catch (error) {
+                Swal.fire({
+                    title: 'Verification Failed',
+                    text: error.response?.data?.message || 'Invalid PIN or server error',
+                    icon: 'error',
+                    customClass: {
+                        popup: 'rounded-[2rem]'
+                    }
+                });
+            }
         }
     };
 
@@ -168,7 +258,7 @@ const PartnerDetails = () => {
                                 <span className="text-[9px] font-bold text-slate-300 uppercase tracking-widest italic leading-none flex items-center gap-1">
                                     <Info size={12} /> Pending Settlement
                                 </span>
-                                <button className="text-[10px] font-bold text-blue-600 hover:text-blue-800 uppercase flex items-center gap-1 transition-colors">
+                                <button onClick={() => handleSettle(partner)} className="text-[10px] font-bold text-blue-600 hover:text-blue-800 uppercase flex items-center gap-1 transition-colors">
                                     Verify Cash <ArrowRight size={12} />
                                 </button>
                             </div>

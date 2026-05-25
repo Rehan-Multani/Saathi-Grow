@@ -23,7 +23,7 @@ const SearchFilterBar = ({
                         placeholder="Search by name, SKU..."
                         className="w-full pl-10 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all outline-none"
                         value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value.trimStart())}
+                        onChange={(e) => setSearchTerm(e.target.value.replace(/\s/g, ''))}
                     />
                     <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
                     {searchTerm && (

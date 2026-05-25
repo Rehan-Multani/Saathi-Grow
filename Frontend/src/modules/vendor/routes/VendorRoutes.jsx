@@ -4,6 +4,7 @@ import VendorSidebar from '../components/VendorSidebar';
 import VendorHeader from '../components/VendorHeader';
 import { VendorProvider } from '../contexts/VendorContext';
 import FirebaseNotificationHandler from '../../../common/components/FirebaseNotificationHandler';
+import NewOrderPopup from '../../admin/components/NewOrderPopup';
 
 
 // Pages
@@ -57,6 +58,7 @@ const VendorLayout = () => {
     return (
         <div className="min-h-screen bg-gray-50 font-sans text-gray-900 vendor-portal-root animate-page-entry">
             <FirebaseNotificationHandler token={vendorToken} role="vendor" />
+            <NewOrderPopup baseRoute="/vendor/orders" />
             <VendorSidebar />
             <VendorHeader />
 

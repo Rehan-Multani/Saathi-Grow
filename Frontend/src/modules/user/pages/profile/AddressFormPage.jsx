@@ -121,6 +121,16 @@ const AddressFormPage = () => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
+        
+        if (formData.phone.length !== 10) {
+            alert('Mobile number must be exactly 10 digits');
+            return;
+        }
+        if (!formData.name.trim()) {
+            alert('Please enter a valid full name');
+            return;
+        }
+
         if (isEditMode) {
             editAddress(id, formData);
         } else {
@@ -131,6 +141,16 @@ const AddressFormPage = () => {
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
+        
+        if (name === 'name') {
+            if (/[^a-zA-Z\s]/.test(value)) return;
+        }
+        
+        if (name === 'phone') {
+            if (/[^0-9]/.test(value)) return;
+            if (value.length > 10) return;
+        }
+
         setFormData(prev => ({
             ...prev,
             [name]: type === 'checkbox' ? checked : value
@@ -192,6 +212,8 @@ const AddressFormPage = () => {
                             placeholder="Full Name"
                             value={formData.name}
                             onChange={handleChange}
+                            pattern="[a-zA-Z\s]+"
+                            title="Name should only contain letters and spaces"
                             className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-xl !text-[12px] font-bold focus:outline-none focus:ring-1 focus:ring-[#0c831f] focus:bg-white dark:focus:bg-black transition-all"
                         />
                     </div>
@@ -204,6 +226,9 @@ const AddressFormPage = () => {
                             placeholder="Mobile Number"
                             value={formData.phone}
                             onChange={handleChange}
+                            pattern="[0-9]{10}"
+                            maxLength="10"
+                            title="Mobile number must be exactly 10 digits"
                             className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-xl !text-[12px] font-bold focus:outline-none focus:ring-1 focus:ring-[#0c831f] focus:bg-white dark:focus:bg-black transition-all"
                         />
                     </div>
@@ -285,7 +310,7 @@ const AddressFormPage = () => {
                 </div>
 
                 {/* Save Button */}
-                <div className="fixed bottom-20 left-4 right-4 md:left-0 md:right-0 p-0 md:p-0 bg-transparent z-20 md:static md:bg-transparent md:border-0">
+                <div className="pt-4 pb-12 md:pb-0 z-20">
                     <button
                         type="submit"
                         className="w-full md:w-auto bg-[#0c831f] hover:bg-[#0a6b19] text-white font-black !text-[12px] md:!text-sm uppercase tracking-[0.2em] md:tracking-widest py-4 md:py-3 md:px-8 rounded-xl shadow-lg shadow-green-500/20 active:scale-95 transition-all flex items-center justify-center gap-2 md:self-end"

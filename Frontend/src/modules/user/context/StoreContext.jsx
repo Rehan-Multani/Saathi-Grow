@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { useLocation } from './LocationContext';
 import { getNearbyStores } from '../api/shopApi';
 
@@ -52,7 +52,7 @@ export const StoreProvider = ({ children }) => {
     };
 
     fetchStores();
-  }, [location?.coordinates, activeStore?.id]); // Added activeStore?.id to dependency to ensure correct sync
+  }, [location?.coordinates]); // Removed activeStore?.id to prevent duplicate fetching
 
   // Persist active store selection
   useEffect(() => {
@@ -69,22 +69,22 @@ export const StoreProvider = ({ children }) => {
     setIsStoreInactive(false);
   };
 
+  const contextValue = useMemo(() => ({
+    activeStore,
+    nearbyStores,
+    isStoreOutOfRange,
+    isStoreInactive,
+    selectStore,
+    loading,
+    setActiveStore,
+    isStoreSelectorOpen: false, // Always false
+    setIsStoreSelectorOpen: () => {}, // No-op
+    openStoreSelector: () => {}, // No-op
+    closeStoreSelector: () => {} // No-op
+  }), [activeStore, nearbyStores, isStoreOutOfRange, isStoreInactive, loading]);
+
   return (
-    <StoreContext.Provider
-      value={{
-        activeStore,
-        nearbyStores,
-        isStoreOutOfRange,
-        isStoreInactive,
-        selectStore,
-        loading,
-        setActiveStore,
-        isStoreSelectorOpen: false, // Always false
-        setIsStoreSelectorOpen: () => {}, // No-op
-        openStoreSelector: () => {}, // No-op
-        closeStoreSelector: () => {} // No-op
-      }}
-    >
+    <StoreContext.Provider value={contextValue}>
       {children}
     </StoreContext.Provider>
   );

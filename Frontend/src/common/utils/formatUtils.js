@@ -17,11 +17,11 @@ export const formatDate = (dateString) => {
 
 export const formatCurrency = (amount) => {
     const val = typeof amount === 'number' ? amount : parseFloat(amount) || 0;
-    return new Intl.NumberFormat('en-IN', {
-        style: 'currency',
-        currency: 'INR',
-        maximumFractionDigits: 0
+    const formatted = new Intl.NumberFormat('en-IN', {
+        maximumFractionDigits: 2,
+        minimumFractionDigits: 2,
     }).format(val);
+    return `₹${formatted}`;
 };
 
 export const formatCompactNumber = (number) => {
