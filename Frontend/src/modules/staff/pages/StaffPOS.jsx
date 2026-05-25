@@ -107,7 +107,6 @@ const StaffPOS = () => {
         const result = await Swal.fire({
             title: 'Confirm Bill?',
             text: `Confirming payment for ₹${totalAmount.toFixed(0)}`,
-            icon: 'question',
             showCancelButton: true,
             confirmButtonText: 'Collect Payment',
             cancelButtonText: 'Back',

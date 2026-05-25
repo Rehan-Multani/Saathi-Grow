@@ -197,7 +197,6 @@ const ManagerPOS = () => {
     const result = await Swal.fire({
       title: 'Confirm Payment',
       html: `<div style="font-size:14px;color:#64748b">Total: <strong style="font-size:22px;color:#1e293b">₹${totalAmount.toFixed(2)}</strong></div>`,
-      icon: 'question',
       showCancelButton: true,
       confirmButtonColor: '#2563eb',
       confirmButtonText: 'Confirm & Pay',
