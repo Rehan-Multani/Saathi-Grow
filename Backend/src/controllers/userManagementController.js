@@ -297,8 +297,9 @@ export const sendMessageToUser = async (req, res) => {
       type: 'admin_message'
     });
 
-    // 2. Send Push Notification
-    await sendPushNotification(user._id, 'User', { title, body }, data);
+    // 2. Send Push Notification (skipSave = true because we manually created the Notification doc above)
+    data.type = 'admin_message';
+    await sendPushNotification(user._id, 'User', { title, body }, data, true);
 
     res.json({ success: true, message: 'Message sent successfully' });
   } catch (error) {

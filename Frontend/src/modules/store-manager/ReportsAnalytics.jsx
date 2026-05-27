@@ -93,6 +93,79 @@ const ReportsAnalytics = () => {
     const wastageData = data?.wastageData || [];
     const maxValue = wastageData.length > 0 ? Math.max(...wastageData.map(d => d.value)) : 1000;
 
+    const handleExport = () => {
+        if (!data) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'No Data',
+                text: 'There is no data to export yet.',
+                confirmButtonColor: '#3b82f6',
+                customClass: { popup: 'rounded-3xl' }
+            });
+            return;
+        }
+        
+        try {
+            let csvContent = "data:text/csv;charset=utf-8,";
+            
+            csvContent += "Section,Metric,Value\n";
+            
+            // Summary Data
+            csvContent += `Summary,Inventory Value,${data.summary.inventoryValue}\n`;
+            csvContent += `Summary,Product Range,${data.summary.totalSku}\n`;
+            csvContent += `Summary,Bestseller,${data.summary.topProduct}\n`;
+            csvContent += `Summary,Active Alerts,${data.summary.alerts}\n`;
+            
+            // Asset Distribution
+            if (data.assetDistribution) {
+                data.assetDistribution.forEach(item => {
+                    csvContent += `Asset Distribution,${item.name},${item.value}%\n`;
+                });
+            }
+            
+            // Top Moving Assets
+            if (data.topMovingAssets) {
+                data.topMovingAssets.forEach(item => {
+                    csvContent += `Top Product,${item.name},${item.sales} sold (Growth: ${item.growth}%)\n`;
+                });
+            }
+            
+            // Wastage Data
+            if (data.wastageData) {
+                data.wastageData.forEach(item => {
+                    csvContent += `Waste & Expiry,${item.month},${item.value}\n`;
+                });
+            }
+            
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `store_analytics_report_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            Swal.fire({
+                icon: 'success',
+                title: 'Export Successful',
+                text: 'The report has been downloaded as a CSV file.',
+                confirmButtonColor: '#10b981',
+                customClass: { popup: 'rounded-3xl' },
+                timer: 2000,
+                showConfirmButton: false
+            });
+        } catch (error) {
+            console.error("Export error:", error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Export Failed',
+                text: 'There was an error generating the report.',
+                confirmButtonColor: '#ef4444',
+                customClass: { popup: 'rounded-3xl' }
+            });
+        }
+    };
+
     return (
         <div className="p-6 max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
             {/* Header Section */}
@@ -101,7 +174,7 @@ const ReportsAnalytics = () => {
                     <h1 className="text-2xl font-bold text-slate-900">Reports & Analytics</h1>
                     <p className="text-slate-500 text-sm font-medium mt-1">Review stock efficiency and sales performance trends.</p>
                 </div>
-                <button className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-white bg-slate-900 rounded-xl hover:bg-slate-800 transition-all shadow-md active:scale-95">
+                <button onClick={handleExport} className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-white bg-slate-900 rounded-xl hover:bg-slate-800 transition-all shadow-md active:scale-95">
                     <Download size={16} /> Export Report
                 </button>
             </div>

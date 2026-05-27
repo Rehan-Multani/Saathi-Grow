@@ -3,6 +3,7 @@ import { generateToken, onMessageListener } from '../../config/firebase';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 import { API_BASE_URL } from '../../config/apiConfig';
+import Swal from 'sweetalert2';
 
 /**
  * Handles Firebase Notification registration and foreground messages.
@@ -56,9 +57,21 @@ const FirebaseNotificationHandler = ({ token, role, isApp = false, showToast = f
     const unsubscribe = onMessageListener((payload) => {
       console.log('Foreground Message received: ', payload);
       
-      if (showToast) {
-        const title = payload.notification?.title || payload.data?.title || 'New Notification';
-        const body = payload.notification?.body || payload.data?.body || '';
+      const title = payload.notification?.title || payload.data?.title || 'New Notification';
+      const body = payload.notification?.body || payload.data?.body || '';
+
+      const popupTypes = ['admin_message', 'resolution', 'admin_broadcast', 'individual'];
+      
+      if (role === 'user' || popupTypes.includes(payload.data?.type)) {
+        Swal.fire({
+          title: title,
+          text: body,
+          icon: payload.data?.type === 'resolution' ? 'success' : 'info',
+          confirmButtonText: 'Got it!',
+          confirmButtonColor: '#2563eb',
+          customClass: { popup: 'rounded-3xl' }
+        });
+      } else if (showToast) {
         toast.info(
           <div className="flex flex-col gap-1">
             <strong className="font-bold text-sm">{title}</strong>

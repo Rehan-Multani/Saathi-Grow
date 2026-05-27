@@ -69,9 +69,11 @@ export const sendPushNotification = async (recipientId, recipientModel, notifica
     if (recipient.fcmToken.app) tokens.push(recipient.fcmToken.app);
     if (recipient.fcmToken.web) tokens.push(recipient.fcmToken.web);
 
-    if (tokens.length === 0) return false;
+    const uniqueTokens = [...new Set(tokens)];
 
-    const messages = tokens.map(token => {
+    if (uniqueTokens.length === 0) return false;
+
+    const messages = uniqueTokens.map(token => {
       console.log('Sending notification to token:', token);
       const message = {
         token,
@@ -135,7 +137,7 @@ export const sendPushNotification = async (recipientId, recipientModel, notifica
  */
 export const notifyAdmins = async (notification, data = {}) => {
   try {
-    const admins = await Admin.find({ isActive: true });
+    const admins = await Admin.find({ role: 'Admin', isActive: true });
     for (const admin of admins) {
       await sendPushNotification(admin._id, 'Admin', notification, data, true);
     }

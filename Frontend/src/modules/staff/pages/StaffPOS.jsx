@@ -54,7 +54,7 @@ const StaffPOS = () => {
         if (!storeId) return;
         setLoading(true);
         try {
-            const data = await searchProductsPOS(query, { storeId, storeType }, staffUser?.token);
+            const data = await searchProductsPOS(query, { storeId, storeType, hardFilter: 'true' }, staffUser?.token);
             const normalized = (data.products || []).map(p => ({
                 ...p,
                 price: p.basePrice || 0,

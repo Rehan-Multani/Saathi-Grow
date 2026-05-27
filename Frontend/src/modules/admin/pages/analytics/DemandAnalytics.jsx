@@ -21,7 +21,8 @@ import {
   RefreshCcw,
   Loader2,
   Box,
-  Truck
+  Truck,
+  X
 } from 'lucide-react';
 import { fetchDemandAnalytics } from '../../api/demandAnalyticsApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
@@ -41,6 +42,8 @@ const DemandAnalytics = () => {
     const [analytics, setAnalytics] = useState({ topDemandedProducts: [], heatmapData: [] });
     const [filter, setFilter] = useState('ALL'); // ALL, OUT_OF_STOCK, OUT_OF_ZONE
     const [viewMode, setViewMode] = useState('LIST'); // LIST, MAP
+    const [selectedRecord, setSelectedRecord] = useState(null);
+    const [resolvedAddress, setResolvedAddress] = useState(null);
 
     const { isLoaded } = useJsApiLoader({
         id: 'google-map-script',
@@ -71,6 +74,31 @@ const DemandAnalytics = () => {
         if (!isLoaded || !analytics.heatmapData || !window.google?.maps?.LatLng) return [];
         return analytics.heatmapData.map(point => new window.google.maps.LatLng(point.lat, point.lng));
     }, [isLoaded, analytics.heatmapData]);
+
+    useEffect(() => {
+        if (selectedRecord && selectedRecord.location?.coordinates) {
+            if (selectedRecord.location.address) {
+                setResolvedAddress(selectedRecord.location.address);
+            } else if (isLoaded && window.google?.maps?.Geocoder) {
+                const geocoder = new window.google.maps.Geocoder();
+                const latlng = {
+                    lat: selectedRecord.location.coordinates[1],
+                    lng: selectedRecord.location.coordinates[0]
+                };
+                geocoder.geocode({ location: latlng }, (results, status) => {
+                    if (status === 'OK' && results[0]) {
+                        setResolvedAddress(results[0].formatted_address);
+                    } else {
+                        setResolvedAddress(`${latlng.lat}, ${latlng.lng} (Address not found)`);
+                    }
+                });
+            } else {
+                setResolvedAddress('Loading address...');
+            }
+        } else {
+            setResolvedAddress(null);
+        }
+    }, [selectedRecord, isLoaded]);
 
     const mapCenter = { lat: 21.1458, lng: 79.0882 }; // Nagpur Center
 
@@ -270,7 +298,10 @@ const DemandAnalytics = () => {
                                         {new Date(item.createdAt).toLocaleDateString()}
                                     </td>
                                     <td className="px-8 py-4 text-right">
-                                        <button className="p-2 text-slate-300 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all">
+                                        <button 
+                                            onClick={() => setSelectedRecord(item)}
+                                            className="p-2 text-slate-300 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
+                                        >
                                             <Eye size={16} />
                                         </button>
                                     </td>
@@ -280,6 +311,54 @@ const DemandAnalytics = () => {
                     </table>
                 </div>
             </div>
+
+            {/* Detail Modal */}
+            {selectedRecord && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setSelectedRecord(null)} />
+                    <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200 animate-in zoom-in duration-300">
+                        <div className="p-6 border-b border-slate-50 bg-slate-50/30 flex justify-between items-center">
+                            <h3 className="text-sm font-bold text-slate-900 uppercase tracking-tight">Demand Record Detail</h3>
+                            <button onClick={() => setSelectedRecord(null)} className="p-1.5 text-slate-400 hover:bg-slate-100 rounded-lg transition-colors">
+                                <X size={18} />
+                            </button>
+                        </div>
+                        <div className="p-8 space-y-5">
+                            <div>
+                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Product</label>
+                                <p className="text-sm font-black text-slate-800 uppercase mt-1">{selectedRecord.product?.name || 'Expansion Request'}</p>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Request Type</label>
+                                    <p className="text-xs font-bold text-slate-700 uppercase mt-1">
+                                        <span className={`px-2 py-0.5 rounded-lg border ${selectedRecord.requestType === 'OUT_OF_STOCK' ? 'bg-amber-50 text-amber-600 border-amber-100' : 'bg-blue-50 text-blue-600 border-blue-100'}`}>
+                                            {selectedRecord.requestType.replace(/_/g, ' ')}
+                                        </span>
+                                    </p>
+                                </div>
+                                <div>
+                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Date</label>
+                                    <p className="text-xs font-bold text-slate-700 uppercase mt-1">{new Date(selectedRecord.createdAt).toLocaleDateString()}</p>
+                                </div>
+                            </div>
+                            <div>
+                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Store / Location</label>
+                                <p className="text-xs font-bold text-slate-700 uppercase mt-1">{selectedRecord.store?.storeName || selectedRecord.store?.name || 'Local Area'}</p>
+                            </div>
+                            {selectedRecord.location && selectedRecord.location.coordinates && (
+                                <div>
+                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Full Address</label>
+                                    <p className="text-xs font-bold text-slate-700 uppercase mt-1 flex items-start gap-1.5 leading-relaxed">
+                                        <MapPin size={12} className="text-slate-400 mt-0.5 shrink-0" />
+                                        {resolvedAddress || 'Fetching address...'}
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

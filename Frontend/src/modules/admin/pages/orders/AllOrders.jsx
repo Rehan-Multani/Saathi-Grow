@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import { Search, Eye, Printer, Filter, Download, Store, Upload, Clock, ChevronLeft, ChevronRight, Zap, CreditCard, Calendar, Truck, Edit3, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import OrderDetailsModal from '../../../../common/components/orders/OrderDetailsModal';
@@ -104,8 +104,10 @@ const AllOrders = () => {
                 </table>
                 <div class="divider"></div>
                 <table>
-                    <tr><td style="font-size:12px;padding:2px 0;">Subtotal</td><td style="text-align:right;font-size:12px;">₹${(order.subtotal || order.totalAmount)?.toLocaleString('en-IN')}</td></tr>
+                    <tr><td style="font-size:12px;padding:2px 0;">Subtotal</td><td style="text-align:right;font-size:12px;">₹${(order.subTotal || order.subtotal || order.totalAmount)?.toLocaleString('en-IN')}</td></tr>
                     ${(order.deliveryFee > 0) ? `<tr><td style="font-size:12px;padding:2px 0;">Delivery Fee</td><td style="text-align:right;font-size:12px;">₹${order.deliveryFee?.toLocaleString('en-IN')}</td></tr>` : '<tr><td style="font-size:12px;padding:2px 0;">Delivery Fee</td><td style="text-align:right;font-size:12px;color:green;">FREE</td></tr>'}
+                    ${(order.taxAmount > 0) ? `<tr><td style="font-size:12px;padding:2px 0;">Tax</td><td style="text-align:right;font-size:12px;">₹${order.taxAmount?.toLocaleString('en-IN')}</td></tr>` : ''}
+                    ${(order.platformFee > 0) ? `<tr><td style="font-size:12px;padding:2px 0;">Handling Fee</td><td style="text-align:right;font-size:12px;">₹${order.platformFee?.toLocaleString('en-IN')}</td></tr>` : ''}
                     ${(order.discountAmount > 0) ? `<tr><td style="font-size:12px;padding:2px 0;">Discount</td><td style="text-align:right;font-size:12px;color:green;">-₹${order.discountAmount?.toLocaleString('en-IN')}</td></tr>` : ''}
                     <tr class="total-row"><td>TOTAL</td><td style="text-align:right;">₹${order.totalAmount?.toLocaleString('en-IN')}</td></tr>
                 </table>
@@ -204,7 +206,8 @@ const AllOrders = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
 
-    const [statusFilter, setStatusFilter] = useState('');
+    const location = useLocation();
+    const [statusFilter, setStatusFilter] = useState(location.state?.statusFilter || '');
     const [paymentMethodFilter, setPaymentMethodFilter] = useState('');
     const [paymentStatusFilter, setPaymentStatusFilter] = useState('');
     const [startDate, setStartDate] = useState('');
@@ -576,11 +579,11 @@ const AllOrders = () => {
                                     <div className="grid grid-cols-2 gap-3">
                                         <div className="space-y-1">
                                             <label className="text-xs font-bold text-slate-400 uppercase">From Date</label>
-                                            <input type="date" className="filter-select-simple w-full text-xs" value={startDate} onChange={handleFilterChange(setStartDate)} />
+                                            <input type="date" max={new Date().toISOString().split('T')[0]} className="filter-select-simple w-full text-xs" value={startDate} onChange={handleFilterChange(setStartDate)} />
                                         </div>
                                         <div className="space-y-1">
                                             <label className="text-xs font-bold text-slate-400 uppercase">To Date</label>
-                                            <input type="date" className="filter-select-simple w-full text-xs" value={endDate} onChange={handleFilterChange(setEndDate)} />
+                                            <input type="date" max={new Date().toISOString().split('T')[0]} className="filter-select-simple w-full text-xs" value={endDate} onChange={handleFilterChange(setEndDate)} />
                                         </div>
                                     </div>
                                     <div className="space-y-1">

@@ -187,12 +187,7 @@ const Dashboard = () => {
                                         <span className="text-sm font-medium text-slate-900">#{order.id}</span>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center font-bold text-xs text-slate-600">
-                                                {order.customer?.charAt(0) || 'U'}
-                                            </div>
-                                            <div className="text-sm font-medium text-slate-700">{order.customer || 'Unknown'}</div>
-                                        </div>
+                                        <div className="text-sm font-medium text-slate-700">{order.customer || 'Unknown'}</div>
                                     </td>
                                     <td className="px-6 py-4">
                                         <span className="text-sm font-bold text-slate-900">₹{order.amount?.toLocaleString()}</span>

@@ -125,7 +125,7 @@ const LowStockAlerts = () => {
                             placeholder={t('alerts.search_placeholder')}
                             className="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500/50 focus:bg-white transition-all text-sm font-medium"
                             value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
+                            onChange={(e) => setSearchTerm(e.target.value.trimStart())}
                         />
                     </div>
                     

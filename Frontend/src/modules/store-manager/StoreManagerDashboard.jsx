@@ -131,8 +131,8 @@ const StoreManagerDashboard = () => {
                                     
                                     return (
                                         <div key={i} className="flex-1 flex flex-col items-center group relative h-full justify-end">
-                                            <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] py-1.5 px-3 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-all pointer-events-none whitespace-nowrap font-bold z-20">
-                                                ₹{(data.revenue || 0).toLocaleString()} • {data.orders} Orders
+                                            <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] font-bold text-slate-600 whitespace-nowrap pointer-events-none z-10 group-hover:-translate-y-1 transition-transform">
+                                                ₹{data.revenue >= 1000 ? (data.revenue / 1000).toFixed(1) + 'k' : (data.revenue || 0)}
                                             </div>
 
                                             <div className="w-full max-w-[40px] bg-slate-100 group-hover:bg-slate-200/50 transition-all rounded-t-xl relative h-full flex flex-col justify-end overflow-hidden">
@@ -213,10 +213,6 @@ const StoreManagerDashboard = () => {
                                     <Icons.Package size={18} className="text-slate-500 group-hover/btn:text-blue-400 transition-colors" />
                                 </button>
                             )}
-                            <button onClick={() => navigate('/store-manager/delivery-tracking')} className="w-full flex items-center justify-between p-4 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-2xl transition-all group/btn">
-                                <span className="text-sm font-bold uppercase tracking-widest text-slate-300">Live Delivery Map</span>
-                                <Icons.MapPin size={18} className="text-slate-500 group-hover/btn:text-blue-400 transition-colors" />
-                            </button>
                             {!hasPermission('MANAGE_POS_BILLING') && !hasPermission('MANAGE_INVENTORY') && (
                                 <div className="text-center py-8">
                                     <Icons.ShieldOff size={32} className="mx-auto text-slate-700 mb-3" />

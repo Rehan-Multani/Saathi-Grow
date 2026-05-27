@@ -65,6 +65,7 @@ const CheckoutPage = () => {
     const [upsellingPromos, setUpsellingPromos] = useState([]);
     const [loadingPromos, setLoadingPromos] = useState(false);
 
+    const [checkoutCity, setCheckoutCity] = useState('');
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -108,7 +109,11 @@ const CheckoutPage = () => {
                 });
             }
         }
-    }, [savedAddresses, globalLocation.address, updateLocation]);
+        
+        if (globalLocation.city) {
+            setCheckoutCity(globalLocation.city);
+        }
+    }, [savedAddresses, globalLocation.address, globalLocation.city, updateLocation]);
 
     useEffect(() => {
         const fetchBill = async () => {
@@ -187,6 +192,11 @@ const CheckoutPage = () => {
         if (cart.length === 0) return;
         if (!globalLocation.address) {
             toast.error("Please select a valid delivery address first.");
+            return;
+        }
+
+        if (checkoutCity !== globalLocation.city) {
+            toast.error("pin location and city you entered is diifferent so you can not proceed further");
             return;
         }
 
@@ -399,9 +409,20 @@ const CheckoutPage = () => {
                                 Change
                             </button>
                         </div>
-                        <p className="text-[11px] text-gray-800 dark:text-gray-200 font-bold leading-relaxed">
+                        <p className="text-[11px] text-gray-800 dark:text-gray-200 font-bold leading-relaxed mb-3">
                             {globalLocation.address || "Select Address"}
                         </p>
+                        
+                        <div className="mt-3">
+                            <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-1">City & Pincode</label>
+                            <input 
+                                type="text" 
+                                value={checkoutCity}
+                                readOnly
+                                placeholder="City and Pincode"
+                                className="w-full bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-xl px-4 py-3 text-[11px] font-bold focus:outline-none focus:border-[#0c831f] transition-all cursor-not-allowed opacity-70"
+                            />
+                        </div>
                     </div>
                 </div>
 

@@ -297,8 +297,8 @@ const AssignDeliveries = () => {
                                     <tbody className="divide-y divide-slate-100 text-xs font-medium">
                                         {(() => {
                                             const getAreaKey = (order) => {
-                                                const zip = order.shippingAddress?.zipCode?.trim();
-                                                const city = order.shippingAddress?.city?.trim() || 'Unknown Area';
+                                                const zip = order.shippingAddress?.zipCode ? String(order.shippingAddress.zipCode).trim() : '';
+                                                const city = order.shippingAddress?.city ? String(order.shippingAddress.city).trim() : 'Unknown Area';
                                                 return zip ? `${city} - ${zip}` : city;
                                             };
 

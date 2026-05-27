@@ -282,8 +282,8 @@ const AddressFormPage = () => {
                         name="city"
                         placeholder="City, Pincode"
                         value={formData.city}
-                        onChange={handleChange}
-                        className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-xl !text-[12px] font-bold focus:outline-none focus:ring-1 focus:ring-[#0c831f] focus:bg-white dark:focus:bg-black transition-all"
+                        readOnly
+                        className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-xl !text-[12px] font-bold focus:outline-none focus:ring-1 focus:ring-[#0c831f] focus:bg-white dark:focus:bg-black transition-all cursor-not-allowed opacity-70"
                     />
                 </div>
 

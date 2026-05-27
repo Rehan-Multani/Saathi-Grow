@@ -250,6 +250,10 @@ const ManagerCustomers = () => {
                 show={showDetailsModal}
                 onHide={() => setShowDetailsModal(false)}
                 customer={selectedCustomer}
+                onSendMessage={(customer, type) => {
+                    setShowDetailsModal(false);
+                    handleSendMessage(customer, type);
+                }}
             />
 
             <SendMessageModal

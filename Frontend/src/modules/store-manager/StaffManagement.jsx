@@ -62,6 +62,17 @@ const StaffManagement = () => {
         }
     }, [currentUser?.token]);
 
+    useEffect(() => {
+        if (showModal || showDetails) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, [showModal, showDetails]);
+
     const handlePermissionToggle = (perm) => {
         setFormData(prev => ({
             ...prev,

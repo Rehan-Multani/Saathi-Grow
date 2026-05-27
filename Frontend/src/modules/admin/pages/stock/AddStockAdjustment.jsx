@@ -43,13 +43,13 @@ const AddStockAdjustment = () => {
         const fetchInitialData = async () => {
             try {
                 const [productsData, branchesData] = await Promise.all([
-                    getProducts(adminUser.token, { limit: 1000 }), 
+                    getProducts(adminUser.token, { limit: 1000 }),
                     getBranches(adminUser.token)
                 ]);
-                
+
                 const adminProducts = (productsData.products || []).filter(p => !p.vendor);
                 setProducts(adminProducts);
-                
+
                 const activeBranches = branchesData.filter(b => b.isActive);
                 setBranches(activeBranches);
 
@@ -59,12 +59,12 @@ const AddStockAdjustment = () => {
                         if (preSelected) setSelectedProducts([preSelected]);
                     }
                     if (location.state.branchId) {
-                        const targetBranchId = typeof location.state.branchId === 'object' 
-                            ? (location.state.branchId._id || location.state.branchId.id) 
+                        const targetBranchId = typeof location.state.branchId === 'object'
+                            ? (location.state.branchId._id || location.state.branchId.id)
                             : location.state.branchId;
-                            
-                        setFormData(prev => ({ 
-                            ...prev, 
+
+                        setFormData(prev => ({
+                            ...prev,
                             branchId: String(targetBranchId),
                             type: location.state.type || 'Addition',
                             reason: location.state.reason || 'New Stock Arrival'
@@ -193,6 +193,10 @@ const AddStockAdjustment = () => {
                                             ...params.InputProps,
                                             style: { borderRadius: '12px' }
                                         }}
+                                        inputProps={{
+                                            ...params.inputProps,
+                                            className: `${params.inputProps.className || ''} !border-0 !ring-0 focus:!ring-0 focus:!border-0 !outline-none`
+                                        }}
                                     />
                                 )}
                             />
@@ -206,12 +210,13 @@ const AddStockAdjustment = () => {
                                         {selectedProducts.length > 1 && (
                                             <div className="flex items-center gap-3 bg-blue-50/50 px-3 py-1.5 rounded-xl border border-blue-100">
                                                 <span className="text-[10px] font-bold text-blue-600 uppercase">{t('add_adjustment.bulk_qty')}</span>
-                                                <input 
-                                                    type="number" 
+                                                <input
+                                                    type="number"
+                                                    min="1"
                                                     className="w-20 bg-white border border-blue-200 rounded-lg py-1 px-2 text-xs font-bold text-blue-600 outline-none focus:ring-2 focus:ring-blue-100"
                                                     value={formData.commonAmount}
-                                                    onChange={(e) => setFormData({...formData, commonAmount: e.target.value})}
-                                                    placeholder="0"
+                                                    onChange={(e) => setFormData({ ...formData, commonAmount: e.target.value })}
+                                                    placeholder="1"
                                                 />
                                             </div>
                                         )}
@@ -241,16 +246,17 @@ const AddStockAdjustment = () => {
                                                             </div>
                                                         </td>
                                                         <td className="px-4 py-3 text-center">
-                                                            <input 
-                                                                type="number" 
+                                                            <input
+                                                                type="number"
+                                                                min="1"
                                                                 className="w-20 bg-white border border-slate-200 rounded-lg py-1.5 px-3 text-xs font-bold text-slate-900 outline-none focus:border-blue-500 transition-all text-center"
-                                                                placeholder={formData.commonAmount || "0"}
+                                                                placeholder={formData.commonAmount || "1"}
                                                                 value={individualAmounts[p._id] || ''}
                                                                 onChange={(e) => handleAmountChange(p._id, e.target.value)}
                                                             />
                                                         </td>
                                                         <td className="px-6 py-3 text-right">
-                                                            <button 
+                                                            <button
                                                                 type="button"
                                                                 onClick={() => removeProduct(p._id)}
                                                                 className="p-2 text-slate-300 hover:text-rose-500 transition-colors active:scale-90"
@@ -284,11 +290,11 @@ const AddStockAdjustment = () => {
                                 <label className="text-[11px] font-bold text-slate-500 ml-1">{t('add_adjustment.form.label_target_branch')} <span className="text-rose-500">*</span></label>
                                 <div className="relative group">
                                     <Store className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors pointer-events-none" size={14} />
-                                    <select 
-                                        name="branchId" 
-                                        value={formData.branchId} 
-                                        onChange={handleChange} 
-                                        required 
+                                    <select
+                                        name="branchId"
+                                        value={formData.branchId}
+                                        onChange={handleChange}
+                                        required
                                         className="w-full pl-10 pr-4 py-2.5 bg-slate-50/50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 focus:bg-white transition-all text-xs font-bold text-slate-700 appearance-none cursor-pointer"
                                     >
                                         <option value="">{t('add_adjustment.form.choose_branch')}</option>
@@ -302,9 +308,9 @@ const AddStockAdjustment = () => {
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-1.5">
                                     <label className="text-[11px] font-bold text-slate-500 ml-1">{t('add_adjustment.form.label_action_type')} <span className="text-rose-500">*</span></label>
-                                    <select 
-                                        name="type" 
-                                        value={formData.type} 
+                                    <select
+                                        name="type"
+                                        value={formData.type}
                                         onChange={handleChange}
                                         className="w-full px-4 py-2.5 bg-slate-50/50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 focus:bg-white transition-all text-xs font-bold text-slate-700 appearance-none cursor-pointer"
                                     >
@@ -317,10 +323,10 @@ const AddStockAdjustment = () => {
                                 </div>
                                 <div className="space-y-1.5">
                                     <label className="text-[11px] font-bold text-slate-500 ml-1">{t('add_adjustment.form.label_primary_reason')} <span className="text-rose-500">*</span></label>
-                                    <select 
-                                        name="reason" 
-                                        value={formData.reason} 
-                                        onChange={handleChange} 
+                                    <select
+                                        name="reason"
+                                        value={formData.reason}
+                                        onChange={handleChange}
                                         required
                                         className="w-full px-4 py-2.5 bg-slate-50/50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 focus:bg-white transition-all text-xs font-bold text-slate-700 appearance-none cursor-pointer"
                                     >
@@ -345,17 +351,17 @@ const AddStockAdjustment = () => {
                         </div>
 
                         <div className="space-y-3 pt-4">
-                            <button 
-                                type="submit" 
+                            <button
+                                type="submit"
                                 disabled={loading || selectedProducts.length === 0}
                                 className={`w-full py-4 rounded-xl flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-wider transition-all active:scale-95 shadow-lg ${loading || selectedProducts.length === 0 ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700 shadow-blue-100'}`}
                             >
                                 {loading ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
                                 {loading ? t('add_adjustment.form.loading') : (selectedProducts.length > 1 ? t('add_adjustment.form.submit_multi_btn', { count: selectedProducts.length }) : t('add_adjustment.form.submit_btn'))}
                             </button>
-                            <button 
+                            <button
                                 type="button"
-                                onClick={() => navigate('/admin/stock/adjustments')} 
+                                onClick={() => navigate('/admin/stock/adjustments')}
                                 className="w-full py-3 text-slate-400 hover:text-slate-600 font-bold text-xs transition-colors"
                             >
                                 {t('add_adjustment.form.discard')}
@@ -373,7 +379,8 @@ const AddStockAdjustment = () => {
                 </div>
             </form>
 
-            <style dangerouslySetInnerHTML={{ __html: `
+            <style dangerouslySetInnerHTML={{
+                __html: `
                 .custom-scrollbar::-webkit-scrollbar { width: 4px; }
                 .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
             `}} />

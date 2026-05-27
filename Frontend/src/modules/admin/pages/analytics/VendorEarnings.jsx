@@ -80,6 +80,11 @@ const VendorEarnings = () => {
     const handleExport = async () => {
         if (!adminUser?.token) return;
         
+        if (!data?.records || data.records.length === 0) {
+            toast.warning('No data available to export.');
+            return;
+        }
+
         try {
             Swal.fire({
                 title: 'Preparing File',

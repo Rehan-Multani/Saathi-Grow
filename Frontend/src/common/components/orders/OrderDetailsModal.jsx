@@ -233,7 +233,7 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
                                 </div>
                                 <div className="p-4 bg-slate-50 rounded-lg border border-slate-100">
                                     <p className="text-[10px] font-bold text-slate-400 uppercase mb-2">Address</p>
-                                    <p className="text-[10px] text-slate-700 leading-relaxed font-semibold line-clamp-2">
+                                    <p className="text-[10px] text-slate-700 leading-relaxed font-semibold">
                                         {displayOrder.shippingAddress?.street ? (
                                             `${displayOrder.shippingAddress.street}${displayOrder.shippingAddress.city ? `, ${displayOrder.shippingAddress.city}` : ''}${displayOrder.shippingAddress.state ? `, ${displayOrder.shippingAddress.state}` : ''}${displayOrder.shippingAddress.zipCode ? ` - ${displayOrder.shippingAddress.zipCode}` : ''}`
                                         ) : (

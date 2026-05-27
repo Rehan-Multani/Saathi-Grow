@@ -62,8 +62,15 @@ const POSBilling = ({ storeId, storeType = 'branch', onExit }) => {
   };
 
   const addToCart = (product) => {
+    if (product.stock <= 0) {
+      return toast.warning(t('Out of stock!'));
+    }
+
     const existing = cart.find(item => item.product === product._id);
     if (existing) {
+      if (existing.quantity >= product.stock) {
+        return toast.warning(t('Cannot exceed available stock!'));
+      }
       setCart(cart.map(item =>
         item.product === product._id ? { ...item, quantity: item.quantity + 1 } : item
       ));
@@ -73,6 +80,7 @@ const POSBilling = ({ storeId, storeType = 'branch', onExit }) => {
         name: product.name,
         price: product.price || product.basePrice,
         image: product.image,
+        stock: product.stock,
         quantity: 1
       }]);
     }
@@ -85,8 +93,12 @@ const POSBilling = ({ storeId, storeType = 'branch', onExit }) => {
   const updateQuantity = (productId, delta) => {
     setCart(cart.map(item => {
       if (item.product === productId) {
-        const newQty = Math.max(1, item.quantity + delta);
-        return { ...item, quantity: newQty };
+        const newQty = item.quantity + delta;
+        if (newQty > item.stock) {
+          toast.warning(t('Cannot exceed available stock!'));
+          return item;
+        }
+        return { ...item, quantity: Math.max(1, newQty) };
       }
       return item;
     }));

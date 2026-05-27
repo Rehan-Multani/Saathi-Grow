@@ -145,7 +145,8 @@ const POSHistory = () => {
                 </table>
                 <div class="divider"></div>
                 <table>
-                    <tr><td style="font-size:12px;padding:2px 0;">Subtotal</td><td style="text-align:right;font-size:12px;">₹${(order.subtotal || order.totalAmount)?.toLocaleString('en-IN')}</td></tr>
+                    <tr><td style="font-size:12px;padding:2px 0;">Subtotal</td><td style="text-align:right;font-size:12px;">₹${(order.subTotal || order.subtotal || order.totalAmount)?.toLocaleString('en-IN')}</td></tr>
+                    ${(order.taxAmount > 0) ? `<tr><td style="font-size:12px;padding:2px 0;">Tax</td><td style="text-align:right;font-size:12px;">₹${order.taxAmount?.toLocaleString('en-IN')}</td></tr>` : ''}
                     ${(order.discountAmount > 0) ? `<tr><td style="font-size:12px;padding:2px 0;">Discount</td><td style="text-align:right;font-size:12px;color:green;">-₹${order.discountAmount?.toLocaleString('en-IN')}</td></tr>` : ''}
                     <tr class="total-row"><td>TOTAL</td><td style="text-align:right;">₹${order.totalAmount?.toLocaleString('en-IN')}</td></tr>
                 </table>

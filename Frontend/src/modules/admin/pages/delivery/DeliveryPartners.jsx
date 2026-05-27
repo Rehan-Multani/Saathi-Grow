@@ -57,6 +57,17 @@ const DeliveryPartners = () => {
         setPage(1);
     }, [searchTerm]);
 
+    useEffect(() => {
+        if (showEditModal) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, [showEditModal]);
+
     const handleDelete = (id, name) => {
         Swal.fire({
             title: t('partners.delete_confirm_title'),

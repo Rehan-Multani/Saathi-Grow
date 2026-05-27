@@ -14,6 +14,7 @@ import ManagerProducts from '../pages/ManagerProducts';
 import AddProduct from '../pages/AddProduct';
 import ManagerProfile from '../pages/ManagerProfile';
 import ManagerSupportTickets from '../ManagerSupportTickets';
+import ManagerNotifications from '../pages/ManagerNotifications';
 import LegalPolicies from '../pages/LegalPolicies';
 import ManagerPOS from '../pages/ManagerPOS';
 
@@ -75,7 +76,7 @@ const StoreManagerRoutes = () => {
                             <Route path="profile" element={<ManagerProfile />} />
                             <Route path="support" element={<ManagerSupportTickets />} />
                             <Route path="policies" element={<LegalPolicies />} />
-                            <Route path="notifications" element={<ManagerSupportTickets />} />
+                            <Route path="notifications" element={<ManagerNotifications />} />
                             <Route path="settings" element={<ManagerProfile />} />
                             {/* Catch-all inside protected routes */}
                             <Route path="*" element={<Navigate to="/store-manager/dashboard" replace />} />

@@ -14,7 +14,7 @@ import { getAllOrdersAdmin, getOrderDetails } from '../../../common/api/orderApi
 
 const ManagerPOS = () => {
   const { managerUser } = useStoreManagerAuth();
-  const storeId = managerUser?.branchId;
+  const storeId = managerUser?.branchId?._id || managerUser?.branchId;
   const storeType = 'branch';
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -44,7 +44,7 @@ const ManagerPOS = () => {
     if (!storeId) return;
     setLoading(true);
     try {
-      const data = await searchProductsPOS(query.trim(), { storeId, storeType }, managerUser?.token);
+      const data = await searchProductsPOS(query.trim(), { storeId, storeType, hardFilter: 'true' }, managerUser?.token);
       setProducts((data.products || []).map(p => ({
         ...p,
         price: p.basePrice || 0,
@@ -131,8 +131,11 @@ const ManagerPOS = () => {
   </table>
   <div class="divider"></div>
   <table>
-    <tr><td style="font-size:12px;padding:2px 0;">Subtotal</td><td style="text-align:right;font-size:12px;">₹${(order.subtotal || order.totalAmount)?.toLocaleString('en-IN')}</td></tr>
+    <tr><td style="font-size:12px;padding:2px 0;">Subtotal</td><td style="text-align:right;font-size:12px;">₹${(order.subTotal || order.subtotal || order.totalAmount)?.toLocaleString('en-IN')}</td></tr>
     ${(order.discountAmount > 0) ? `<tr><td style="font-size:12px;padding:2px 0;">Discount</td><td style="text-align:right;font-size:12px;color:green;">-₹${order.discountAmount?.toLocaleString('en-IN')}</td></tr>` : ''}
+    ${(order.taxAmount > 0) ? `<tr><td style="font-size:12px;padding:2px 0;">Tax</td><td style="text-align:right;font-size:12px;">₹${order.taxAmount?.toLocaleString('en-IN')}</td></tr>` : ''}
+    ${(order.deliveryFee > 0) ? `<tr><td style="font-size:12px;padding:2px 0;">Delivery Fee</td><td style="text-align:right;font-size:12px;">₹${order.deliveryFee?.toLocaleString('en-IN')}</td></tr>` : ''}
+    ${(order.platformFee > 0) ? `<tr><td style="font-size:12px;padding:2px 0;">Handling Fee</td><td style="text-align:right;font-size:12px;">₹${order.platformFee?.toLocaleString('en-IN')}</td></tr>` : ''}
     <tr class="total-row"><td>TOTAL</td><td style="text-align:right;">₹${order.totalAmount?.toLocaleString('en-IN')}</td></tr>
   </table>
   <div class="divider"></div>
@@ -356,7 +359,7 @@ const ManagerPOS = () => {
             <input
               type="text"
               placeholder="Search products by name or scan barcode..."
-              className="flex-1 bg-transparent outline-none text-sm font-semibold text-slate-800 placeholder:text-slate-400"
+              className="search-input-plain flex-1 text-sm font-semibold text-slate-800 placeholder:text-slate-400"
               value={searchTerm}
               onChange={e => { const val = e.target.value.trimStart(); setSearchTerm(val); fetchProducts(val); }}
             />

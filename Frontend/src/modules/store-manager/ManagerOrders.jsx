@@ -91,15 +91,15 @@ const ManagerOrders = () => {
 
     const trimmedSearchTerm = searchTerm.trim().toLowerCase();
 
-    const filteredOrders = Array.isArray(orders)
-        ? orders.filter(order => {
-            const orderId = order.orderId || order._id;
-            const customerName = order.user?.name || 'Guest';
-            return (orderId.toLowerCase().includes(trimmedSearchTerm) ||
-                customerName.toLowerCase().includes(trimmedSearchTerm)) &&
-                (statusFilter === 'All' || order.status === statusFilter);
-        })
-        : [];
+        const filteredOrders = Array.isArray(orders)
+            ? orders.filter(order => {
+                const orderId = order.orderId || order._id;
+                const customerName = order.posCustomer?.name || order.user?.name || 'Guest';
+                return (orderId.toLowerCase().includes(trimmedSearchTerm) ||
+                    customerName.toLowerCase().includes(trimmedSearchTerm)) &&
+                    (statusFilter === 'All' || order.status === statusFilter);
+            })
+            : [];
 
     return (
         <div className="p-6 max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
@@ -190,7 +190,12 @@ const ManagerOrders = () => {
                                             <span className="font-bold text-blue-600 text-sm">#{order.orderId?.slice(-6) || '...'}</span>
                                         </td>
                                         <td className="px-6 py-5">
-                                            <div className="font-bold text-slate-900 text-sm group-hover:text-blue-600 transition-colors uppercase">{order.user?.name || 'Guest'}</div>
+                                            <div className="flex items-center gap-2">
+                                                <div className="font-bold text-slate-900 text-sm group-hover:text-blue-600 transition-colors uppercase">{order.posCustomer?.name || order.user?.name || 'Guest'}</div>
+                                                {order.orderSource === 'pos' && (
+                                                    <span className="bg-blue-100 text-blue-700 text-[9px] font-black px-1.5 py-0.5 rounded uppercase">POS</span>
+                                                )}
+                                            </div>
                                             <div className="text-[10px] text-slate-400 font-bold uppercase mt-0.5 tracking-wider">{new Date(order.createdAt).toLocaleDateString()} • {new Date(order.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
                                         </td>
                                         <td className="px-6 py-5 text-center">
@@ -215,6 +220,7 @@ const ManagerOrders = () => {
                                                     <Eye size={16} />
                                                 </button>
                                                 
+                                                {order.orderSource !== 'pos' && (
                                                 <div className="relative">
                                                     <button 
                                                         onClick={() => toggleDropdown(order._id)}
@@ -260,6 +266,7 @@ const ManagerOrders = () => {
                                                         </>
                                                     )}
                                                 </div>
+                                                )}
                                             </div>
                                         </td>
                                     </tr>

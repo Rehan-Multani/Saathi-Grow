@@ -68,6 +68,20 @@ const VyaparReport = ({ token }) => {
                 ? ((mrp - basePrice) / mrp * 100).toFixed(2) 
                 : 0;
 
+            let currentStock = item.stock || 0;
+            let minStock = item.lowStockThreshold || 0;
+            
+            // Extract branch-specific stock if available (for branch managers)
+            if (item.branchStocks && item.branchStocks.length > 0) {
+                currentStock = item.branchStocks[0].stock || 0;
+                minStock = item.branchStocks[0].lowStockThreshold || 0;
+            }
+
+            // In sales mode, quantity sold overrides
+            if (item.quantity !== undefined) {
+                currentStock = item.quantity;
+            }
+
             return {
                 'Item name*': item.name || '',
                 'Item code': item.sku || item.itemCode || '',
@@ -78,8 +92,8 @@ const VyaparReport = ({ token }) => {
                 'Purchase price': item.purchasePrice || 0,
                 'Discount Type': 'Discount %',
                 'Sale Discount': discountPercent,
-                'Current stock': item.quantity !== undefined ? item.quantity : (item.stock || 0),
-                'Minimum stock': item.lowStockThreshold || 0,
+                'Current stock': currentStock,
+                'Minimum stock': minStock,
                 'Item Location': item.physicalLocation || '0',
                 'Tax Rate': 0,
                 'Inclusive Of Tax': '0',
@@ -100,8 +114,8 @@ const VyaparReport = ({ token }) => {
     };
 
     return (
-        <div className="p-6 bg-slate-50 min-h-screen">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+        <div className="p-6 bg-slate-50 h-[calc(100vh-72px)] flex flex-col">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 shrink-0">
                 <div>
                     <h1 className="text-2xl font-bold text-slate-800">Vyapar Report</h1>
                     <p className="text-sm text-slate-500 mt-1">
@@ -145,21 +159,21 @@ const VyaparReport = ({ token }) => {
             </div>
 
             {error && (
-                <div className="bg-red-50 text-red-600 p-4 rounded-lg mb-6 flex items-center gap-3">
+                <div className="bg-red-50 text-red-600 p-4 rounded-lg mb-6 flex items-center gap-3 shrink-0">
                     <div className="w-2 h-2 rounded-full bg-red-600"></div>
                     {error}
                 </div>
             )}
 
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex-1 flex flex-col min-h-0">
                 {loading ? (
-                    <div className="py-20 text-center text-slate-500">
+                    <div className="py-20 text-center text-slate-500 flex-1 flex flex-col justify-center items-center">
                         <RefreshCw size={32} className="animate-spin mx-auto mb-4 text-blue-600" />
                         <p className="text-lg font-medium">Loading {reportType === 'catalog' ? 'catalog' : 'sales'} data...</p>
                         <p className="text-sm text-slate-400">This might take a moment depending on your catalog size</p>
                     </div>
                 ) : data.length === 0 ? (
-                    <div className="py-20 text-center text-slate-500">
+                    <div className="py-20 text-center text-slate-500 flex-1 flex flex-col justify-center items-center">
                         <div className="bg-slate-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                             <FileText size={32} className="text-slate-400" />
                         </div>
@@ -175,9 +189,9 @@ const VyaparReport = ({ token }) => {
                         )}
                     </div>
                 ) : (
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left text-sm whitespace-nowrap">
-                            <thead className="bg-slate-50 text-slate-600 font-medium border-b border-slate-200">
+                    <div className="overflow-auto flex-1 custom-scrollbar">
+                        <table className="w-full text-left text-sm whitespace-nowrap relative">
+                            <thead className="bg-slate-50 text-slate-600 font-medium border-b border-slate-200 sticky top-0 z-10 shadow-sm">
                                 <tr>
                                     <th className="px-6 py-4">Item name*</th>
                                     <th className="px-6 py-4">Item code</th>
@@ -200,7 +214,7 @@ const VyaparReport = ({ token }) => {
                             </thead>
                             <tbody className="divide-y divide-slate-100">
                                 {formatData().map((row, idx) => (
-                                    <tr key={idx} className="hover:bg-slate-50/50">
+                                    <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
                                         <td className="px-6 py-3 font-medium text-slate-800">{row['Item name*']}</td>
                                         <td className="px-6 py-3 text-slate-600">{row['Item code']}</td>
                                         <td className="px-6 py-3 text-slate-600">{row['Category']}</td>
@@ -225,6 +239,10 @@ const VyaparReport = ({ token }) => {
                     </div>
                 )}
             </div>
+            <style dangerouslySetInnerHTML={{ __html: `
+                .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+                .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+            `}} />
         </div>
     );
 };

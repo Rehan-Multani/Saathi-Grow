@@ -27,6 +27,32 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen, customTheme }) => {
 
   const [isScrolled, setIsScrolled] = useState(false);
 
+  // Notification count logic
+  useEffect(() => {
+    const fetchUnreadCount = async () => {
+      if (!user?.token) return;
+      try {
+        const res = await axios.get(`${API_BASE_URL}/notifications/unread-count`, {
+          headers: { Authorization: `Bearer ${user.token}` }
+        });
+        if (res.data.success) {
+          setUnreadCount(res.data.unreadCount);
+        }
+      } catch (err) {
+        console.error('Error fetching unread notifications:', err);
+      }
+    };
+
+    fetchUnreadCount();
+
+    const handleFirebaseMessage = (e) => {
+      setUnreadCount(prev => prev + 1);
+    };
+
+    window.addEventListener('onFirebaseMessage', handleFirebaseMessage);
+    return () => window.removeEventListener('onFirebaseMessage', handleFirebaseMessage);
+  }, [user?.token]);
+
   useEffect(() => {
     let ticking = false;
     const handleScroll = () => {

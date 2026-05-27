@@ -76,7 +76,8 @@ const InventoryManagement = () => {
     const handleUpdateStock = async (requestData) => {
         try {
             setLoading(true);
-            const currentStock = selectedProduct?.branchStocks?.find(bs => bs.branchId?._id === managerUser?.branchId || bs.branchId === managerUser?.branchId)?.stock || 0;
+            const branchIdStr = managerUser?.branchId?._id || managerUser?.branchId;
+            const currentStock = selectedProduct?.branchStocks?.find(bs => bs.branchId?._id === branchIdStr || bs.branchId === branchIdStr)?.stock || 0;
             await createInventoryRequest(managerUser.token, {
                 productId: requestData.productId,
                 currentStock,
