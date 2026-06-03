@@ -349,9 +349,47 @@ const AllProducts = () => {
                                                 <button onClick={() => handleDelete(p._id, p.name)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all" title="Delete"><Trash2 size={18} /></button>
                                             </div>
                                             {showQR === p._id && (
-                                                <div className="absolute right-12 z-50 bg-white shadow-2xl p-4 rounded-xl border border-slate-200 mt-2 flex flex-col items-center animate-in fade-in duration-200">
-                                                    <QRCodeSVG value={p.sku} size={100} />
-                                                    <span className="text-[9px] font-bold mt-2 text-slate-400 uppercase tracking-tighter">{p.sku}</span>
+                                                <div className="absolute right-12 z-50 bg-white shadow-2xl p-6 w-64 rounded-xl border border-slate-200 mt-2 flex flex-col animate-in fade-in duration-200">
+                                                    <div className="flex justify-between items-center mb-4 w-full">
+                                                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Product Details QR</span>
+                                                        <button onClick={() => setShowQR(null)} className="text-slate-300 hover:text-red-500"><X size={16} /></button>
+                                                    </div>
+                                                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 flex justify-center mb-4 w-full">
+                                                        <QRCodeSVG 
+                                                            id={`qr-admin-${p._id}`}
+                                                            value={`${window.location.origin}/product/${p._id}`} 
+                                                            size={140} 
+                                                            level="M" 
+                                                        />
+                                                    </div>
+                                                    <div className="space-y-1 w-full text-center mb-4">
+                                                        <div className="text-xs font-black text-slate-900 truncate" title={p.name}>{p.name}</div>
+                                                        <div className="text-[9px] text-slate-500 font-bold uppercase">{p.category} | ₹{p.basePrice}</div>
+                                                        <div className="text-[10px] font-black text-slate-900 font-mono tracking-widest uppercase bg-slate-50 py-2 rounded-lg border border-slate-200 mt-2">{p.sku?.slice(-12)}</div>
+                                                    </div>
+                                                    <button 
+                                                        onClick={() => {
+                                                            const svg = document.getElementById(`qr-admin-${p._id}`);
+                                                            const svgData = new XMLSerializer().serializeToString(svg);
+                                                            const canvas = document.createElement('canvas');
+                                                            const ctx = canvas.getContext('2d');
+                                                            const img = new Image();
+                                                            img.onload = () => {
+                                                                canvas.width = img.width;
+                                                                canvas.height = img.height;
+                                                                ctx.drawImage(img, 0, 0);
+                                                                const pngFile = canvas.toDataURL('image/png');
+                                                                const downloadLink = document.createElement('a');
+                                                                downloadLink.download = `${p.sku}_qr.png`;
+                                                                downloadLink.href = `${pngFile}`;
+                                                                downloadLink.click();
+                                                            };
+                                                            img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+                                                        }}
+                                                        className="w-full py-2 bg-slate-900 text-white font-black text-[10px] uppercase tracking-widest rounded-xl hover:bg-black transition-all shadow-md active:scale-95 flex items-center justify-center gap-2"
+                                                    >
+                                                        <Download size={14} /> Download QR
+                                                    </button>
                                                 </div>
                                             )}
                                         </td>

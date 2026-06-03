@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, ExternalLink, Mail, Phone, MapPin, MoreVertical, RefreshCw, Filter, User, Store, Package, Trash2, Edit, CheckCircle, ChevronLeft, ChevronRight, LayoutGrid, Loader2, ArrowRight } from 'lucide-react';
+import { Search, Plus, ExternalLink, Mail, Phone, MapPin, MoreVertical, RefreshCw, Filter, User, Store, Package, Trash2, Edit, CheckCircle, ChevronLeft, ChevronRight, LayoutGrid, Loader2, Eye } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { getVendors, deleteVendor } from '../../api/vendorApi';
+import { getVendors, deleteVendor, updateVendor } from '../../api/vendorApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
@@ -48,15 +48,25 @@ const AllVendors = () => {
         if (adminUser?.token) fetchVendors();
     }, [adminUser.token]);
 
+    const handleStatusChange = async (id, newStatus) => {
+        try {
+            await updateVendor(adminUser.token, id, { status: newStatus });
+            toast.success(t('all_vendors.alerts.update_success', { defaultValue: 'Status updated successfully' }));
+            fetchVendors();
+        } catch (error) {
+            toast.error(error.message || 'Failed to update status');
+        }
+    };
+
     const handleDelete = (id) => {
         Swal.fire({
-            title: t('all_vendors.alerts.delete_title') || 'Delete Vendor?',
-            text: t('all_vendors.alerts.delete_text') || "This will remove the vendor from the list.",
+            title: t('all_vendors.alerts.delete_title', { defaultValue: 'Delete Vendor?' }),
+            text: t('all_vendors.alerts.delete_text', { defaultValue: 'This will remove the vendor from the list.' }),
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#ef4444',
             cancelButtonColor: '#94a3b8',
-            confirmButtonText: t('form.delete') || 'Yes, delete',
+            confirmButtonText: t('form.delete', { defaultValue: 'Yes, delete' }),
             customClass: {
                 popup: 'rounded-3xl border-none shadow-2xl',
                 confirmButton: 'rounded-xl px-6 py-2.5 font-bold uppercase text-xs tracking-widest',
@@ -66,7 +76,7 @@ const AllVendors = () => {
             if (result.isConfirmed) {
                 try {
                     await deleteVendor(adminUser.token, id);
-                    toast.success(t('all_vendors.alerts.delete_success') || 'Vendor deleted successfully');
+                    toast.success(t('all_vendors.alerts.delete_success', { defaultValue: 'Vendor deleted successfully' }));
                     fetchVendors();
                 } catch (error) {
                     toast.error('Failed to delete vendor');
@@ -180,14 +190,19 @@ const AllVendors = () => {
                                             </div>
                                         </td>
                                         <td className="px-6 py-6 text-center">
-                                            <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-wider ${
-                                                vendor.status === 'Active' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
-                                                vendor.status === 'Pending' ? 'bg-amber-50 text-amber-600 border-amber-100' : 'bg-rose-50 text-rose-500 border-rose-100'
-                                            }`}>
-                                                {vendor.status === 'Active' ? t('all_vendors.status.active') : 
-                                                 vendor.status === 'Pending' ? t('all_vendors.status.pending') : 
-                                                 vendor.status === 'Inactive' ? t('all_vendors.status.inactive') : vendor.status}
-                                            </span>
+                                            <select
+                                                value={vendor.status}
+                                                onChange={(e) => handleStatusChange(vendor._id, e.target.value)}
+                                                className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-wider outline-none cursor-pointer appearance-none text-center ${
+                                                    vendor.status === 'Active' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                                                    vendor.status === 'Pending' ? 'bg-amber-50 text-amber-600 border-amber-100' : 'bg-rose-50 text-rose-500 border-rose-100'
+                                                }`}
+                                                style={{ textAlignLast: 'center' }}
+                                            >
+                                                <option value="Active" className="text-slate-800 bg-white font-bold">{t('all_vendors.status.active', { defaultValue: 'Active' })}</option>
+                                                <option value="Pending" className="text-slate-800 bg-white font-bold">{t('all_vendors.status.pending', { defaultValue: 'Pending' })}</option>
+                                                <option value="Inactive" className="text-slate-800 bg-white font-bold">{t('all_vendors.status.inactive', { defaultValue: 'Inactive' })}</option>
+                                            </select>
                                         </td>
                                         <td className="px-8 py-6 text-right">
                                             <div className="flex items-center justify-end gap-1.5">
@@ -196,7 +211,7 @@ const AllVendors = () => {
                                                     className="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all active:scale-95 border-none bg-transparent"
                                                     title={t('all_vendors.actions.details')}
                                                 >
-                                                    <ArrowRight size={20} />
+                                                    <Eye size={20} />
                                                 </button>
                                                 <button 
                                                     onClick={() => { setSelectedVendor(vendor); setShowEdit(true); }}

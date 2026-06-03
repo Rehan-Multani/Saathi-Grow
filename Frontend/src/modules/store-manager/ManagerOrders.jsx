@@ -187,7 +187,7 @@ const ManagerOrders = () => {
                                 filteredOrders.map(order => (
                                     <tr key={order._id} className="hover:bg-slate-50 transition-colors group">
                                         <td className="px-6 py-5 text-center">
-                                            <span className="font-bold text-blue-600 text-sm">#{order.orderId?.slice(-6) || '...'}</span>
+                                            <span className="font-bold text-blue-600 text-sm">#{order.orderId || order._id}</span>
                                         </td>
                                         <td className="px-6 py-5">
                                             <div className="flex items-center gap-2">
@@ -197,6 +197,11 @@ const ManagerOrders = () => {
                                                 )}
                                             </div>
                                             <div className="text-[10px] text-slate-400 font-bold uppercase mt-0.5 tracking-wider">{new Date(order.createdAt).toLocaleDateString()} • {new Date(order.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+                                            <div className="mt-1">
+                                                <span className="bg-slate-100 text-slate-500 border border-slate-200 text-[8px] font-black px-1.5 py-0.5 rounded uppercase">
+                                                    {order.paymentMethod === 'cod' ? 'COD' : 'ONLINE'}
+                                                </span>
+                                            </div>
                                         </td>
                                         <td className="px-6 py-5 text-center">
                                             <span className="text-sm font-bold text-slate-700 px-2 py-0.5 bg-slate-100 rounded-lg">{order.items?.length || 0}</span>

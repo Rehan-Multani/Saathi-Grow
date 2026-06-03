@@ -159,7 +159,7 @@ const DeliveryDashboard = () => {
                 <MiniStat
                     icon={Clock}
                     label="Pending"
-                    value={stats?.pendingOrders || '0'}
+                    value={stats?.activeOrders || '0'}
                 />
             </div>
 

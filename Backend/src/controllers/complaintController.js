@@ -288,6 +288,18 @@ export const closeTicket = async (req, res) => {
 
     await complaint.save();
 
+    // Notify User of ticket closure
+    const { sendPushNotification } = await import('../services/notificationService.js');
+    await sendPushNotification(complaint.user._id || complaint.user, 'User', {
+      title: 'Support Ticket Closed',
+      body: complaint.refundProcessed 
+        ? `Ticket ${ticketId} has been closed. A refund of ₹${complaint.refundAmount} was processed.` 
+        : `Your support ticket ${ticketId} has been resolved and closed.`
+    }, {
+      ticketId: ticketId,
+      type: 'ticket_closed'
+    });
+
     res.json({ success: true, message: 'Ticket closed successfully', refundProcessed: complaint.refundProcessed });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

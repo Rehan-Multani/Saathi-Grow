@@ -57,7 +57,8 @@ const OrdersPage = () => {
                         }, []),
                         color: colorClass,
                         deliveryOTP: o.deliveryOTP,
-                        returnRequest: o.returnRequest
+                        returnRequest: o.returnRequest,
+                        paymentMethod: o.paymentMethod || 'online'
                     }
                 });
 
@@ -109,7 +110,7 @@ const OrdersPage = () => {
                                             <Package size={18} className="md:w-7 md:h-7" />
                                         </div>
                                         <div>
-                                            <div className="!text-[13px] md:!text-lg font-black text-gray-900 dark:text-gray-100 tracking-tight leading-none mb-1 md:mb-1.5">Order #{order.id.slice(-6).toUpperCase()}</div>
+                                            <div className="!text-[13px] md:!text-lg font-black text-gray-900 dark:text-gray-100 tracking-tight leading-none mb-1 md:mb-1.5">Order #{order.orderId || order.id || order._id}</div>
                                             <div className="!text-[10px] md:!text-xs text-gray-400 font-bold uppercase tracking-wider">{order.date}</div>
                                         </div>
                                     </div>
@@ -139,6 +140,9 @@ const OrdersPage = () => {
                                     <div className="md:flex-1 md:pr-4">
                                         {/* Mobile: Removed 'Items Summary' label for cleaner look, usually context is sufficient or keep concise */}
                                         <div className="!text-[11px] md:!text-sm font-medium text-gray-600 dark:text-gray-300 line-clamp-1 md:line-clamp-2 mt-1">{order.items}</div>
+                                        <div className="mt-2 inline-block px-2 py-0.5 rounded text-[8px] md:text-[10px] font-black tracking-widest uppercase bg-slate-100 text-slate-600 border border-slate-200">
+                                            PAYMENT: {order.paymentMethod === 'cod' ? 'COD' : 'ONLINE'}
+                                        </div>
                                     </div>
                                     <div className="text-right md:flex flex-col items-end md:justify-between md:h-full">
                                         <div className="!text-[14px] md:!text-xl font-black text-gray-900 dark:text-gray-100 mb-0 md:mb-2">{order.amount}</div>

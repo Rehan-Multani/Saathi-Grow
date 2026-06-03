@@ -144,7 +144,7 @@ const ReorderPage = () => {
                     </button>
                     <div>
                         <h1 className="text-lg font-black text-gray-900 dark:text-white leading-none">Reorder Items</h1>
-                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">From order #{order?.orderId?.slice(-8).toUpperCase()}</p>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">From order #{order?.orderId || order?._id}</p>
                     </div>
                 </div>
             </div>

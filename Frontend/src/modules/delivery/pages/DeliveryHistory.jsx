@@ -47,7 +47,8 @@ const DeliveryHistory = () => {
                 status: o.status === 'delivered' ? 'Delivered' : (o.status === 'failed' ? 'Failed' : o.status.replace(/_/g, ' ')),
                 amount: o.order?.totalAmount || 0,
                 customer: o.order?.user?.name || 'Customer',
-                location: o.order?.shippingAddress?.street || 'Unknown'
+                location: o.order?.shippingAddress?.street || 'Unknown',
+                paymentMethod: o.order?.paymentMethod || 'online'
             }))
         ).sort((a, b) => b.rawDate - a.rawDate);
 
@@ -183,7 +184,7 @@ const DeliveryHistory = () => {
                                     <Package size={16} />
                                 </div>
                                 <div>
-                                    <h4 className="font-black text-xs text-slate-900 leading-tight">#{order.id.slice(-6)}</h4>
+                                    <h4 className="font-black text-xs text-slate-900 leading-tight">#{order.orderId || order.id || order._id}</h4>
                                     <div className="flex items-center gap-1.5 mt-1">
                                         <span className={`px-1.5 py-0.5 rounded-md text-[7px] font-black uppercase tracking-widest ${
                                             order.status === 'Delivered' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'
@@ -192,6 +193,9 @@ const DeliveryHistory = () => {
                                         </span>
                                         <span className="text-[8px] text-slate-400 font-bold uppercase tracking-tighter">
                                             {order.date}
+                                        </span>
+                                        <span className="text-[7px] font-black text-slate-500 bg-slate-100 px-1 py-0.5 rounded ml-1 uppercase">
+                                            {order.paymentMethod === 'cod' ? 'COD' : 'ONLINE'}
                                         </span>
                                     </div>
                                 </div>

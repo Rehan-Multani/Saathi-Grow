@@ -60,7 +60,7 @@ const VendorForgotPassword = () => {
                                         value={email}
                                         onChange={e => setEmail(e.target.value)}
                                         placeholder="your@email.com"
-                                        className="flex-1 bg-transparent outline-none text-sm font-medium text-gray-900 placeholder:text-gray-400"
+                                        className="flex-1 bg-transparent outline-none plain-input text-sm font-medium text-gray-900 placeholder:text-gray-400"
                                     />
                                 </div>
                             </div>

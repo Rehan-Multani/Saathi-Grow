@@ -139,10 +139,12 @@ const DeliveryLayout = ({ children }) => {
                                     className={`p-4 rounded-2xl mb-1 cursor-pointer transition-all ${notification.read ? 'opacity-50' : 'bg-slate-50 hover:bg-slate-100'}`}
                                 >
                                     <div className="flex items-start justify-between mb-1">
-                                        <p className="text-[10px] font-black text-slate-900 uppercase">New Mission</p>
+                                        <p className="text-[10px] font-black text-slate-900 uppercase">{notification.title || 'New Mission'}</p>
                                         <p className="text-[9px] text-slate-400 font-bold">{notification.time}</p>
                                     </div>
-                                    <p className="text-xs text-slate-500 font-medium">#{notification.orderId?.slice(-6) || 'N/A'} - {notification.customerName}</p>
+                                    <p className="text-xs text-slate-500 font-medium">
+                                        {notification.body ? notification.body : `#${notification.orderId?.slice(-6) || 'N/A'} - ${notification.customerName}`}
+                                    </p>
                                 </div>
                             ))
                         )}

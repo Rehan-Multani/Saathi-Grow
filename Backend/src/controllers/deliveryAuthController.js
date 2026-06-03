@@ -65,7 +65,7 @@ export const requestOTP = async (req, res) => {
     const partner = await DeliveryPartner.findOne({ phone });
 
     if (!partner) {
-      return res.status(404).json({ message: 'Delivery Partner account not found. Please contact admin.' });
+      return res.status(404).json({ message: 'Delivery Partner account not found. Please register first then login.' });
     }
 
     if (partner.authStatus !== 'Active') {

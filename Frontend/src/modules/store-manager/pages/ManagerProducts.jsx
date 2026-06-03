@@ -373,17 +373,46 @@ const ManagerProducts = () => {
                                                 </div>
 
                                                 {showQR === p._id && (
-                                                    <div className="absolute right-8 top-full mt-2 w-56 bg-white border border-slate-200 rounded-[2rem] shadow-2xl p-6 z-[60] animate-in fade-in zoom-in-95 duration-200">
+                                                    <div className="absolute right-8 top-full mt-2 w-64 bg-white border border-slate-200 rounded-[2rem] shadow-2xl p-6 z-[60] animate-in fade-in zoom-in-95 duration-200">
                                                         <div className="flex justify-between items-center mb-4">
-                                                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">SKU Identity</span>
+                                                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Product Details QR</span>
                                                             <button onClick={() => setShowQR(null)} className="text-slate-300 hover:text-red-500"><X size={16} /></button>
                                                         </div>
                                                         <div className="bg-slate-50 p-4 rounded-3xl border border-slate-100 flex justify-center mb-4">
-                                                            {p.qrCode ? <img src={p.qrCode} alt="" className="w-32 h-32" /> : <QRCodeSVG value={p.sku} size={128} level="H" />}
+                                                            <QRCodeSVG 
+                                                                id={`qr-${p._id}`}
+                                                                value={`${window.location.origin}/product/${p._id}`} 
+                                                                size={140} 
+                                                                level="M" 
+                                                            />
                                                         </div>
-                                                        <div className="text-[10px] font-black text-slate-900 font-mono tracking-widest uppercase bg-slate-50 py-2 rounded-lg text-center border-slate-200 mb-4">{p.sku?.slice(-12)}</div>
-                                                        <button className="w-full py-3 bg-slate-900 text-white font-black text-[10px] uppercase tracking-widest rounded-2xl hover:bg-black transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2">
-                                                            <Download size={14} /> Download Image
+                                                        <div className="space-y-1 mb-4 text-center">
+                                                            <div className="text-xs font-black text-slate-900 truncate" title={p.name}>{p.name}</div>
+                                                            <div className="text-[9px] text-slate-500 font-bold uppercase">{p.category} | ₹{p.basePrice}</div>
+                                                            <div className="text-[10px] font-black text-slate-900 font-mono tracking-widest uppercase bg-slate-50 py-2 rounded-lg border border-slate-200 mt-2">{p.sku?.slice(-12)}</div>
+                                                        </div>
+                                                        <button 
+                                                            onClick={() => {
+                                                                const svg = document.getElementById(`qr-${p._id}`);
+                                                                const svgData = new XMLSerializer().serializeToString(svg);
+                                                                const canvas = document.createElement('canvas');
+                                                                const ctx = canvas.getContext('2d');
+                                                                const img = new Image();
+                                                                img.onload = () => {
+                                                                    canvas.width = img.width;
+                                                                    canvas.height = img.height;
+                                                                    ctx.drawImage(img, 0, 0);
+                                                                    const pngFile = canvas.toDataURL('image/png');
+                                                                    const downloadLink = document.createElement('a');
+                                                                    downloadLink.download = `${p.sku}_qr.png`;
+                                                                    downloadLink.href = `${pngFile}`;
+                                                                    downloadLink.click();
+                                                                };
+                                                                img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+                                                            }}
+                                                            className="w-full py-3 bg-slate-900 text-white font-black text-[10px] uppercase tracking-widest rounded-2xl hover:bg-black transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2"
+                                                        >
+                                                            <Download size={14} /> Download QR
                                                         </button>
                                                     </div>
                                                 )}
