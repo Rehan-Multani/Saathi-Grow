@@ -80,7 +80,7 @@ const LowestPricesSection = ({
     };
 
     return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 md:py-4 border-b border-gray-50 dark:border-white/5 mb-10 rounded-xl transition-all duration-300" style={{ background: isDarkMode ? '' : 'linear-gradient(to right, #e8f5e9, #ffffff)' }}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 md:py-4 border-b border-gray-50 dark:border-white/5 mb-3 md:mb-5 rounded-xl transition-all duration-300" style={{ background: isDarkMode ? '' : 'linear-gradient(to right, #e8f5e9, #ffffff)' }}>
             {/* Section Header */}
             <div className="flex items-center justify-between mb-1 md:mb-2">
                 <div className="flex items-center gap-2">

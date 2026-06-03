@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useStoreManagerAuth } from '../../context/StoreManagerAuthContext';
 import { Eye, EyeOff, Lock, Mail, Loader2, ArrowRight, ShieldCheck } from 'lucide-react';
 import logo from '../../../../assets/logo_fav.png';
+import PolicyViewerModal from '../../../../common/components/legal/PolicyViewerModal';
 
 const StoreManagerLogin = () => {
     const [email, setEmail] = useState('');
@@ -10,6 +11,8 @@ const StoreManagerLogin = () => {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    const [agreedToTerms, setAgreedToTerms] = useState(false);
+    const [viewPolicy, setViewPolicy] = useState({ isOpen: false, slug: '', title: '' });
     const { managerLogin } = useStoreManagerAuth();
     const navigate = useNavigate();
 
@@ -19,6 +22,11 @@ const StoreManagerLogin = () => {
 
         if (password.length < 6) {
             setError('Password must be at least 6 characters');
+            return;
+        }
+
+        if (!agreedToTerms) {
+            setError('Please agree to the Terms & Conditions and Privacy Policy.');
             return;
         }
 
@@ -114,6 +122,34 @@ const StoreManagerLogin = () => {
                             <Link to="/store-manager/forgot-password" size="sm" className="text-[11px] font-black text-blue-600 hover:text-blue-800 transition-colors uppercase tracking-tighter">Forgot Password?</Link>
                         </div>
 
+                        <div className="flex items-start gap-2 mt-2 px-1">
+                            <input 
+                                type="checkbox" 
+                                id="terms" 
+                                checked={agreedToTerms}
+                                onChange={(e) => setAgreedToTerms(e.target.checked)}
+                                className="mt-1 w-4 h-4 text-emerald-600 border-slate-300 rounded focus:ring-emerald-500 cursor-pointer"
+                            />
+                            <label htmlFor="terms" className="text-xs text-slate-500 font-medium leading-tight">
+                                I agree to the{' '}
+                                <button 
+                                    type="button" 
+                                    onClick={() => setViewPolicy({ isOpen: true, slug: 'terms-and-conditions', title: 'Terms and Conditions' })}
+                                    className="text-emerald-600 font-bold hover:underline"
+                                >
+                                    Terms & Conditions
+                                </button>
+                                {' '}and{' '}
+                                <button 
+                                    type="button" 
+                                    onClick={() => setViewPolicy({ isOpen: true, slug: 'privacy-policy', title: 'Privacy Policy' })}
+                                    className="text-emerald-600 font-bold hover:underline"
+                                >
+                                    Privacy Policy
+                                </button>
+                            </label>
+                        </div>
+
                         <button
                             type="submit"
                             disabled={loading}
@@ -138,6 +174,15 @@ const StoreManagerLogin = () => {
                     </div>
                 </div>
             </div>
+            
+            <PolicyViewerModal 
+                isOpen={viewPolicy.isOpen}
+                onClose={() => setViewPolicy({ isOpen: false, slug: '', title: '' })}
+                policySlug={viewPolicy.slug}
+                audience="Staff" 
+                title={viewPolicy.title}
+            />
+
             <style dangerouslySetInnerHTML={{ __html: `
                 @keyframes shake {
                     0%, 100% { transform: translateX(0); }

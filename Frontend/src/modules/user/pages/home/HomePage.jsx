@@ -472,7 +472,6 @@ const HomePage = ({ }) => {
                                 totalProductsCount={campaign.totalProducts}
                             />
                         )}
-                        <div className="h-10 sm:h-16" />
                     </motion.div>
                 );
             })}
@@ -518,7 +517,7 @@ export const normalizeProduct = (product) => ({
 
 // Sub-component for individual product rows to manage scroll state with Lazy Loading
 const ProductRow = ({ category, loading: globalLoading }) => {
-    const { activeStore } = useStore();
+    const { activeStore, loading: storeLoading } = useStore();
     const sectionRef = useRef(null);
     const observerRef = useRef(null);
     const [hasEntredViewport, setHasEntredViewport] = useState(false);
@@ -537,7 +536,7 @@ const ProductRow = ({ category, loading: globalLoading }) => {
                 page: pageNum,
                 limit: 20,
                 status: ['Active', 'Low Stock', 'Out of Stock'],
-                activeStoreId: activeStore?.id,
+                activeStoreId: activeStore?.id || activeStore?._id,
                 activeStoreType: activeStore?.type
             });
             const newProducts = data.products || [];
@@ -553,7 +552,7 @@ const ProductRow = ({ category, loading: globalLoading }) => {
         } finally {
             setIsLoading(false);
         }
-    }, [category.name, activeStore?.id]);
+    }, [category.name, activeStore?.id, activeStore?._id, activeStore?.type]);
 
     // Intersection Observer to trigger fetch before it becomes fully visible for smooth loading
     useEffect(() => {
@@ -577,14 +576,15 @@ const ProductRow = ({ category, loading: globalLoading }) => {
     }, []);
 
     useEffect(() => {
-        // Must have activeStore loaded before fetching to prevent initial double-fetch
-        if (!activeStore?.id) return;
+        // Must wait for store resolution to prevent double-fetch or early return bugs
+        if (storeLoading) return;
 
         if (hasEntredViewport) {
             setPage(1);
             fetchItems(1);
         }
-    }, [hasEntredViewport, category.name, activeStore?.id, fetchItems]);
+    }, [hasEntredViewport, category.name, activeStore?.id, activeStore?._id, fetchItems, storeLoading]);
+
 
     const handleScroll = () => {
         if (!sectionRef.current) return;
@@ -631,7 +631,7 @@ const ProductRow = ({ category, loading: globalLoading }) => {
     };
 
     return (
-        <div ref={observerRef} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 md:py-8 border-b border-gray-50 dark:border-white/5 last:border-0 mb-6 md:mb-10" style={{ contentVisibility: 'auto', containIntrinsicSize: '350px' }}>
+        <div ref={observerRef} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 md:py-4 border-b border-gray-50 dark:border-white/5 last:border-0 mb-3 md:mb-5" style={{ contentVisibility: 'auto', containIntrinsicSize: '350px' }}>
             <div className="flex items-center justify-between mb-2 md:mb-6">
                 <h2 className="text-[15px] md:text-xl font-bold text-[#1e293b] dark:text-gray-300 tracking-tight capitalize">
                     {category.name}
@@ -832,7 +832,7 @@ const OccasionSection = ({
     };
 
     return (
-        <div ref={observerRef} className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 mb-6 md:mb-10 rounded-xl relative transition-all duration-300 ${className || ''}`} style={{ backgroundColor: isDarkMode ? '' : bgColor, contentVisibility: 'auto', containIntrinsicSize: '350px' }}>
+        <div ref={observerRef} className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 mb-3 md:mb-5 rounded-xl relative transition-all duration-300 ${className || ''}`} style={{ backgroundColor: isDarkMode ? '' : bgColor, contentVisibility: 'auto', containIntrinsicSize: '350px' }}>
             <div className="flex items-center justify-between mb-1">
                 <div className="flex flex-col">
                     <h2 className="text-lg md:text-xl font-bold tracking-tight" style={{ color: isDarkMode ? 'var(--text-primary)' : themeColor }}>

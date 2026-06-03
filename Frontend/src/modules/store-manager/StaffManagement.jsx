@@ -33,7 +33,7 @@ const StaffManagement = () => {
         { id: 'VIEW_ORDERS', label: 'View Orders' },
         { id: 'MANAGE_ORDERS', label: 'Manage Orders' },
         { id: 'MANAGE_REFUNDS_RETURNS', label: 'Manage Returns' },
-        { id: 'VIEW_PRODUCTS', label: 'View Products' },
+        { id: 'MANAGE_PRODUCTS', label: 'Manage Products' },
         { id: 'MANAGE_INVENTORY', label: 'Update Stock' },
         { id: 'VIEW_CUSTOMERS', label: 'View Customers' },
         { id: 'MANAGE_POS_BILLING', label: 'POS Billing' }

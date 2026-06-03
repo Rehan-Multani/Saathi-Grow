@@ -3,6 +3,7 @@ import { X, User, Lock, ArrowRight, Loader2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import * as authApi from '../../api/userAuthApi';
 import { toast } from 'react-toastify';
+import PolicyViewerModal from '../../../../common/components/legal/PolicyViewerModal';
 
 const LoginModal = () => {
     const { showLoginModal, closeLoginModal, login, register, loginView, setLoginView } = useAuth();
@@ -13,6 +14,8 @@ const LoginModal = () => {
     const [showOTP, setShowOTP] = useState(false);
     const [loading, setLoading] = useState(false);
     const [resendTimer, setResendTimer] = useState(0);
+    const [agreedToTerms, setAgreedToTerms] = useState(false);
+    const [viewPolicy, setViewPolicy] = useState({ isOpen: false, slug: '', title: '' });
 
     useEffect(() => {
         let timer;
@@ -36,6 +39,9 @@ const LoginModal = () => {
             const nameRegex = /^[a-zA-Z\s]+$/;
             if (!nameRegex.test(name.trim())) {
                 return toast.error('Full name should only contain letters and spaces, without numbers or special characters');
+            }
+            if (!agreedToTerms) {
+                return toast.error('Please agree to the Terms & Conditions and Privacy Policy to register');
             }
         }
 
@@ -139,6 +145,37 @@ const LoginModal = () => {
                                         placeholder="98765 43210" required />
                                 </div>
                             </div>
+                            
+                            {loginView === 'register' && (
+                                <div className="flex items-start gap-2 mt-2">
+                                    <input 
+                                        type="checkbox" 
+                                        id="terms" 
+                                        checked={agreedToTerms}
+                                        onChange={(e) => setAgreedToTerms(e.target.checked)}
+                                        className="mt-1 w-4 h-4 text-[var(--saathi-green)] border-gray-300 rounded focus:ring-[var(--saathi-green)] cursor-pointer"
+                                    />
+                                    <label htmlFor="terms" className="text-xs text-gray-500 font-medium leading-tight">
+                                        I agree to the{' '}
+                                        <button 
+                                            type="button" 
+                                            onClick={() => setViewPolicy({ isOpen: true, slug: 'terms-and-conditions', title: 'Terms and Conditions' })}
+                                            className="text-[var(--saathi-green)] font-bold hover:underline"
+                                        >
+                                            Terms & Conditions
+                                        </button>
+                                        {' '}and{' '}
+                                        <button 
+                                            type="button" 
+                                            onClick={() => setViewPolicy({ isOpen: true, slug: 'privacy-policy', title: 'Privacy Policy' })}
+                                            className="text-[var(--saathi-green)] font-bold hover:underline"
+                                        >
+                                            Privacy Policy
+                                        </button>
+                                    </label>
+                                </div>
+                            )}
+
                             <button
                                 type="submit" disabled={loading}
                                 className="w-full flex justify-center items-center py-3.5 px-4 rounded-xl shadow-lg shadow-[var(--saathi-green)]/20 text-sm font-black text-white bg-[var(--saathi-green)] hover:bg-[var(--saathi-green-hover)] transition-all active:scale-[0.98] disabled:opacity-50"
@@ -188,6 +225,14 @@ const LoginModal = () => {
                     </p>
                 </div>
             </div>
+
+            <PolicyViewerModal 
+                isOpen={viewPolicy.isOpen}
+                onClose={() => setViewPolicy({ isOpen: false, slug: '', title: '' })}
+                policySlug={viewPolicy.slug}
+                audience="User"
+                title={viewPolicy.title}
+            />
         </div>
     );
 };

@@ -99,7 +99,7 @@ const StaffDashboard = () => {
             color: 'text-indigo-600',
             bgColor: 'bg-indigo-50',
             path: '/staff/products',
-            show: hasAccess('VIEW_PRODUCTS')
+            show: hasAccess('MANAGE_PRODUCTS')
         },
         {
             label: 'Shortage',

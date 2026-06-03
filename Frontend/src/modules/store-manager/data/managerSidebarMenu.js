@@ -3,7 +3,7 @@ export const managerSidebarMenu = [
     title: 'Dashboard',
     path: '/store-manager/dashboard',
     icon: 'LayoutDashboard',
-    permission: null
+    permission: 'VIEW_DASHBOARD'
   },
   {
     title: 'POS Billing',
@@ -21,7 +21,7 @@ export const managerSidebarMenu = [
     title: 'Products',
     path: '/store-manager/products',
     icon: 'ShoppingBag',
-    permission: 'VIEW_PRODUCTS'
+    permission: 'MANAGE_PRODUCTS'
   },
   {
     title: 'Orders',
@@ -36,7 +36,7 @@ export const managerSidebarMenu = [
     title: 'Staff Management',
     path: '/store-manager/staff',
     icon: 'Users',
-    permission: null
+    permission: 'MANAGE_STAFF'
   },
   {
     title: 'Customers',
@@ -47,10 +47,10 @@ export const managerSidebarMenu = [
   {
     title: 'Reports & Analytics',
     icon: 'BarChart3',
-    permission: null,
+    permission: 'VIEW_REPORTS',
     submenu: [
-      { title: 'General Reports', path: '/store-manager/reports', permission: null },
-      { title: 'Vyapar Report', path: '/store-manager/reports/vyapar', permission: null },
+      { title: 'General Reports', path: '/store-manager/reports', permission: 'VIEW_REPORTS' },
+      { title: 'Vyapar Report', path: '/store-manager/reports/vyapar', permission: 'VIEW_REPORTS' },
     ],
   },
   {

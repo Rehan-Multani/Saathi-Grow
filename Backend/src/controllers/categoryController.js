@@ -48,10 +48,10 @@ export const getCategories = async (req, res) => {
       .sort('-createdAt');
 
     if (hasProducts === 'true') {
-      // Find distinct category names that have available products efficiently
-      const activeCategoryNames = await Product.find({
+      // Find distinct category names that have available products efficiently using native distinct
+      const activeCategoryNames = await Product.distinct('category', {
         status: { $in: ['Active', 'Low Stock', 'Out of Stock'] }
-      }).distinct('category').lean();
+      });
       
       const activeCategoryNamesLower = activeCategoryNames.map(name => name.toLowerCase());
 

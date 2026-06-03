@@ -4,6 +4,7 @@ import { Phone, User, Mail, Bike, Hash, ArrowRight, Zap, CheckCircle, ChevronLef
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-toastify';
 import { registerDeliveryPartner } from '../api/deliveryAuthApi';
+import PolicyViewerModal from '../../../common/components/legal/PolicyViewerModal';
 
 const VEHICLE_TYPES = ['Bike', 'EV', 'Cycle', 'Other'];
 
@@ -11,6 +12,8 @@ const DeliverySignup = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [viewPolicy, setViewPolicy] = useState({ isOpen: false, slug: '', title: '' });
   const [form, setForm] = useState({
     name: '',
     phone: '',
@@ -27,6 +30,7 @@ const DeliverySignup = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (form.phone.length !== 10) return toast.error('Enter a valid 10-digit phone number');
+    if (!agreedToTerms) return toast.error('Please agree to the Terms & Conditions and Privacy Policy');
 
     setLoading(true);
     try {
@@ -197,6 +201,35 @@ const DeliverySignup = () => {
               </div>
             </div>
 
+            {/* Terms and Conditions Checkbox */}
+            <div className="flex items-start gap-2 mt-4 px-1">
+              <input 
+                  type="checkbox" 
+                  id="terms" 
+                  checked={agreedToTerms}
+                  onChange={(e) => setAgreedToTerms(e.target.checked)}
+                  className="mt-1 w-4 h-4 text-[#028A0F] border-gray-300 rounded focus:ring-[#028A0F] cursor-pointer"
+              />
+              <label htmlFor="terms" className="text-xs text-gray-500 dark:text-gray-400 font-medium leading-tight">
+                  I agree to the{' '}
+                  <button 
+                      type="button" 
+                      onClick={() => setViewPolicy({ isOpen: true, slug: 'terms-and-conditions', title: 'Terms and Conditions' })}
+                      className="text-[#028A0F] font-bold hover:underline"
+                  >
+                      Terms & Conditions
+                  </button>
+                  {' '}and{' '}
+                  <button 
+                      type="button" 
+                      onClick={() => setViewPolicy({ isOpen: true, slug: 'privacy-policy', title: 'Privacy Policy' })}
+                      className="text-[#028A0F] font-bold hover:underline"
+                  >
+                      Privacy Policy
+                  </button>
+              </label>
+            </div>
+
             {/* Submit */}
             <button
               type="submit"
@@ -225,6 +258,14 @@ const DeliverySignup = () => {
           </p>
         </div>
       </div>
+
+      <PolicyViewerModal 
+          isOpen={viewPolicy.isOpen}
+          onClose={() => setViewPolicy({ isOpen: false, slug: '', title: '' })}
+          policySlug={viewPolicy.slug}
+          audience="Delivery Partner"
+          title={viewPolicy.title}
+      />
 
       {/* Bulletproof WebView Overlay Style Tag */}
       <style>{`

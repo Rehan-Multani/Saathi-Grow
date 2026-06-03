@@ -3,7 +3,7 @@ export const staffSidebarMenu = [
         title: 'Dashboard',
         path: '/staff/dashboard',
         icon: 'LayoutDashboard',
-        permission: null
+        permission: 'VIEW_DASHBOARD'
     },
     {
         title: 'Billing',
@@ -30,7 +30,7 @@ export const staffSidebarMenu = [
         title: 'Products',
         path: '/staff/products',
         icon: 'ShoppingBag',
-        permission: 'VIEW_PRODUCTS'
+        permission: 'MANAGE_PRODUCTS'
     },
     {
         title: 'Customers',
@@ -42,7 +42,7 @@ export const staffSidebarMenu = [
         title: 'Support',
         path: '/staff/support',
         icon: 'MessageSquare',
-        permission: 'VIEW_CUSTOMERS'
+        permission: null
     },
     {
         title: 'Notifications',
@@ -54,7 +54,7 @@ export const staffSidebarMenu = [
         title: 'Manage Staff',
         path: '/staff/staff',
         icon: 'UserPlus',
-        permission: null
+        permission: 'MANAGE_STAFF'
     },
     {
         title: 'Policies & Legal',

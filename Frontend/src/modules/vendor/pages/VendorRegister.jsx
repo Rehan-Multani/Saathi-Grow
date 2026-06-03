@@ -4,12 +4,16 @@ import { Store, ArrowRight, CheckCircle, MapPin, Mail, Lock, Phone, User, Naviga
 import { useVendor } from '../contexts/VendorContext';
 import { loadGoogleMaps } from '../../../utils/googleMapsLoader';
 import { useRef } from 'react';
+import { toast } from 'react-toastify';
+import PolicyViewerModal from '../../../common/components/legal/PolicyViewerModal';
 const VendorRegister = () => {
     const navigate = useNavigate();
     const { register, loading } = useVendor();
 
     const [mapLoaded, setMapLoaded] = useState(false);
     const [isDetecting, setIsDetecting] = useState(false);
+    const [agreedToTerms, setAgreedToTerms] = useState(false);
+    const [viewPolicy, setViewPolicy] = useState({ isOpen: false, slug: '', title: '' });
     const searchRef = React.useRef(null);
     const autocompleteRef = React.useRef(null);
 
@@ -129,6 +133,9 @@ const VendorRegister = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (!agreedToTerms) {
+            return toast.error('Please agree to the Terms & Conditions and Privacy Policy');
+        }
         const success = await register(formData);
         if (success) {
             navigate('/vendor/login');
@@ -260,6 +267,34 @@ const VendorRegister = () => {
                             <textarea name="description" onChange={handleChange} value={formData.description} rows={2} className="w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 text-gray-900 placeholder:text-gray-400 focus:bg-white focus:border-[#0c831f] outline-none text-sm font-medium resize-none" placeholder="Tell us about your store..." />
                         </div>
 
+                        <div className="flex items-start gap-2 mt-2 px-1">
+                            <input 
+                                type="checkbox" 
+                                id="terms" 
+                                checked={agreedToTerms}
+                                onChange={(e) => setAgreedToTerms(e.target.checked)}
+                                className="mt-1 w-4 h-4 text-[#0c831f] border-gray-300 rounded focus:ring-[#0c831f] cursor-pointer"
+                            />
+                            <label htmlFor="terms" className="text-xs text-gray-500 font-medium leading-tight">
+                                I agree to the{' '}
+                                <button 
+                                    type="button" 
+                                    onClick={() => setViewPolicy({ isOpen: true, slug: 'terms-and-conditions', title: 'Terms and Conditions' })}
+                                    className="text-[#0c831f] font-bold hover:underline"
+                                >
+                                    Terms & Conditions
+                                </button>
+                                {' '}and{' '}
+                                <button 
+                                    type="button" 
+                                    onClick={() => setViewPolicy({ isOpen: true, slug: 'privacy-policy', title: 'Privacy Policy' })}
+                                    className="text-[#0c831f] font-bold hover:underline"
+                                >
+                                    Privacy Policy
+                                </button>
+                            </label>
+                        </div>
+
                         <button
                             type="submit"
                             disabled={loading}
@@ -281,6 +316,15 @@ const VendorRegister = () => {
                     </div>
                 </div>
             </div>
+
+            <PolicyViewerModal 
+                isOpen={viewPolicy.isOpen}
+                onClose={() => setViewPolicy({ isOpen: false, slug: '', title: '' })}
+                policySlug={viewPolicy.slug}
+                audience="Vendor"
+                title={viewPolicy.title}
+            />
+            
             <style>{`
                 input::-webkit-contacts-auto-fill-button,
                 input::-webkit-credentials-auto-fill-button { visibility: hidden; pointer-events: none; }

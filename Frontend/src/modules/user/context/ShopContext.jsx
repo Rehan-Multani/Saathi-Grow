@@ -46,7 +46,9 @@ export const ShopProvider = ({ children }) => {
   const [settings, setSettings] = useState(null);
 
   const refreshShopData = useCallback(async (showLoading = true) => {
-    if (showLoading) setLoading(true);
+    // Only show full page loading if we don't have categories yet
+    const hasCachedData = localStorage.getItem('shop_categories');
+    if (showLoading && !hasCachedData) setLoading(true);
     try {
       const fetchParams = activeStore ? { storeId: activeStore.id, storeType: activeStore.type } : {};
       const [categoriesData, campaignsData, offersData, settingsData] = await Promise.all([

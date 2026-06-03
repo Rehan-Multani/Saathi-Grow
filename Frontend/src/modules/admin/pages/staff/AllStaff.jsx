@@ -114,13 +114,16 @@ const AllStaff = () => {
     }, [searchTerm]);
 
     const PERMISSIONS_DEF = [
-        { id: 'VIEW_DASHBOARD', label: t('permissions.VIEW_DASHBOARD') },
-        { id: 'VIEW_ORDERS', label: t('permissions.VIEW_ORDERS') },
-        { id: 'MANAGE_PRODUCTS', label: t('permissions.MANAGE_PRODUCTS') },
-        { id: 'VIEW_CUSTOMERS', label: t('permissions.VIEW_CUSTOMERS') },
-        { id: 'MANAGE_INVENTORY', label: t('permissions.MANAGE_INVENTORY') },
-        { id: 'MANAGE_STAFF', label: t('permissions.MANAGE_STAFF') },
-        { id: 'VIEW_REPORTS', label: t('permissions.VIEW_REPORTS') }
+        { id: 'VIEW_DASHBOARD', label: t('permissions.VIEW_DASHBOARD', 'View Dashboard') },
+        { id: 'MANAGE_POS_BILLING', label: t('permissions.MANAGE_POS_BILLING', 'POS Billing') },
+        { id: 'VIEW_ORDERS', label: t('permissions.VIEW_ORDERS', 'View Orders') },
+        { id: 'MANAGE_ORDERS', label: t('permissions.MANAGE_ORDERS', 'Manage Orders') },
+        { id: 'MANAGE_REFUNDS_RETURNS', label: t('permissions.MANAGE_REFUNDS_RETURNS', 'Manage Returns') },
+        { id: 'MANAGE_PRODUCTS', label: t('permissions.MANAGE_PRODUCTS', 'Manage Products') },
+        { id: 'VIEW_CUSTOMERS', label: t('permissions.VIEW_CUSTOMERS', 'Manage Customers') },
+        { id: 'MANAGE_INVENTORY', label: t('permissions.MANAGE_INVENTORY', 'Manage Inventory') },
+        { id: 'MANAGE_STAFF', label: t('permissions.MANAGE_STAFF', 'Staff Control') },
+        { id: 'VIEW_REPORTS', label: t('permissions.VIEW_REPORTS', 'View Reports') }
     ];
 
     return (
