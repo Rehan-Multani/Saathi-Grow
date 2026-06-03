@@ -406,7 +406,7 @@ const OnlineOrders = () => {
                                         <td className="px-6 py-4">
                                             <div className="flex flex-col">
                                                 <span className="text-sm font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded w-fit">
-                                                    {order.orderId || `#${order._id.slice(-8).toUpperCase()}`}
+                                                    {order.orderId || `#${order._id}`}
                                                 </span>
                                                 {order.razorpayPaymentId && (
                                                     <span className="text-[9px] text-slate-400 font-medium mt-1">rzp: {order.razorpayPaymentId.slice(-8)}</span>

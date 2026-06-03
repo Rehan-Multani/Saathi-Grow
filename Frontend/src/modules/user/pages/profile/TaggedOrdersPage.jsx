@@ -97,7 +97,7 @@ const TaggedOrdersPage = () => {
                                                     )}
                                                 </div>
                                                 <div>
-                                                    <div className="!text-[13px] md:!text-lg font-black text-gray-900 dark:text-gray-100 tracking-tight leading-none mb-1">Order #{order.orderId?.slice(-8).toUpperCase() || order._id.slice(-6).toUpperCase()}</div>
+                                                    <div className="!text-[13px] md:!text-lg font-black text-gray-900 dark:text-gray-100 tracking-tight leading-none mb-1">Order #{order.orderId || order._id}</div>
                                                     <div className="!text-[10px] md:!text-xs text-gray-400 font-bold uppercase tracking-wider">{date}</div>
                                                 </div>
                                             </div>

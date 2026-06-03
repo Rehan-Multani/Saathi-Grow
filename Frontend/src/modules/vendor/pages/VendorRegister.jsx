@@ -166,28 +166,28 @@ const VendorRegister = () => {
                                 <label className="text-xs font-bold text-gray-700">Owner Name</label>
                                 <div className="flex items-center gap-2 border border-gray-200 rounded-xl bg-gray-50 px-3 py-2.5 focus-within:border-[#0c831f] focus-within:bg-white transition-colors">
                                     <User size={15} className="text-gray-400 shrink-0 min-w-[15px]" />
-                                    <input name="ownerName" required onChange={handleChange} value={formData.ownerName} type="text" className="flex-1 min-w-0 bg-transparent outline-none text-sm font-medium text-gray-900 placeholder:text-gray-400" placeholder="Rahul Kumar" />
+                                    <input name="ownerName" required onChange={handleChange} value={formData.ownerName} type="text" className="flex-1 min-w-0 bg-transparent outline-none plain-input text-sm font-medium text-gray-900 placeholder:text-gray-400" placeholder="Rahul Kumar" />
                                 </div>
                             </div>
                             <div className="space-y-1">
                                 <label className="text-xs font-bold text-gray-700">Email Address</label>
                                 <div className="flex items-center gap-2 border border-gray-200 rounded-xl bg-gray-50 px-3 py-2.5 focus-within:border-[#0c831f] focus-within:bg-white transition-colors">
                                     <Mail size={15} className="text-gray-400 shrink-0 min-w-[15px]" />
-                                    <input name="email" required onChange={handleChange} value={formData.email} type="email" className="flex-1 min-w-0 bg-transparent outline-none text-sm font-medium text-gray-900 placeholder:text-gray-400" placeholder="rahul@example.com" />
+                                    <input name="email" required onChange={handleChange} value={formData.email} type="email" className="flex-1 min-w-0 bg-transparent outline-none plain-input text-sm font-medium text-gray-900 placeholder:text-gray-400" placeholder="rahul@example.com" />
                                 </div>
                             </div>
                             <div className="space-y-1">
                                 <label className="text-xs font-bold text-gray-700">Mobile Number</label>
                                 <div className="flex items-center gap-2 border border-gray-200 rounded-xl bg-gray-50 px-3 py-2.5 focus-within:border-[#0c831f] focus-within:bg-white transition-colors">
                                     <Phone size={15} className="text-gray-400 shrink-0 min-w-[15px]" />
-                                    <input name="phone" required onChange={handleChange} value={formData.phone} maxLength={10} type="tel" className="flex-1 min-w-0 bg-transparent outline-none text-sm font-medium text-gray-900 placeholder:text-gray-400" placeholder="10-digit mobile number" />
+                                    <input name="phone" required onChange={handleChange} value={formData.phone} maxLength={10} type="tel" className="flex-1 min-w-0 bg-transparent outline-none plain-input text-sm font-medium text-gray-900 placeholder:text-gray-400" placeholder="10-digit mobile number" />
                                 </div>
                             </div>
                             <div className="space-y-1">
                                 <label className="text-xs font-bold text-gray-700">Password</label>
                                 <div className="flex items-center gap-2 border border-gray-200 rounded-xl bg-gray-50 px-3 py-2.5 focus-within:border-[#0c831f] focus-within:bg-white transition-colors">
                                     <Lock size={15} className="text-gray-400 shrink-0 min-w-[15px]" />
-                                    <input name="password" required onChange={handleChange} value={formData.password} type="password" minLength={6} className="flex-1 min-w-0 bg-transparent outline-none text-sm font-medium text-gray-900 placeholder:text-gray-400" placeholder="••••••••" />
+                                    <input name="password" required onChange={handleChange} value={formData.password} type="password" minLength={6} className="flex-1 min-w-0 bg-transparent outline-none plain-input text-sm font-medium text-gray-900 placeholder:text-gray-400" placeholder="••••••••" />
                                 </div>
                             </div>
                         </div>
@@ -196,7 +196,7 @@ const VendorRegister = () => {
                             <label className="text-xs font-bold text-gray-700">Store Name</label>
                             <div className="flex items-center gap-2 border border-gray-200 rounded-xl bg-gray-50 px-3 py-2.5 focus-within:border-[#0c831f] focus-within:bg-white transition-colors">
                                 <Store size={15} className="text-gray-400 shrink-0 min-w-[15px]" />
-                                <input name="storeName" required onChange={handleChange} value={formData.storeName} type="text" className="flex-1 min-w-0 bg-transparent outline-none text-sm font-medium text-gray-900 placeholder:text-gray-400" placeholder="Fresh Mart Details" />
+                                <input name="storeName" required onChange={handleChange} value={formData.storeName} type="text" className="flex-1 min-w-0 bg-transparent outline-none plain-input text-sm font-medium text-gray-900 placeholder:text-gray-400" placeholder="Fresh Mart Details" />
                             </div>
                         </div>
 
@@ -212,7 +212,7 @@ const VendorRegister = () => {
                                         ref={searchRef}
                                         type="text"
                                         placeholder="Search your store location..."
-                                        className="flex-1 min-w-0 bg-transparent outline-none text-sm font-medium text-gray-900 placeholder:text-gray-400"
+                                        className="flex-1 min-w-0 bg-transparent outline-none plain-input text-sm font-medium text-gray-900 placeholder:text-gray-400"
                                     />
                                 </div>
                                 <button
@@ -268,25 +268,25 @@ const VendorRegister = () => {
                         </div>
 
                         <div className="flex items-start gap-2 mt-2 px-1">
-                            <input 
-                                type="checkbox" 
-                                id="terms" 
+                            <input
+                                type="checkbox"
+                                id="terms"
                                 checked={agreedToTerms}
                                 onChange={(e) => setAgreedToTerms(e.target.checked)}
                                 className="mt-1 w-4 h-4 text-[#0c831f] border-gray-300 rounded focus:ring-[#0c831f] cursor-pointer"
                             />
                             <label htmlFor="terms" className="text-xs text-gray-500 font-medium leading-tight">
                                 I agree to the{' '}
-                                <button 
-                                    type="button" 
+                                <button
+                                    type="button"
                                     onClick={() => setViewPolicy({ isOpen: true, slug: 'terms-and-conditions', title: 'Terms and Conditions' })}
                                     className="text-[#0c831f] font-bold hover:underline"
                                 >
                                     Terms & Conditions
                                 </button>
                                 {' '}and{' '}
-                                <button 
-                                    type="button" 
+                                <button
+                                    type="button"
                                     onClick={() => setViewPolicy({ isOpen: true, slug: 'privacy-policy', title: 'Privacy Policy' })}
                                     className="text-[#0c831f] font-bold hover:underline"
                                 >
@@ -317,14 +317,14 @@ const VendorRegister = () => {
                 </div>
             </div>
 
-            <PolicyViewerModal 
+            <PolicyViewerModal
                 isOpen={viewPolicy.isOpen}
                 onClose={() => setViewPolicy({ isOpen: false, slug: '', title: '' })}
                 policySlug={viewPolicy.slug}
                 audience="Vendor"
                 title={viewPolicy.title}
             />
-            
+
             <style>{`
                 input::-webkit-contacts-auto-fill-button,
                 input::-webkit-credentials-auto-fill-button { visibility: hidden; pointer-events: none; }

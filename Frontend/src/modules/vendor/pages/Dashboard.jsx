@@ -221,11 +221,14 @@ const Dashboard = () => {
                         <div key={idx} className="flex items-center justify-between p-4 hover:bg-gray-50 rounded-xl transition-colors cursor-pointer border border-transparent hover:border-gray-100">
                             <div className="flex items-center gap-4">
                                 <div className="hidden sm:flex w-12 h-12 bg-gray-50 border border-gray-100 rounded-xl items-center justify-center font-bold text-gray-500 text-xs">
-                                    #{order.orderId?.slice(-4)}
+                                    #{order.orderId || order.id || order._id}
                                 </div>
                                 <div>
                                     <p className="text-sm font-bold text-gray-900">{order.customer || 'Customer Details'}</p>
                                     <p className="text-xs font-medium text-gray-500 mt-0.5">{order.itemsCount} Items ordered</p>
+                                    <span className="inline-block mt-1 px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider bg-gray-100 text-gray-600 border border-gray-200">
+                                        PAYMENT: {order.paymentMethod === 'cod' ? 'COD' : 'ONLINE'}
+                                    </span>
                                 </div>
                             </div>
                             <div className="text-right">

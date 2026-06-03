@@ -17,6 +17,7 @@ const AddVendor = () => {
         ownerName: '',
         email: '',
         phone: '',
+        password: '',
         address: {
             street: '',
             city: '',
@@ -75,6 +76,29 @@ const AddVendor = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        // Validations
+        if (!formData.storeName.trim()) return toast.error('Store Name is required');
+        if (!formData.ownerName.trim()) return toast.error('Owner Name is required');
+        
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!formData.email.trim() || !emailRegex.test(formData.email)) {
+            return toast.error('Valid Email Address is required');
+        }
+        
+        if (!formData.phone.trim() || formData.phone.length !== 10) {
+            return toast.error('Valid 10-digit Phone Number is required');
+        }
+
+        if (!formData.password || formData.password.length < 6) {
+            return toast.error('Password is required and must be at least 6 characters');
+        }
+        
+        if (!formData.address.street.trim()) return toast.error('Street Address is required');
+        if (!formData.address.city.trim()) return toast.error('City is required');
+
+        if (!logoFile) return toast.error('Store Logo is compulsory');
+
         setLoading(true);
         try {
             const data = new FormData();
@@ -91,7 +115,7 @@ const AddVendor = () => {
             toast.success(t('form.add_success'));
             navigate('/admin/vendors');
         } catch (error) {
-            toast.error(error.message || 'Failed to add vendor');
+            toast.error(error.response?.data?.message || error.message || 'Failed to add vendor');
         } finally {
             setLoading(false);
         }
@@ -194,6 +218,21 @@ const AddVendor = () => {
                                         value={formData.phone}
                                         onChange={handleChange}
                                         maxLength={10}
+                                        className="w-full pl-11 pr-4 py-3 bg-slate-50/50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-blue-500/50 focus:bg-white transition-all shadow-inner"
+                                        required
+                                    />
+                                </div>
+                            </div>
+                            <div className="space-y-1.5">
+                                <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Password</label>
+                                <div className="relative group">
+                                    <Shield className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors" size={16} />
+                                    <input
+                                        type="text"
+                                        name="password"
+                                        placeholder="Enter initial password"
+                                        value={formData.password}
+                                        onChange={handleChange}
                                         className="w-full pl-11 pr-4 py-3 bg-slate-50/50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-blue-500/50 focus:bg-white transition-all shadow-inner"
                                         required
                                     />

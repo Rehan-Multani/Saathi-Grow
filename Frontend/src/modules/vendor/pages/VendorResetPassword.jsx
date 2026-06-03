@@ -49,7 +49,7 @@ const VendorResetPassword = () => {
                             <Lock size={15} className="text-gray-400 shrink-0" />
                             <input type={showPass ? 'text' : 'password'} required value={password}
                                 onChange={e => setPassword(e.target.value)} placeholder="••••••••"
-                                className="flex-1 bg-transparent outline-none text-sm font-medium text-gray-900 placeholder:text-gray-400" />
+                                className="flex-1 bg-transparent outline-none plain-input text-sm font-medium text-gray-900 placeholder:text-gray-400" />
                             <button type="button" onClick={() => setShowPass(p => !p)} className="text-gray-400 hover:text-gray-600 border-none bg-transparent p-0">
                                 {showPass ? <EyeOff size={15} /> : <Eye size={15} />}
                             </button>
@@ -62,7 +62,7 @@ const VendorResetPassword = () => {
                             <Lock size={15} className="text-gray-400 shrink-0" />
                             <input type={showPass ? 'text' : 'password'} required value={confirm}
                                 onChange={e => setConfirm(e.target.value)} placeholder="••••••••"
-                                className="flex-1 bg-transparent outline-none text-sm font-medium text-gray-900 placeholder:text-gray-400" />
+                                className="flex-1 bg-transparent outline-none plain-input text-sm font-medium text-gray-900 placeholder:text-gray-400" />
                         </div>
                     </div>
 

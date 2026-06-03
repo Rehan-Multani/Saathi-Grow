@@ -170,13 +170,16 @@ const StaffOrders = () => {
                                         <td className="px-8 py-5 text-left border-0">
                                             <div className="flex items-center gap-4 text-left">
                                                 <div className="w-12 h-12 bg-slate-950 text-white rounded-xl flex items-center justify-center font-black text-xs shadow-xl group-hover/row:scale-110 group-hover/row:bg-blue-600 transition-all duration-500 shrink-0 italic">
-                                                   {order.orderId?.slice(-3).toUpperCase() || 'ORD'}
+                                                   {order.orderId || 'ORD'}
                                                 </div>
                                                 <div className="text-left font-black">
-                                                   <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-mono italic font-black leading-none text-left">Ref: #{order.orderId?.slice(-8) || '0000'}</div>
+                                                   <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-mono italic font-black leading-none text-left">Ref: #{order.orderId || order._id}</div>
                                                    <div className="flex items-center gap-1.5 mt-2.5 font-black text-left leading-none font-black italic">
                                                       <Package size={12} className="text-blue-500 shrink-0" />
                                                       <span className="text-[9px] font-black text-slate-500 uppercase italic font-black">{order.items?.length || 0} Assets</span>
+                                                      <span className="text-[8px] font-black text-slate-400 bg-slate-100 px-1 py-0.5 rounded ml-2 uppercase italic">
+                                                          {order.paymentMethod === 'cod' ? 'COD' : 'ONLINE'}
+                                                      </span>
                                                    </div>
                                                 </div>
                                             </div>

@@ -169,11 +169,14 @@ const StoreManagerDashboard = () => {
                                     <div key={idx} className="flex items-center justify-between p-4 hover:bg-slate-50 rounded-2xl transition-all group cursor-pointer" onClick={() => navigate('/store-manager/orders')}>
                                         <div className="flex items-center gap-4">
                                             <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center border border-slate-200 text-slate-400 group-hover:text-blue-600 group-hover:border-blue-200 shadow-sm transition-all font-bold text-xs shrink-0">
-                                                #{order.id ? order.id.toString().slice(-4) : '....'}
+                                                #{order.orderId || order.id || order._id}
                                             </div>
                                             <div className="min-w-0">
                                                 <p className="text-sm font-bold text-slate-800 truncate">{order.customer || 'Guest'}</p>
                                                 <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{order.date ? new Date(order.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}</p>
+                                                <span className="bg-slate-100 text-slate-500 border border-slate-200 text-[8px] font-black px-1 py-0.5 rounded uppercase mt-1 inline-block">
+                                                    {order.paymentMethod === 'cod' ? 'COD' : 'ONLINE'}
+                                                </span>
                                             </div>
                                         </div>
                                         <div className="text-right shrink-0">

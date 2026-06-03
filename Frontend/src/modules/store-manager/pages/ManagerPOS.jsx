@@ -288,7 +288,7 @@ const ManagerPOS = () => {
                       <tr key={order._id} className="hover:bg-slate-50/50 transition-colors">
                         <td className="px-5 py-4">
                           <span className="text-sm font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded">
-                            #{order.orderId || order._id.slice(-8).toUpperCase()}
+                            #{order.orderId || order._id}
                           </span>
                         </td>
                         <td className="px-5 py-4">

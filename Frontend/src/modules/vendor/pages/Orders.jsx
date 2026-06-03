@@ -64,12 +64,14 @@ const Orders = () => {
                         <div key={order.id} className="grid grid-cols-1 md:grid-cols-12 px-5 py-4 items-center hover:bg-gray-50/50 transition-all">
                             {/* Col 1-4: Details */}
                             <div className="col-span-4 pl-2 space-y-1">
-                                <span className="text-[10px] font-black text-[#0c831f] tracking-tight bg-green-50 px-2 py-0.5 rounded border border-green-100">#{order.id}</span>
+                                <span className="text-[10px] font-black text-[#0c831f] tracking-tight bg-green-50 px-2 py-0.5 rounded border border-green-100">#{order.orderId || order.id || order._id}</span>
                                 <h3 className="text-sm font-extrabold text-gray-900 leading-none mt-1">{order.customer}</h3>
                                 <div className="flex items-center gap-2 text-gray-400 font-bold text-[10px]">
                                     <span className="flex items-center gap-1"><Clock size={10} /> {order.time}</span>
-                                    <span>?</span>
+                                    <span>•</span>
                                     <span>{order.items} Items</span>
+                                    <span>•</span>
+                                    <span className="uppercase text-slate-500 border border-slate-200 px-1 py-0.5 rounded leading-none">{order.paymentMethod === 'cod' ? 'COD' : 'ONLINE'}</span>
                                 </div>
                             </div>
 

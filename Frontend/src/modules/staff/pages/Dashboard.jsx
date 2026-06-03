@@ -240,7 +240,10 @@ const StaffDashboard = () => {
                                                     </div>
                                                     <div className="text-left font-black">
                                                         <div className="font-black text-slate-900 text-[13px] uppercase tracking-tight italic font-black leading-none text-left">{order.customer}</div>
-                                                        <div className="text-[9px] text-slate-400 font-bold uppercase tracking-[0.2em] mt-2.5 leading-none italic font-black text-left">Ref: #{order.id?.slice(-8)}</div>
+                                                        <div className="text-[9px] text-slate-400 font-bold uppercase tracking-[0.2em] mt-2.5 leading-none italic font-black text-left">Ref: #{order.orderId || order.id || order._id}</div>
+                                                        <div className="text-[8px] text-slate-500 bg-slate-100 px-1 py-0.5 rounded uppercase mt-1 w-fit">
+                                                            {order.paymentMethod === 'cod' ? 'COD' : 'ONLINE'}
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </td>

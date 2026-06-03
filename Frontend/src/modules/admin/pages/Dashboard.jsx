@@ -184,10 +184,13 @@ const Dashboard = () => {
                             {apiOrders?.map((order, idx) => (
                                 <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
                                     <td className="px-6 py-4">
-                                        <span className="text-sm font-medium text-slate-900">#{order.id}</span>
+                                        <span className="text-sm font-medium text-slate-900">#{order.orderId || order.id || order._id}</span>
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="text-sm font-medium text-slate-700">{order.customer || 'Unknown'}</div>
+                                        <span className="bg-slate-100 text-slate-500 border border-slate-200 text-[8px] font-bold px-1.5 py-0.5 rounded uppercase mt-1 inline-block">
+                                            {order.paymentMethod === 'cod' ? 'COD' : 'ONLINE'}
+                                        </span>
                                     </td>
                                     <td className="px-6 py-4">
                                         <span className="text-sm font-bold text-slate-900">₹{order.amount?.toLocaleString()}</span>

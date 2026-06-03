@@ -166,31 +166,31 @@ const AdminSidebar = ({ showMobile, onClose }) => {
                     
                     .sidebar-content { flex: 1; overflow-y: auto; padding: 20px 14px; }
                     .menu-group { margin-bottom: 4px; }
-                    .menu-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-radius: 10px; color: #94a3b8; cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
-                    .menu-item:hover { background: rgba(255,255,255,0.05); color: #f1f5f9; }
+                    .menu-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-radius: 10px; color: #cbd5e1; cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+                    .menu-item:hover { background: rgba(255,255,255,0.08); color: #ffffff; }
                     .menu-item .label { font-size: 14px; font-weight: 500; }
-                    .menu-item .sidebar-icon { opacity: 0.8; }
-                    .menu-item .chevron-icon { opacity: 0.5; }
+                    .menu-item .sidebar-icon { opacity: 0.9; }
+                    .menu-item .chevron-icon { opacity: 0.7; }
                     
                     .menu-item.active, .menu-item.standalone.active { background: #2563eb; color: #fff; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2); }
                     .menu-item.active .sidebar-icon, .menu-item.active .chevron-icon { opacity: 1; }
                     .menu-item.active .label { font-weight: 600; }
-                    .menu-item.child-active { background: rgba(255,255,255,0.05); color: #f1f5f9; }
+                    .menu-item.child-active { background: rgba(255,255,255,0.05); color: #f8fafc; }
 
                     .submenu-wrapper { max-height: 0; overflow: hidden; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); opacity: 0; }
                     .submenu-wrapper.open { max-height: 600px; opacity: 1; padding: 6px 0; }
-                    .submenu-item { display: flex; align-items: center; gap: 12px; padding: 9px 12px 9px 46px; font-size: 13.5px; font-weight: 400; color: #64748b; position: relative; transition: all 0.2s; border-radius: 8px; }
-                    .submenu-item:hover { color: #f1f5f9; background: rgba(255,255,255,0.03); }
+                    .submenu-item { display: flex; align-items: center; gap: 12px; padding: 9px 12px 9px 46px; font-size: 13.5px; font-weight: 400; color: #94a3b8; position: relative; transition: all 0.2s; border-radius: 8px; }
+                    .submenu-item:hover { color: #f8fafc; background: rgba(255,255,255,0.05); }
                     .submenu-item.active { color: #fff; font-weight: 500; background: rgba(37, 99, 235, 0.1); }
                     .submenu-item.active::before { content: ''; position: absolute; left: 40px; top: 18px; width: 4px; height: 4px; background: #2563eb; border-radius: 50%; }
                     
                     .sidebar-footer { padding: 16px; border-top: 1px solid rgba(255,255,255,0.05); }
                     .portal-links { margin-bottom: 10px; }
-                    .portal-links-title { font-size: 9px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 6px; padding: 0 4px; }
+                    .portal-links-title { font-size: 9px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 6px; padding: 0 4px; }
                     .portal-links-grid { display: flex; flex-direction: column; gap: 4px; }
-                    .portal-link-btn { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; color: #64748b; font-size: 12px; font-weight: 500; border: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.03); transition: all 0.2s; text-decoration: none; }
-                    .portal-link-btn:hover { background: rgba(37,99,235,0.12); color: #93c5fd; border-color: rgba(37,99,235,0.25); }
-                    .logout-btn { width: 100%; display: flex; align-items: center; gap: 10px; padding: 12px; border-radius: 10px; color: #94a3b8; font-size: 14px; font-weight: 500; transition: all 0.2s text-color; border: 1px solid transparent; }
+                    .portal-link-btn { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; color: #94a3b8; font-size: 12px; font-weight: 500; border: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.03); transition: all 0.2s; text-decoration: none; }
+                    .portal-link-btn:hover { background: rgba(37,99,235,0.12); color: #bfdbfe; border-color: rgba(37,99,235,0.25); }
+                    .logout-btn { width: 100%; display: flex; align-items: center; gap: 10px; padding: 12px; border-radius: 10px; color: #cbd5e1; font-size: 14px; font-weight: 500; transition: all 0.2s text-color; border: 1px solid transparent; }
                     .logout-btn:hover { background: rgba(239, 68, 68, 0.1); color: #ef4444; border-color: rgba(239, 68, 68, 0.2); }
                     
                     .custom-scrollbar::-webkit-scrollbar { width: 4px; }

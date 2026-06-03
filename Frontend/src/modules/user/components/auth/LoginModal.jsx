@@ -4,9 +4,11 @@ import { useAuth } from '../../context/AuthContext';
 import * as authApi from '../../api/userAuthApi';
 import { toast } from 'react-toastify';
 import PolicyViewerModal from '../../../../common/components/legal/PolicyViewerModal';
+import { useLocation } from '../../context/LocationContext';
 
 const LoginModal = () => {
     const { showLoginModal, closeLoginModal, login, register, loginView, setLoginView } = useAuth();
+    const { openLocationModal } = useLocation();
     const [phoneNumber, setPhoneNumber] = useState('');
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
@@ -81,6 +83,11 @@ const LoginModal = () => {
             setEmail('');
             setOtp('');
             setShowOTP(false);
+            
+            // Ask for location immediately after login/register
+            setTimeout(() => {
+                openLocationModal();
+            }, 500);
         }
     };
 

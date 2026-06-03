@@ -360,7 +360,7 @@ const OrderTrackingPage = () => {
           <div className="mt-1">
             <div className="bg-white/80 dark:bg-gray-400/40 backdrop-blur-md px-4 py-0.5 rounded-full shadow-sm">
               <span className="text-[7.5px] font-black text-gray-700 dark:text-[#2d2d2d] uppercase tracking-widest leading-none">
-                #{order.orderId || id.slice(-8)}
+                #{order.orderId || id}
               </span>
             </div>
           </div>

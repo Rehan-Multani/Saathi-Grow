@@ -309,7 +309,7 @@ const POSHistory = () => {
                                     <tr key={order._id} className="hover:bg-slate-50/50 transition-colors">
                                         <td className="px-6 py-4">
                                             <span className="text-sm font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded">
-                                                #{order.orderId || order._id.slice(-8).toUpperCase()}
+                                                #{order.orderId || order._id}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4">
@@ -329,6 +329,9 @@ const POSHistory = () => {
                                                 <Calendar size={14} className="text-slate-400" />
                                                 {new Date(order.createdAt).toLocaleDateString()}
                                             </div>
+                                            <span className="bg-slate-100 text-slate-500 border border-slate-200 text-[9px] font-bold px-1.5 py-0.5 rounded uppercase mt-1 inline-block">
+                                                {order.paymentMethod || 'CASH'}
+                                            </span>
                                         </td>
                                         <td className="px-6 py-4">
                                             <OrderStatusBadge status={order.status} t={t} />

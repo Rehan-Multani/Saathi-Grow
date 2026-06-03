@@ -1,5 +1,5 @@
 import React, {useRef , useState, useEffect}from 'react';
-import { User, Mail, Phone, MapPin, Camera, ArrowLeft, ChevronRight, ShoppingBag, CreditCard, LogOut, Shield, Moon, Sun, Bell, HelpCircle, Heart, MessageCircle, Tag, BellRing } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Camera, ArrowLeft, ChevronRight, ShoppingBag, CreditCard, LogOut, Shield, Moon, Sun, Bell, HelpCircle, Heart, MessageCircle, Tag, BellRing, Edit2, X, Loader2 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -30,8 +30,10 @@ const ProfilePage = () => {
         }
     }, [token]);
 
-
-
+    // Edit Profile State
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [editName, setEditName] = useState('');
+    const [editEmail, setEditEmail] = useState('');
     const handleImageUpload = async (e) => {
         const file = e.target.files[0];
         if (file) {
@@ -43,6 +45,25 @@ const ProfilePage = () => {
                 toast.success('Profile picture updated');
             }
         }
+    };
+
+    const handleEditSubmit = async (e) => {
+        e.preventDefault();
+        const formData = new FormData();
+        if (editName.trim()) formData.append('name', editName.trim());
+        if (editEmail.trim()) formData.append('email', editEmail.trim());
+
+        const result = await updateUser(formData);
+        if (result.success) {
+            toast.success('Profile updated successfully');
+            setShowEditModal(false);
+        }
+    };
+
+    const openEditModal = () => {
+        setEditName(user?.name || '');
+        setEditEmail(user?.email || '');
+        setShowEditModal(true);
     };
 
     const sections = [
@@ -82,6 +103,13 @@ const ProfilePage = () => {
                         <ArrowLeft size={16} className="md:w-6 md:h-6" />
                     </button>
                     <h1 className="!text-[16px] md:!text-[18px] font-bold text-gray-900 dark:text-gray-100 uppercase tracking-widest flex-1">My Profile</h1>
+                    <button 
+                        onClick={openEditModal}
+                        className="p-1.5 md:p-2 bg-[#eefaf1] text-[#0c831f] rounded-full hover:bg-[#0c831f] hover:text-white transition-colors"
+                        title="Edit Profile"
+                    >
+                        <Edit2 size={16} className="md:w-5 md:h-5" />
+                    </button>
 
                 </div>
 
@@ -129,7 +157,12 @@ const ProfilePage = () => {
                                     <Camera size={14} className="md:w-5 md:h-5" />
                                 </button>
                             </div>
-                            <h2 className="!text-[20px] md:!text-[18px] font-bold text-gray-900 dark:text-gray-100">{user?.name || "Saathi Member"}</h2>
+                            <div className="flex items-center justify-center gap-2">
+                                <h2 className="!text-[20px] md:!text-[18px] font-bold text-gray-900 dark:text-gray-100">{user?.name || "Saathi Member"}</h2>
+                                <button onClick={openEditModal} className="text-[#0c831f] p-1 rounded-full hover:bg-[#e8f5e9] md:hidden">
+                                    <Edit2 size={14} />
+                                </button>
+                            </div>
                             <p className="!text-[12px] md:!text-xs text-gray-400 font-bold tracking-widest mt-1.5 md:mt-2">{user?.email || (user?.phone ? `+91 ${user.phone}` : "member@sathiGro.com")}</p>
                         </div>
 
@@ -218,6 +251,69 @@ const ProfilePage = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Edit Profile Modal */}
+            {showEditModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+                    <div className="bg-white dark:bg-[#141414] rounded-3xl w-full max-w-md shadow-2xl overflow-hidden border border-gray-100 dark:border-white/10 animate-in zoom-in-95 duration-200">
+                        <div className="flex justify-between items-center p-6 border-b border-gray-100 dark:border-white/10">
+                            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 uppercase tracking-widest">Edit Profile</h3>
+                            <button onClick={() => setShowEditModal(false)} className="text-gray-400 hover:text-red-500 transition-colors bg-gray-50 dark:bg-white/5 p-2 rounded-full">
+                                <X size={20} />
+                            </button>
+                        </div>
+                        <form onSubmit={handleEditSubmit} className="p-6 space-y-5">
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-widest ml-1">Full Name</label>
+                                <div className="relative">
+                                    <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                                    <input 
+                                        type="text" 
+                                        value={editName}
+                                        onChange={(e) => setEditName(e.target.value)}
+                                        className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl py-3.5 pl-12 pr-4 text-sm font-semibold text-gray-900 dark:text-gray-100 focus:border-[#0c831f] focus:ring-1 focus:ring-[#0c831f] outline-none transition-all"
+                                        placeholder="Enter your name"
+                                        required
+                                    />
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-widest ml-1">Email Address</label>
+                                <div className="relative">
+                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                                    <input 
+                                        type="email" 
+                                        value={editEmail}
+                                        onChange={(e) => setEditEmail(e.target.value)}
+                                        className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl py-3.5 pl-12 pr-4 text-sm font-semibold text-gray-900 dark:text-gray-100 focus:border-[#0c831f] focus:ring-1 focus:ring-[#0c831f] outline-none transition-all"
+                                        placeholder="Enter your email"
+                                    />
+                                </div>
+                            </div>
+                            <div className="space-y-2 opacity-60">
+                                <label className="text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-widest ml-1">Phone Number</label>
+                                <div className="relative">
+                                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                                    <input 
+                                        type="text" 
+                                        value={user?.phone ? `+91 ${user.phone}` : ''}
+                                        disabled
+                                        className="w-full bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl py-3.5 pl-12 pr-4 text-sm font-semibold text-gray-500 dark:text-gray-500 cursor-not-allowed outline-none"
+                                    />
+                                </div>
+                                <p className="text-[10px] text-gray-400 font-medium ml-1">Phone number cannot be changed.</p>
+                            </div>
+                            <button 
+                                type="submit" 
+                                disabled={loading}
+                                className="w-full mt-2 py-4 bg-[#0c831f] text-white rounded-2xl font-bold uppercase tracking-widest hover:bg-[#0a6b19] active:scale-[0.98] transition-all disabled:opacity-50 shadow-lg shadow-[#0c831f]/20 flex items-center justify-center gap-2"
+                            >
+                                {loading ? <Loader2 size={20} className="animate-spin" /> : 'Save Changes'}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
