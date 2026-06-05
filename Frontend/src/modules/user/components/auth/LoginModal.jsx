@@ -83,6 +83,11 @@ const LoginModal = () => {
             setEmail('');
             setOtp('');
             setShowOTP(false);
+            
+            // Ask for location immediately after login/register
+            setTimeout(() => {
+                openLocationModal();
+            }, 500);
         }
     };
 

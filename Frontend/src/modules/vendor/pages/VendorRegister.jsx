@@ -267,10 +267,10 @@ const VendorRegister = () => {
                             <textarea name="description" onChange={handleChange} value={formData.description} rows={2} className="w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 text-gray-900 placeholder:text-gray-400 focus:bg-white focus:border-[#0c831f] outline-none text-sm font-medium resize-none" placeholder="Tell us about your store..." />
                         </div>
 
-                        <div className="flex items-center gap-2 mt-2 px-1">
-                            <input
-                                type="checkbox"
-                                id="terms"
+                        <div className="flex items-start gap-2 mt-2 px-1">
+                            <input 
+                                type="checkbox" 
+                                id="terms" 
                                 checked={agreedToTerms}
                                 onChange={(e) => setAgreedToTerms(e.target.checked)}
                                 className="w-4 h-4 text-[#0c831f] border-gray-300 rounded focus:ring-[#0c831f] cursor-pointer"

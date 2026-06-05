@@ -300,6 +300,47 @@ const Dashboard = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Recent Orders */}
+            <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+                <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+                    <div>
+                        <h4 className="text-lg font-bold text-gray-900">Recent Orders</h4>
+                        <p className="text-xs font-medium text-gray-500 mt-1">Latest customer purchases</p>
+                    </div>
+                    <button onClick={() => navigate('/vendor/orders')} className="text-sm font-bold text-[#0c831f] hover:underline flex items-center gap-1">
+                        View All <ArrowUpRight size={16} />
+                    </button>
+                </div>
+                
+                <div className="p-2">
+                    {(recentOrders || []).map((order, idx) => (
+                        <div key={idx} className="flex items-center justify-between p-4 hover:bg-gray-50 rounded-xl transition-colors cursor-pointer border border-transparent hover:border-gray-100">
+                            <div className="flex items-center gap-4">
+                                <div className="hidden sm:flex w-12 h-12 bg-gray-50 border border-gray-100 rounded-xl items-center justify-center font-bold text-gray-500 text-xs">
+                                    #{order.orderId?.slice(-4)}
+                                </div>
+                                <div>
+                                    <p className="text-sm font-bold text-gray-900">{order.customer || 'Customer Details'}</p>
+                                    <p className="text-xs font-medium text-gray-500 mt-0.5">{order.itemsCount} Items ordered</p>
+                                </div>
+                            </div>
+                            <div className="text-right">
+                                <p className="text-sm font-bold text-gray-900">{formatCurrency(order.amount)}</p>
+                                <span className={`inline-block mt-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider
+                                    ${order.status === 'delivered' ? 'bg-green-50 text-green-700' : 
+                                      order.status === 'confirmed' ? 'bg-blue-50 text-blue-700' : 
+                                      'bg-yellow-50 text-yellow-700'}`}>
+                                    {order.status}
+                                </span>
+                            </div>
+                        </div>
+                    ))}
+                    {(!recentOrders || recentOrders.length === 0) && (
+                        <div className="text-center py-10 text-gray-500 text-sm font-medium">No recent orders found.</div>
+                    )}
+                </div>
+            </div>
         </div>
     );
 };

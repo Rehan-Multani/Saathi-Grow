@@ -57,9 +57,7 @@ const OrdersPage = () => {
                         }, []),
                         color: colorClass,
                         deliveryOTP: o.deliveryOTP,
-                        returnRequest: o.returnRequest,
-                        paymentMethod: o.paymentMethod || 'online',
-                        orderId: o.orderId
+                        returnRequest: o.returnRequest
                     }
                 });
 
@@ -111,7 +109,7 @@ const OrdersPage = () => {
                                             <Package size={18} className="md:w-7 md:h-7" />
                                         </div>
                                         <div>
-                                            <div className="!text-[13px] md:!text-lg font-black text-gray-900 dark:text-gray-100 tracking-tight leading-none mb-1 md:mb-1.5">Order #{order.orderId || order.id.slice(-8).toUpperCase()}</div>
+                                            <div className="!text-[13px] md:!text-lg font-black text-gray-900 dark:text-gray-100 tracking-tight leading-none mb-1 md:mb-1.5">Order #{order.id.slice(-6).toUpperCase()}</div>
                                             <div className="!text-[10px] md:!text-xs text-gray-400 font-bold uppercase tracking-wider">{order.date}</div>
                                         </div>
                                     </div>

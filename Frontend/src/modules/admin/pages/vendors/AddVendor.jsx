@@ -19,6 +19,7 @@ const AddVendor = () => {
         email: '',
         phone: '',
         password: '',
+        password: '',
         address: {
             street: '',
             city: '',
@@ -101,6 +102,7 @@ const AddVendor = () => {
             toast.success(t('form.add_success'));
             navigate('/admin/vendors');
         } catch (error) {
+            toast.error(error.response?.data?.message || error.message || 'Failed to add vendor');
             toast.error(error.response?.data?.message || error.message || 'Failed to add vendor');
         } finally {
             setLoading(false);

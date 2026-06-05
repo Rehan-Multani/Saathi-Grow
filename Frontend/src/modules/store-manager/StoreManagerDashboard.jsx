@@ -164,65 +164,29 @@ const StoreManagerDashboard = () => {
                                     View All <Icons.ArrowRight size={14} />
                                 </button>
                             </div>
-                            <div className="overflow-x-auto custom-scrollbar">
-                                <table className="w-full text-left border-collapse">
-                                    <thead className="bg-slate-50/30 text-[10px] font-black text-slate-600 uppercase tracking-[0.3em] border-b border-slate-100">
-                                        <tr>
-                                            <th className="px-6 py-4 font-black">User</th>
-                                            <th className="px-6 py-4 text-center font-black">Amount</th>
-                                            <th className="px-6 py-4 text-right font-black">Progress</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-slate-50">
-                                        {apiOrders?.map((order, idx) => (
-                                            <tr key={idx} className="hover:bg-blue-50/10 transition-all group cursor-pointer" onClick={() => navigate('/store-manager/orders')}>
-                                                <td className="px-6 py-4">
-                                                    <div className="flex items-center gap-4">
-                                                        <div className="h-10 w-10 bg-slate-950 text-white rounded-xl flex items-center justify-center font-black text-xs shadow-md group-hover:scale-105 group-hover:bg-blue-600 transition-all duration-300 shrink-0 italic">
-                                                            {(order.customer || 'Guest').charAt(0)}
-                                                        </div>
-                                                        <div className="text-left font-black">
-                                                            <div className="font-bold text-slate-900 text-xs uppercase tracking-tight leading-none text-left">{order.customer || 'Guest'}</div>
-                                                            <div className="text-[9px] text-slate-400 font-bold uppercase tracking-[0.2em] mt-1.5 leading-none text-left">Ref: #{order.orderId || order.id || order._id}</div>
-                                                            <div className="flex items-center gap-1.5 mt-1.5">
-                                                                <span className="bg-slate-100 text-slate-500 border border-slate-200 text-[8px] font-black px-1 py-0.5 rounded uppercase leading-none">
-                                                                    {order.paymentMethod === 'cod' ? 'COD' : 'ONLINE'}
-                                                                </span>
-                                                                <span className="text-[8px] text-slate-400 font-bold uppercase tracking-wider leading-none">
-                                                                    {order.date ? new Date(order.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}
-                                                                </span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 text-center">
-                                                    <span className="font-black text-slate-900 text-sm italic tracking-tight">₹{(order.amount || 0).toLocaleString()}</span>
-                                                </td>
-                                                <td className="px-6 py-4 text-right">
-                                                    <span className={`inline-flex px-3 py-1.5 rounded-[1.1rem] text-[9px] font-black uppercase tracking-[0.2em] border shadow-sm ${
-                                                        order.status === 'delivered' ? 'bg-emerald-50 text-emerald-700 border-emerald-100 shadow-emerald-500/5 px-4' :
-                                                        order.status === 'pending' ? 'bg-amber-50 text-amber-700 border-amber-100 shadow-amber-500/5' :
-                                                        order.status === 'cancelled' ? 'bg-rose-50 text-rose-700 border-rose-100 shadow-rose-500/5' :
-                                                        order.status === 'returned' || order.status === 'return_picked_up' ? 'bg-indigo-50 text-indigo-700 border-indigo-100 shadow-indigo-500/5' :
-                                                        'bg-blue-50 text-blue-700 border-blue-100 shadow-blue-500/5'
-                                                    }`}>
-                                                        {order.status || 'pending'}
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                        {(!apiOrders || apiOrders.length === 0) && (
-                                            <tr>
-                                                <td colSpan="3" className="px-6 py-12 text-center">
-                                                    <div className="flex flex-col items-center opacity-30 mx-auto">
-                                                        <Icons.Inbox size={32} className="mb-4 text-slate-200" />
-                                                        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 italic">No Recent Sales Data</p>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        )}
-                                    </tbody>
-                                </table>
+                            <div className="divide-y divide-slate-100 p-2">
+                                {apiOrders?.map((order, idx) => (
+                                    <div key={idx} className="flex items-center justify-between p-4 hover:bg-slate-50 rounded-2xl transition-all group cursor-pointer" onClick={() => navigate('/store-manager/orders')}>
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center border border-slate-200 text-slate-400 group-hover:text-blue-600 group-hover:border-blue-200 shadow-sm transition-all font-bold text-xs shrink-0">
+                                                #{order.id ? order.id.toString().slice(-4) : '....'}
+                                            </div>
+                                            <div className="min-w-0">
+                                                <p className="text-sm font-bold text-slate-800 truncate">{order.customer || 'Guest'}</p>
+                                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{order.date ? new Date(order.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}</p>
+                                            </div>
+                                        </div>
+                                        <div className="text-right shrink-0">
+                                            <p className="text-base font-black text-slate-900">₹{(order.amount || 0).toLocaleString()}</p>
+                                            <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full border ${order.status === 'delivered' ? 'bg-green-50 text-green-700 border-green-100' : 'bg-blue-50 text-blue-700 border-blue-100'}`}>
+                                                {order.status || 'pending'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                ))}
+                                {(!apiOrders || apiOrders.length === 0) && (
+                                    <div className="text-center py-12 text-slate-400 text-sm font-medium italic">No recent transactions found.</div>
+                                )}
                             </div>
                         </div>
                     )}
