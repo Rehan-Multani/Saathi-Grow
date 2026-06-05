@@ -128,7 +128,7 @@ export const getDashboardStats = async (req, res) => {
           { $count: "count" }
         ]),
       // Active Riders (Hiding for non-admin/managers as they are global)
-      role === 'Admin' || role === 'Branch Manager'
+      role === 'Admin' || role === 'Store Manager'
         ? DeliveryPartner.countDocuments({ status: 'Online', assignmentStatus: 'Free' })
         : Promise.resolve(0),
       // Channel Split
@@ -186,13 +186,13 @@ export const getDashboardStats = async (req, res) => {
 
     const permissions = req.admin.permissions || [];
     const isSuperAdmin = role === 'Admin';
-    const isBranchManager = role === 'Branch Manager';
+    const isStoreManager = role === 'Store Manager';
 
-    const canViewOrders = isSuperAdmin || isBranchManager || permissions.includes('VIEW_ORDERS');
-    const canViewRevenue = isSuperAdmin || isBranchManager || permissions.includes('MANAGE_POS_BILLING');
-    const canViewProducts = isSuperAdmin || isBranchManager || permissions.includes('VIEW_PRODUCTS') || permissions.includes('MANAGE_PRODUCTS');
-    const canViewInventory = isSuperAdmin || isBranchManager || permissions.includes('MANAGE_INVENTORY');
-    const canViewCustomers = isSuperAdmin || isBranchManager || permissions.includes('VIEW_CUSTOMERS');
+    const canViewOrders = isSuperAdmin || isStoreManager || permissions.includes('VIEW_ORDERS');
+    const canViewRevenue = isSuperAdmin || isStoreManager || permissions.includes('MANAGE_POS_BILLING');
+    const canViewProducts = isSuperAdmin || isStoreManager || permissions.includes('VIEW_PRODUCTS') || permissions.includes('MANAGE_PRODUCTS');
+    const canViewInventory = isSuperAdmin || isStoreManager || permissions.includes('MANAGE_INVENTORY');
+    const canViewCustomers = isSuperAdmin || isStoreManager || permissions.includes('VIEW_CUSTOMERS');
 
     const supportStats = pendingTickets[0] || { actionRequired: 0, totalActive: 0 };
 
@@ -209,7 +209,7 @@ export const getDashboardStats = async (req, res) => {
         pendingTickets: supportStats.actionRequired,
         supportStats: supportStats,
         lowStockCount: canViewInventory ? finalLowStockCount : null,
-        activeRiders: role === 'Admin' || role === 'Branch Manager' ? activeRiders : null
+        activeRiders: role === 'Admin' || role === 'Store Manager' ? activeRiders : null
       },
       channels: canViewOrders ? {
         pos: channelSplit.find(c => c._id === 'pos')?.count || 0,

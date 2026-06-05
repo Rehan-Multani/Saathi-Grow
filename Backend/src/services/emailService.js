@@ -100,51 +100,115 @@ export const sendWelcomeEmail = async (toEmail, name, role, password = null) => 
       auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
     });
 
-    const isStaff = role === 'Staff' || role === 'Branch Manager' || role === 'Admin' || role === 'Vendor';
+    const baseDomain = 'https://saathigro.in';
+    let portalUrl = `${baseDomain}/admin/login`;
+    let portalName = 'Admin Portal';
+
+    const normalizedRole = (role || '').trim().toLowerCase().replace(/[-_]/g, ' ');
+    let displayRole = role;
+
+    if (normalizedRole === 'branch manager') {
+      displayRole = 'Store Manager';
+    }
+
+    if (normalizedRole === 'vendor') {
+      portalUrl = `${baseDomain}/vendor/login`;
+      portalName = 'Vendor Portal';
+    } else if (normalizedRole === 'staff') {
+      portalUrl = `${baseDomain}/staff/login`;
+      portalName = 'Staff Portal';
+    } else if (normalizedRole === 'rider' || normalizedRole === 'delivery partner' || normalizedRole === 'delivery boy') {
+      portalUrl = `${baseDomain}/delivery/login`;
+      portalName = 'Delivery Partner Portal';
+    } else if (normalizedRole === 'store manager' || normalizedRole === 'branch manager' || normalizedRole === 'store manger' || normalizedRole === 'store maanger') {
+      portalUrl = `${baseDomain}/store-manager/login`;
+      portalName = 'Store Manager Portal';
+    } else if (normalizedRole === 'customer') {
+      portalUrl = `${baseDomain}/`;
+      portalName = 'SaathiGro Online Store';
+    }
+
+    const isCustomer = normalizedRole === 'customer';
     const mailOptions = {
-      from: `"SaathiGro Teams" <${process.env.EMAIL_USER}>`,
+      from: isCustomer ? `"SaathiGro" <${process.env.EMAIL_USER}>` : `"SaathiGro Teams" <${process.env.EMAIL_USER}>`,
       to: toEmail,
-      subject: isStaff ? `System Access Granted: ${role} Portal` : `Welcome to SaathiGro: ${role}`,
+      subject: isCustomer ? `Welcome to SaathiGro, ${name}!` : `Welcome to SaathiGro: ${displayRole} Access Provisioned`,
       html: `
-        <div style="font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #f0f0f0; padding: 40px; border-radius: 16px; background-color: #ffffff; color: #1a1a1a;">
-          <div style="text-align: center; margin-bottom: 30px;">
-            <h1 style="color: #6366f1; margin: 0; font-size: 28px; letter-spacing: -0.5px;">SaathiGro</h1>
-            <p style="color: #64748b; font-size: 14px; margin-top: 5px; text-transform: uppercase; letter-spacing: 1px;">Partner Network</p>
-          </div>
-
-          <h2 style="color: #1e293b; font-size: 22px; margin-bottom: 20px; font-weight: 700;">Welcome, ${name}!</h2>
-          <p style="font-size: 16px; line-height: 1.6; color: #475569;">We are pleased to inform you that your professional access has been provisioned. You have been onboarded as a <strong style="color: #6366f1;">${role}</strong> within our system.</p>
-          
-          ${isStaff && password ? `
-          <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 25px; margin: 30px 0;">
-            <h3 style="margin-top: 0; font-size: 14px; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px;">Login Credentials</h3>
-            <div style="margin-bottom: 10px; font-size: 15px;">
-              <span style="color: #94a3b8;">Portal ID:</span> <strong style="color: #1e293b; font-family: monospace;">${toEmail}</strong>
+        <div style="font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 30px auto; border: 1px solid #e2e8f0; padding: 40px; border-radius: 20px; background-color: #ffffff; color: #0f172a; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);">
+          <!-- Header Logo -->
+          <div style="text-align: center; margin-bottom: 35px;">
+            <div style="font-size: 32px; font-weight: 800; color: #4f46e5; letter-spacing: -1px; margin-bottom: 6px;">SaathiGro</div>
+            <div style="display: inline-block; background-color: #e0e7ff; color: #4338ca; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; padding: 4px 14px; border-radius: 9999px;">
+              Partner Network
             </div>
-            <div style="font-size: 15px;">
-              <span style="color: #94a3b8;">Initial Key:</span> <strong style="color: #1e293b; font-family: monospace;">${password}</strong>
+          </div>
+
+          <!-- Welcome Header -->
+          <div style="margin-bottom: 25px;">
+            <h2 style="font-size: 24px; font-weight: 700; color: #1e293b; margin: 0 0 10px 0;">Hello ${name},</h2>
+            <p style="font-size: 16px; line-height: 1.6; color: #475569; margin: 0;">
+              ${isCustomer 
+                ? 'Welcome to SaathiGro! We are thrilled to have you join our community. Your shopping account has been successfully created.' 
+                : `Welcome to SaathiGro! We are thrilled to have you onboard. Your professional account has been successfully created and configured with the role of <strong>${displayRole}</strong>.`
+              }
+            </p>
+          </div>
+
+          <!-- Credentials Container -->
+          <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 25px; margin: 30px 0; text-align: left;">
+            <h3 style="margin: 0 0 16px 0; font-size: 13px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 1px;">
+              ${isCustomer ? 'Your Account Information' : 'Your Portal Credentials'}
+            </h3>
+            
+            <div style="margin-bottom: 12px; font-size: 15px;">
+              <span style="color: #64748b; display: inline-block; width: 100px;">Access Link:</span> 
+              <a href="${portalUrl}" style="color: #4f46e5; font-weight: 600; text-decoration: none;">${portalName}</a>
             </div>
-            <p style="margin-top: 15px; margin-bottom: 0; font-size: 12px; color: #ef4444; font-weight: 600;">⚠️ Security Notice: Please change your password immediately after your first successful login.</p>
-          </div>
-          ` : ''}
+            
+            <div style="margin-bottom: 12px; font-size: 15px;">
+              <span style="color: #64748b; display: inline-block; width: 100px;">Username:</span> 
+              <strong style="color: #1e293b; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;">${toEmail}</strong>
+            </div>
 
-          ${!isStaff && password && !password.includes('OTP') ? `<p style="font-size: 15px;">Your temporary password is: <strong style="color: #6366f1;">${password}</strong></p>` : ''}
-          
-          ${role === 'Rider' || role === 'Delivery Partner' ? `
-          <div style="padding: 15px; background: #eff6ff; border-radius: 12px; color: #1e40af; border: 1px solid #bfdbfe; font-size: 13px; margin: 20px 0;">
-            <strong>Logistics Note:</strong> You can quickly login to the Delivery App using your registered phone number and a secure 4-digit OTP sent to your mobile.
-          </div>
-          ` : ''}
+            ${!isCustomer && password ? `
+            <div style="margin-bottom: 12px; font-size: 15px;">
+              <span style="color: #64748b; display: inline-block; width: 100px;">Password:</span> 
+              <strong style="color: #1e293b; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; background-color: #e2e8f0; padding: 2px 6px; border-radius: 4px;">${password}</strong>
+            </div>
+            ` : ''}
 
-          <p style="font-size: 16px; line-height: 1.6; color: #475569;">You can now access your dedicated dashboard to manage operations and view assigned tasks.</p>
-          
-          <div style="margin-top: 40px; text-align: center;">
-            <a href="${process.env.ADMIN_URL || process.env.BASE_URL || '#'}" style="background-color: #6366f1; color: #ffffff; padding: 14px 32px; text-decoration: none; border-radius: 12px; font-weight: 600; display: inline-block; box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.4);">Access Management Portal</a>
+            <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #e2e8f0; font-size: 12px; color: ${isCustomer ? '#4f46e5' : '#ef4444'}; font-weight: 600;">
+              ${isCustomer 
+                ? '💡 Quick Tip: You can also log in seamlessly using your registered phone number via a secure OTP.' 
+                : '⚠️ Security Reminder: For your protection, please update your temporary password immediately upon your first successful login.'
+              }
+            </div>
           </div>
 
+          <!-- Description / Getting Started -->
+          <p style="font-size: 15px; line-height: 1.6; color: #475569; margin: 0 0 30px 0;">
+            ${isCustomer
+              ? 'Click the button below to explore our products, view local offers, and place your first order!'
+              : 'Click the button below to sign in and access your partner dashboard. You\'ll be able to manage orders, update business profile, and execute your operations seamlessly.'
+            }
+          </p>
+
+          <!-- Action Button -->
+          <div style="text-align: center; margin: 35px 0;">
+            <a href="${portalUrl}" style="background-color: #4f46e5; color: #ffffff; padding: 15px 35px; text-decoration: none; border-radius: 12px; font-size: 16px; font-weight: 700; display: inline-block; box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3); transition: all 0.2s ease;">
+              ${isCustomer ? 'Start Shopping' : 'Go to login'}
+            </a>
+          </div>
+
+          <!-- Bottom Help Note -->
+          <div style="background-color: #eff6ff; border: 1px solid #bfdbfe; border-radius: 12px; padding: 15px; color: #1e40af; font-size: 13px; line-height: 1.5; margin: 30px 0;">
+            <strong>Need help?</strong> If you have any trouble logging in or configuring your workspace, please reach out to our administration team or email us at support@saathigro.in.
+          </div>
+
+          <!-- Footer -->
           <div style="margin-top: 40px; padding-top: 25px; border-top: 1px solid #f1f5f9; text-align: center;">
-            <p style="font-size: 12px; color: #94a3b8; margin: 0;">&copy; ${new Date().getFullYear()} SaathiGro Systems. All rights reserved.</p>
-            <p style="font-size: 12px; color: #94a3b8; margin-top: 5px;">This is a system-generated communication sent to ${toEmail}.</p>
+            <p style="font-size: 12px; color: #94a3b8; margin: 0 0 6px 0;">&copy; ${new Date().getFullYear()} SaathiGro Systems. All rights reserved.</p>
+            <p style="font-size: 11px; color: #cbd5e1; margin: 0;">This is an automated system communication sent to ${toEmail}.</p>
           </div>
         </div>
       `

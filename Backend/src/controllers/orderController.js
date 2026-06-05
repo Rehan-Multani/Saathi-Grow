@@ -1705,7 +1705,7 @@ export const updateOrderStatus = async (req, res) => {
     }
 
     // Role-based Status Security
-    if (req.admin.role === 'Branch Manager' || req.admin.role === 'Staff') {
+    if (req.admin.role === 'Store Manager' || req.admin.role === 'Staff') {
       const allowedRolesStatuses = ['confirmed', 'preparing', 'ready_for_pickup', 'cancelled'];
       if (!allowedRolesStatuses.includes(status)) {
         return res.status(403).json({ message: 'Managers and Staff can only mark orders as confirmed, preparing, ready for pickup, or cancelled.' });

@@ -19,7 +19,6 @@ const AddVendor = () => {
         email: '',
         phone: '',
         password: '',
-        password: '',
         address: {
             street: '',
             city: '',
@@ -46,7 +45,7 @@ const AddVendor = () => {
     };
 
     const handleLocationSelect = React.useCallback((locData) => {
-        setErrors(prev => ({ ...prev, street: '', city: '' }));
+        setErrors(prev => ({ ...prev, street: '', city: '', state: '', zipCode: '' }));
         setFormData(prev => ({
             ...prev,
             address: {
@@ -80,6 +79,8 @@ const AddVendor = () => {
         if (!formData.password || formData.password.length < 6) newErrors.password = 'Password must be at least 6 characters';
         if (!formData.address.street.trim()) newErrors.street = 'Street address is required';
         if (!formData.address.city.trim()) newErrors.city = 'City is required';
+        if (!formData.address.state.trim()) newErrors.state = 'State is required';
+        if (!formData.address.zipCode.trim()) newErrors.zipCode = 'Zip code is required';
         if (!logoFile) newErrors.logo = 'Store logo is required';
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -226,19 +227,22 @@ const AddVendor = () => {
                             </div>
                             <GoogleMapsInput onLocationSelect={handleLocationSelect} placeholder="Search location to autofill..." />
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-1">
+                                {/* Street (Full Width) */}
+                                <div className="space-y-1 md:col-span-2">
                                     <input
                                         type="text"
                                         placeholder={`${t('form.street')} *`}
                                         value={formData.address.street}
                                         onChange={(e) => {
                                             setErrors(prev => ({ ...prev, street: '' }));
-                                            setFormData({ ...formData, address: { ...formData.address, street: e.target.value.replace(/[^a-zA-Z\s]/g, '') } });
+                                            setFormData({ ...formData, address: { ...formData.address, street: e.target.value } });
                                         }}
                                         className={`w-full border rounded-xl py-2.5 px-4 text-xs font-bold text-slate-700 outline-none transition-all shadow-sm ${errors.street ? 'border-red-400 bg-red-50/30' : 'bg-white border-slate-200 focus:border-blue-500'}`}
                                     />
                                     <FieldError errKey="street" />
                                 </div>
+
+                                {/* City */}
                                 <div className="space-y-1">
                                     <input
                                         type="text"
@@ -251,6 +255,36 @@ const AddVendor = () => {
                                         className={`w-full border rounded-xl py-2.5 px-4 text-xs font-bold text-slate-700 outline-none transition-all shadow-sm ${errors.city ? 'border-red-400 bg-red-50/30' : 'bg-white border-slate-200 focus:border-blue-500'}`}
                                     />
                                     <FieldError errKey="city" />
+                                </div>
+
+                                {/* State */}
+                                <div className="space-y-1">
+                                    <input
+                                        type="text"
+                                        placeholder="State *"
+                                        value={formData.address.state}
+                                        onChange={(e) => {
+                                            setErrors(prev => ({ ...prev, state: '' }));
+                                            setFormData({ ...formData, address: { ...formData.address, state: e.target.value.replace(/[^a-zA-Z\s]/g, '') } });
+                                        }}
+                                        className={`w-full border rounded-xl py-2.5 px-4 text-xs font-bold text-slate-700 outline-none transition-all shadow-sm ${errors.state ? 'border-red-400 bg-red-50/30' : 'bg-white border-slate-200 focus:border-blue-500'}`}
+                                    />
+                                    <FieldError errKey="state" />
+                                </div>
+
+                                {/* Zip Code (Full width under City/State or side-by-side) */}
+                                <div className="space-y-1 md:col-span-2">
+                                    <input
+                                        type="text"
+                                        placeholder="Zip Code *"
+                                        value={formData.address.zipCode}
+                                        onChange={(e) => {
+                                            setErrors(prev => ({ ...prev, zipCode: '' }));
+                                            setFormData({ ...formData, address: { ...formData.address, zipCode: e.target.value.replace(/\D/g, '').slice(0, 6) } });
+                                        }}
+                                        className={`w-full border rounded-xl py-2.5 px-4 text-xs font-bold text-slate-700 outline-none transition-all shadow-sm ${errors.zipCode ? 'border-red-400 bg-red-50/30' : 'bg-white border-slate-200 focus:border-blue-500'}`}
+                                    />
+                                    <FieldError errKey="zipCode" />
                                 </div>
                             </div>
                         </div>

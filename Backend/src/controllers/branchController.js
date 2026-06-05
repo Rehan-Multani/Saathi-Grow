@@ -118,7 +118,7 @@ export const getBranchById = async (req, res) => {
 
 // @desc    Get current manager's branch
 // @route   GET /api/admin/branches/my-branch
-// @access  Private (Branch Manager)
+// @access  Private (Store Manager)
 export const getMyBranch = async (req, res) => {
   try {
     if (!req.admin.branchId) {
@@ -134,7 +134,7 @@ export const getMyBranch = async (req, res) => {
 
 // @desc    Update current manager's branch
 // @route   PUT /api/admin/branches/my-branch
-// @access  Private (Branch Manager)
+// @access  Private (Store Manager)
 export const updateMyBranch = async (req, res) => {
   try {
     if (!req.admin.branchId) {
@@ -148,6 +148,8 @@ export const updateMyBranch = async (req, res) => {
     if (typeof address === 'string') {
         try { address = JSON.parse(address); } catch(e) {}
     }
+
+    const branch = await Branch.findById(req.admin.branchId);
 
     if (branch) {
       branch.phone = phone || branch.phone;

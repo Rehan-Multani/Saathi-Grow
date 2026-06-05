@@ -133,8 +133,8 @@ export const requirePermission = (requiredPermission) => {
       return next();
     }
 
-    // Implicit permissions for Branch Managers
-    if (req.admin.role === 'Branch Manager' && (requiredPermission === 'MANAGE_ORDERS' || requiredPermission === 'VIEW_ORDERS')) {
+    // Implicit permissions for Store Managers
+    if (req.admin.role === 'Store Manager' && (requiredPermission === 'MANAGE_ORDERS' || requiredPermission === 'VIEW_ORDERS')) {
       return next();
     }
 

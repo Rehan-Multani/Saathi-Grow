@@ -52,7 +52,7 @@ router.post('/', requirePermission('MANAGE_PRODUCTS'), upload.fields([{ name: 'i
 
 router.route('/:id')
   .put(requirePermission('MANAGE_PRODUCTS'), upload.fields([{ name: 'image', maxCount: 1 }, { name: 'gallery', maxCount: 10 }]), updateProduct)
-  .delete(requirePermission('MANAGE_PRODUCTS'), restrictTo('Admin', 'Branch Manager'), deleteProduct);
+  .delete(requirePermission('MANAGE_PRODUCTS'), restrictTo('Admin', 'Store Manager'), deleteProduct);
 
 router.post('/:id/inventory', requirePermission('MANAGE_INVENTORY'), adjustInventory);
 

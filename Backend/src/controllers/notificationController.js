@@ -70,8 +70,8 @@ export const getMyNotifications = async (req, res) => {
       recipientId = req.admin._id;
       recipientModel = 'Admin'; 
       if (req.admin.role === 'Staff') broadcastGroups.push('staff');
-      else if (req.admin.role === 'Branch Manager') broadcastGroups.push('branch_managers', 'staff');
-      else broadcastGroups.push('staff', 'branch_managers');
+      else if (req.admin.role === 'Store Manager') broadcastGroups.push('store_managers', 'staff');
+      else broadcastGroups.push('staff', 'store_managers');
     } else if (req.vendor) {
       recipientId = req.vendor._id;
       recipientModel = 'Vendor';
@@ -202,9 +202,9 @@ export const adminSendNotification = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Title and body are required' });
     }
 
-    // Standardize recipient model for Admin-based roles (Staff, Branch Manager)
+    // Standardize recipient model for Admin-based roles (Staff, Store Manager)
     let finalRecipientModel = recipientType;
-    if (['Staff', 'Branch Manager', 'Admin'].includes(recipientType)) {
+    if (['Staff', 'Store Manager', 'Branch Manager', 'Admin'].includes(recipientType)) {
       finalRecipientModel = 'Admin';
     }
 
@@ -226,7 +226,7 @@ export const adminSendNotification = async (req, res) => {
        if (group === 'users' || group === 'all') {
          notifyAllUsers({ title, body }, { type: 'admin_broadcast' });
        }
-       if (group === 'staff' || group === 'branch_managers' || group === 'all') {
+       if (group === 'staff' || group === 'store_managers' || group === 'branch_managers' || group === 'all') {
          notifyAdmins({ title, body }, { type: 'admin_broadcast' });
        }
     } else {
@@ -327,7 +327,7 @@ export const searchRecipients = async (req, res) => {
     else if (type === 'Vendor') results = await Vendor.find(filter).limit(20).select('name phone');
     else if (type === 'DeliveryPartner') results = await DeliveryPartner.find(filter).limit(20).select('name phone');
     else if (type === 'Staff') results = await Admin.find({ ...filter, role: 'Staff' }).limit(20).select('name phone');
-    else if (type === 'Branch Manager') results = await Admin.find({ ...filter, role: 'Branch Manager' }).limit(20).select('name phone');
+    else if (type === 'Store Manager' || type === 'Branch Manager') results = await Admin.find({ ...filter, role: { $in: ['Store Manager', 'Branch Manager'] } }).limit(20).select('name phone');
 
     res.status(200).json({ success: true, results });
   } catch (error) {

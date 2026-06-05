@@ -28,7 +28,7 @@ const adminSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['Admin', 'Branch Manager', 'Staff'],
+    enum: ['Admin', 'Store Manager', 'Staff'],
     default: 'Staff'
   },
   permissions: [{

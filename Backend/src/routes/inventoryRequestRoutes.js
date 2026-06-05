@@ -11,11 +11,11 @@ const router = express.Router();
 
 router.use(protectAdmin);
 
-// Branch Manager, Store Manager, & Staff routes
-router.post('/', restrictTo('Branch Manager', 'Store Manager', 'Staff'), createRequest);
+// Store Manager & Staff routes
+router.post('/', restrictTo('Store Manager', 'Staff'), createRequest);
 
-// Admin / Branch Manager / Store Manager / Staff routes
-router.get('/', restrictTo('Admin', 'Branch Manager', 'Store Manager', 'Staff'), getRequests);
+// Admin / Store Manager / Staff routes
+router.get('/', restrictTo('Admin', 'Store Manager', 'Staff'), getRequests);
 
 // Admin only routes
 router.put('/:id/approve', restrictTo('Admin'), approveRequest);

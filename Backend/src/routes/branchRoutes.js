@@ -14,16 +14,16 @@ import { upload } from '../config/cloudinary.js';
 const router = express.Router();
 
 router.use(protectAdmin);
-router.get('/my-branch', restrictTo('Admin', 'Branch Manager'), getMyBranch);
-router.put('/my-branch', restrictTo('Admin', 'Branch Manager'), upload.single('logo'), updateMyBranch);
+router.get('/my-branch', restrictTo('Admin', 'Store Manager'), getMyBranch);
+router.put('/my-branch', restrictTo('Admin', 'Store Manager'), upload.single('logo'), updateMyBranch);
 
 router.route('/')
   .get(getBranches)
-  .post(restrictTo('Admin', 'Branch Manager'), upload.single('logo'), createBranch);
+  .post(restrictTo('Admin', 'Store Manager'), upload.single('logo'), createBranch);
 
 router.route('/:id')
   .get(getBranchById)
-  .put(restrictTo('Admin', 'Branch Manager'), upload.single('logo'), updateBranch)
-  .delete(restrictTo('Admin', 'Branch Manager'), deleteBranch);
+  .put(restrictTo('Admin', 'Store Manager'), upload.single('logo'), updateBranch)
+  .delete(restrictTo('Admin', 'Store Manager'), deleteBranch);
 
 export default router;

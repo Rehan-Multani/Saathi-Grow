@@ -30,8 +30,8 @@ export const createPOSOrder = async (req, res) => {
       });
     }
 
-    // POS Permission Check for Staff/Branch Managers
-    if (req.admin && !['Admin', 'Branch Manager'].includes(req.admin.role) && (!req.admin.permissions || !req.admin.permissions.includes('MANAGE_POS_BILLING'))) {
+    // POS Permission Check for Staff/Store Managers
+    if (req.admin && !['Admin', 'Store Manager'].includes(req.admin.role) && (!req.admin.permissions || !req.admin.permissions.includes('MANAGE_POS_BILLING'))) {
       return res.status(403).json({
         message: 'Access Denied: You do not have permission to handle POS billing.'
       });
@@ -229,13 +229,13 @@ export const getPOSOrders = async (req, res) => {
     // If not Super Admin, strictly filter by branch/vendor
     if (req.vendor) {
       query.vendor = req.vendor._id;
-    } else if (req.admin && !['Admin', 'Branch Manager'].includes(req.admin.role)) {
+    } else if (req.admin && !['Admin', 'Store Manager'].includes(req.admin.role)) {
       // Check Permission for Staff/Store Manager
       if (!req.admin.permissions || !req.admin.permissions.includes('MANAGE_POS_BILLING')) {
         return res.status(403).json({ message: 'Access Denied: You do not have permission to view POS history.' });
       }
       query.branchId = req.admin.branchId;
-    } else if (req.admin && req.admin.role === 'Branch Manager') {
+    } else if (req.admin && req.admin.role === 'Store Manager') {
       query.branchId = req.admin.branchId;
     } else if (storeId) {
       // Super Admin manual filtering

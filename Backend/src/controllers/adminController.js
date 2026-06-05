@@ -124,12 +124,12 @@ export const getAllAdmins = async (req, res) => {
 
     // Hierarchy Logic:
     if (req.admin.role === 'Admin') {
-      // Admins can see all 'Branch Manager' and 'Staff' across all branches
-      query.role = { $in: ['Branch Manager', 'Staff'] };
+      // Admins can see all 'Store Manager', 'Branch Manager' and 'Staff' across all branches
+      query.role = { $in: ['Store Manager', 'Branch Manager', 'Staff'] };
     } else {
-      // Branch Managers and allowed Staff can see all team members in THEIR branch
+      // Store Managers and allowed Staff can see all team members in THEIR branch
       // (Excluding Super Admins)
-      query.role = { $in: ['Branch Manager', 'Staff'] };
+      query.role = { $in: ['Store Manager', 'Branch Manager', 'Staff'] };
       query.branchId = req.admin.branchId;
 
       if (!req.admin.branchId) {
@@ -205,6 +205,7 @@ export const createAdmin = async (req, res) => {
     }
 
     let finalRole = role;
+    if (role === 'Branch Manager') finalRole = 'Store Manager';
     let finalBranchId = branchId;
 
     // Allowed permissions for non-Super Admin roles
@@ -222,7 +223,7 @@ export const createAdmin = async (req, res) => {
 
     // Hierarchy Enforcement:
     if (req.admin.role === 'Admin') {
-      // Admins can create Branch Managers or Staff
+      // Admins can create Store Managers or Staff
       // Don't allow creating 'Admin' role via this endpoint for security
       if (role === 'Admin') {
         return res.status(403).json({ message: 'Cannot create other Admin accounts via this module' });
@@ -232,7 +233,7 @@ export const createAdmin = async (req, res) => {
         return res.status(400).json({ message: 'Branch assignment is required for staff and managers' });
       }
     } else {
-      // Branch Managers and Staff can ONLY create Staff for their own branch
+      // Store Managers and Staff can ONLY create Staff for their own branch
       finalRole = 'Staff';
       finalBranchId = req.admin.branchId;
 

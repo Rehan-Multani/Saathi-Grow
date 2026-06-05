@@ -58,7 +58,7 @@ export const getRequests = async (req, res) => {
   try {
     let query = {};
 
-    if (req.admin.role === 'Branch Manager' || req.admin.role === 'Staff' || req.admin.role === 'Store Manager') {
+    if (req.admin.role === 'Store Manager' || req.admin.role === 'Staff') {
       query.branchId = req.admin.branchId;
     }
 
