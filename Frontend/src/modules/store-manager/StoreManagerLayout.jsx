@@ -89,7 +89,7 @@ const StoreManagerLayout = () => {
     };
 
     return (
-        <div className="min-h-screen bg-[#f8fafc] flex font-sans selection:bg-blue-100 selection:text-blue-900 animate-in fade-in duration-500">
+        <div className="h-screen overflow-hidden bg-[#f8fafc] flex font-sans selection:bg-blue-100 selection:text-blue-900 animate-in fade-in duration-500">
             <FirebaseNotificationHandler token={managerToken} role="store-manager" />
             <NewOrderPopup baseRoute="/store-manager/orders" />
             
@@ -98,7 +98,7 @@ const StoreManagerLayout = () => {
                 onClose={() => setShowMobileSidebar(false)}
             />
 
-            <div className="flex-1 flex flex-col min-h-screen lg:ml-[240px] w-full transition-all duration-300">
+            <div className="flex-1 flex flex-col h-screen overflow-hidden lg:ml-[240px] w-full transition-all duration-300">
                 {/* Header */}
                 <header className="h-16 bg-white border-b border-slate-200 sticky top-0 z-40 px-6 flex items-center justify-between shadow-sm">
                     <div className="flex items-center gap-4">
@@ -191,7 +191,7 @@ const StoreManagerLayout = () => {
                 </header>
 
                 {/* Content */}
-                <main className="flex-1 p-6">
+                <main className="flex-1 overflow-y-auto">
                     <Outlet />
                 </main>
 

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import { X, RefreshCcw, ArrowUp, ArrowDown, Database, Info, Loader2 } from 'lucide-react';
 
 const StockUpdateModal = ({ isOpen, onClose, onUpdate, product, loading }) => {
@@ -6,8 +7,20 @@ const StockUpdateModal = ({ isOpen, onClose, onUpdate, product, loading }) => {
     const [type, setType] = useState('add'); // 'add' or 'subtract'
 
     useEffect(() => {
-        setAdjustment('');
-        setType('add');
+        if (isOpen) {
+            document.body.classList.add('modal-open');
+            document.body.style.overflow = 'hidden';
+            setAdjustment('');
+            setType('add');
+        } else {
+            document.body.classList.remove('modal-open');
+            document.body.style.overflow = 'unset';
+        }
+        
+        return () => {
+            document.body.classList.remove('modal-open');
+            document.body.style.overflow = 'unset';
+        };
     }, [isOpen, product]);
 
     const handleSubmit = (e) => {
@@ -24,8 +37,8 @@ const StockUpdateModal = ({ isOpen, onClose, onUpdate, product, loading }) => {
 
     if (!isOpen || !product) return null;
 
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+    return ReactDOM.createPortal(
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
             <div className="bg-white w-full max-w-md rounded-3xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 border border-slate-200">
                 <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
                     <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
@@ -107,7 +120,8 @@ const StockUpdateModal = ({ isOpen, onClose, onUpdate, product, loading }) => {
                     </div>
                 </form>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
 

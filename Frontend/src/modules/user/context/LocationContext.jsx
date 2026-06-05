@@ -20,6 +20,7 @@ export const LocationProvider = ({ children }) => {
 
     const { token, user } = useAuth();
     const [showLocationModal, setShowLocationModal] = useState(false);
+    const [showPermissionModal, setShowPermissionModal] = useState(false);
     const [mapLoaded, setMapLoaded] = useState(false);
 
     // Optimized Google Maps Loader
@@ -138,6 +139,17 @@ export const LocationProvider = ({ children }) => {
         }
     }, [savedAddresses, token]);
 
+    // Automatically prompt for location permission modal when user logs in
+    useEffect(() => {
+        if (token) {
+            // Small timeout to ensure LoginModal is fully closed before LocationPermissionModal opens
+            const timer = setTimeout(() => {
+                setShowPermissionModal(true);
+            }, 600);
+            return () => clearTimeout(timer);
+        }
+    }, [token]);
+
     const updateLocation = (newLocation) => {
         setLocation(newLocation);
         setShowLocationModal(false);
@@ -241,6 +253,32 @@ export const LocationProvider = ({ children }) => {
     const openLocationModal = () => setShowLocationModal(true);
     const closeLocationModal = () => setShowLocationModal(false);
 
+    const detectLocation = () => {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                async (position) => {
+                    const { latitude, longitude } = position.coords;
+                    const coords = [longitude, latitude];
+                    const geoData = await reverseGeocode(coords);
+
+                    updateLocation({
+                        address: geoData?.street || geoData?.address || 'Detected Location',
+                        city: geoData?.city || 'Indore',
+                        coordinates: coords,
+                        fullAddress: geoData?.address
+                    });
+                },
+                (error) => {
+                    console.error('Location detection error:', error);
+                    // Fallback to manual location modal if user denies or error occurs
+                    setShowLocationModal(true);
+                }
+            );
+        } else {
+            setShowLocationModal(true);
+        }
+    };
+
     return (
         <LocationContext.Provider
             value={{
@@ -251,8 +289,12 @@ export const LocationProvider = ({ children }) => {
                 editAddress,
                 deleteAddress,
                 showLocationModal,
+                setShowLocationModal,
+                showPermissionModal,
+                setShowPermissionModal,
                 openLocationModal,
                 closeLocationModal,
+                detectLocation,
                 mapLoaded,
                 reverseGeocode
             }}

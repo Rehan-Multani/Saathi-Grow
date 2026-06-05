@@ -336,7 +336,7 @@ const CheckoutPage = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] md:bg-white md:bg-none md:dark:bg-black transition-colors duration-300 pb-32 pt-8 relative">
+        <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] md:bg-white md:bg-none md:dark:bg-black transition-colors duration-300 pb-32 pt-0 relative">
             {isPlacing && paymentMethod === 'online' && (
                 <div className="fixed inset-0 z-[100] bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] md:bg-white md:bg-none md:dark:bg-black flex flex-col items-center justify-center p-8 animate-in fade-in duration-500">
                     <div className="w-full max-w-xs flex flex-col items-center">
@@ -361,6 +361,23 @@ const CheckoutPage = () => {
                     </div>
                 </div>
             )}
+            
+            {/* White Header */}
+            <div className="sticky top-0 z-50 bg-white dark:bg-black border-b border-gray-100 dark:border-white/5 px-4 py-3 shadow-sm mb-4">
+                <div className="max-w-2xl mx-auto flex items-center gap-3">
+                    <button
+                        onClick={() => navigate(-1)}
+                        className="p-1.5 bg-gray-50 dark:bg-[#141414] rounded-full shadow-sm hover:bg-gray-100 dark:hover:bg-white/5 transition-all"
+                    >
+                        <ArrowLeft size={16} className="text-gray-900 dark:text-white" />
+                    </button>
+                    <div>
+                        <h1 className="!text-[14px] font-black text-gray-900 dark:text-gray-100 tracking-tight capitalize leading-none">Checkout</h1>
+                        <p className="!text-[9px] font-bold text-gray-400 mt-0.5 tracking-wider">{cartCount} items ₹{billDetails?.totalAmount || cartTotal}</p>
+                    </div>
+                </div>
+            </div>
+
             <div className="max-w-2xl mx-auto px-4">
                 {/* Out of Range Banner */}
                 {isStoreOutOfRange && (
@@ -381,18 +398,6 @@ const CheckoutPage = () => {
                         </div>
                     </div>
                 )}
-                <div className="flex items-center gap-3 mb-8">
-                    <button
-                        onClick={() => navigate(-1)}
-                        className="p-1.5 bg-gray-50 dark:bg-[#141414] rounded-full shadow-sm hover:bg-gray-100 dark:hover:bg-white/5 transition-all"
-                    >
-                        <ArrowLeft size={16} className="text-gray-900 dark:text-white" />
-                    </button>
-                    <div>
-                        <h1 className="!text-[13px] font-black text-gray-900 dark:text-gray-100 tracking-tight capitalize leading-none">Checkout</h1>
-                        <p className="!text-[8px] font-bold text-gray-400 mt-0.5 tracking-wider">{cartCount} items ₹{billDetails?.totalAmount || cartTotal}</p>
-                    </div>
-                </div>
 
                 <div className="mb-10">
                     <div className="flex items-center gap-2 mb-4 px-1">

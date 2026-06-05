@@ -68,7 +68,9 @@ export const getPublicSettings = async (req, res) => {
       instagramUrl: settings.instagramUrl,
       twitterUrl: settings.twitterUrl,
       linkedinUrl: settings.linkedinUrl,
-      officialWebsite: settings.officialWebsite
+      officialWebsite: settings.officialWebsite,
+      offerStripText: settings.offerStripText,
+      isOfferStripEnabled: settings.isOfferStripEnabled
     });
   } catch (error) {
     res.status(500).json({ message: 'Error fetching public settings', error: error.message });

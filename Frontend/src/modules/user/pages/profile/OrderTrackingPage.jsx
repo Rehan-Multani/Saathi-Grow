@@ -4,7 +4,7 @@ import { GoogleMap, MarkerF, Polyline, useJsApiLoader } from '@react-google-maps
 import { db } from '../../../../config/firebase';
 import { ref, onValue, off } from 'firebase/database';
 import polylineUtil from '@mapbox/polyline';
-import { Navigation as NavIcon, Phone, ChevronLeft, Star, Clock, AlertCircle, Loader2, CheckCircle } from 'lucide-react';
+import { Navigation as NavIcon, Phone, ChevronLeft, Star, Clock, AlertCircle, Loader2, CheckCircle, XCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import * as orderApi from '../../api/orderApi';
 import { useAuth } from '../../context/AuthContext';
@@ -78,6 +78,33 @@ const OrderTrackingPage = () => {
   const [etaMins, setEtaMins] = useState(null);
   const [distanceText, setDistanceText] = useState(null);
   const [secondsAgo, setSecondsAgo] = useState(null);
+
+  const storeMarkerIcon = useMemo(() => {
+    if (!mapLoaded || !window.google) return null;
+    return {
+      url: storeImg,
+      scaledSize: new window.google.maps.Size(40, 40),
+      anchor: new window.google.maps.Point(20, 20),
+    };
+  }, [mapLoaded]);
+
+  const destMarkerIcon = useMemo(() => {
+    if (!mapLoaded || !window.google) return null;
+    return {
+      url: houseImg,
+      scaledSize: new window.google.maps.Size(40, 40),
+      anchor: new window.google.maps.Point(20, 20),
+    };
+  }, [mapLoaded]);
+
+  const riderMarkerIcon = useMemo(() => {
+    if (!mapLoaded || !window.google) return null;
+    return {
+      url: bikeImg,
+      scaledSize: new window.google.maps.Size(45, 45),
+      anchor: new window.google.maps.Point(22.5, 22.5),
+    };
+  }, [mapLoaded]);
 
   // Billing-safe route throttle
   const lastRouteFetchRef = useRef({ time: 0, location: null });
@@ -202,7 +229,7 @@ const OrderTrackingPage = () => {
     const newPath = [riderLocation, ...routeCoordinates.slice(closestIdx)];
     setTrimmedRoute(newPath);
 
-    if (map && isFOLLOWING) {
+    if (map && isFOLLOWING && window.google?.maps) {
       const bounds = new window.google.maps.LatLngBounds();
       newPath.forEach((p) => bounds.extend(p));
       map.fitBounds(bounds, { top: 120, bottom: 260, left: 50, right: 50 });
@@ -263,6 +290,22 @@ const OrderTrackingPage = () => {
     );
   }
 
+  // ── Cancelled State ────────────────────────────────────────────────────────
+  if (order?.status === 'cancelled') {
+    return (
+      <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-red-500 text-white px-8 text-center">
+        <div className="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center mb-6">
+          <XCircle size={48} className="text-white" />
+        </div>
+        <h1 className="text-4xl font-black mb-2 uppercase tracking-tight">Cancelled</h1>
+        <p className="text-red-100 font-bold mb-8 text-lg">Your order has been cancelled.</p>
+        <button onClick={() => navigate(-1)} className="px-8 py-4 bg-white text-red-600 rounded-2xl text-sm font-black uppercase tracking-widest hover:bg-red-50 transition-all shadow-xl active:scale-95">
+          Go Back
+        </button>
+      </div>
+    );
+  }
+
   // ── Error ──────────────────────────────────────────────────────────────────
   if (trackingError) {
     return (
@@ -282,7 +325,11 @@ const OrderTrackingPage = () => {
   return (
     <div className="fixed inset-0 z-[200] w-full h-full bg-slate-50 dark:bg-zinc-950 text-gray-900 dark:text-white font-sans overflow-hidden flex flex-col">
       {/* ── Map fills entire screen ── */}
-      <div className="flex-1 w-full h-full relative">
+      <div 
+        className="flex-1 w-full h-full relative"
+        onMouseDown={() => setIsFOLLOWING(false)}
+        onTouchStart={() => setIsFOLLOWING(false)}
+      >
         <GoogleMap
           mapContainerStyle={mapContainerStyle}
           center={mapCenter}
@@ -293,38 +340,26 @@ const OrderTrackingPage = () => {
           onDragStart={() => setIsFOLLOWING(false)}
         >
           {/* Store marker */}
-          {storePos && order.status !== 'out_for_delivery' && (
+          {storePos && order.status !== 'out_for_delivery' && storeMarkerIcon && (
             <MarkerF
               position={storePos}
-              icon={{
-                url: storeImg,
-                scaledSize: new window.google.maps.Size(40, 40),
-                anchor: new window.google.maps.Point(20, 20),
-              }}
+              icon={storeMarkerIcon}
             />
           )}
 
           {/* Destination marker */}
-          {destPos && (
+          {destPos && destMarkerIcon && (
             <MarkerF
               position={destPos}
-              icon={{
-                url: houseImg,
-                scaledSize: new window.google.maps.Size(40, 40),
-                anchor: new window.google.maps.Point(20, 20),
-              }}
+              icon={destMarkerIcon}
             />
           )}
 
           {/* Rider marker */}
-          {riderLocation && (
+          {riderLocation && riderMarkerIcon && (
             <MarkerF
               position={riderLocation}
-              icon={{
-                url: bikeImg,
-                scaledSize: new window.google.maps.Size(45, 45),
-                anchor: new window.google.maps.Point(22.5, 22.5),
-              }}
+              icon={riderMarkerIcon}
               zIndex={10}
             />
           )}
@@ -496,6 +531,18 @@ const OrderTrackingPage = () => {
                 </div>
               </div>
             </div>
+
+            {/* Cancel Order Action */}
+            {order.status === 'pending' && (
+              <button
+                onClick={() => navigate(`/orders/${order._id || id}/cancel`)}
+                className="w-full mt-4 py-3.5 bg-red-50 dark:bg-red-500/10 text-red-500 rounded-2xl border border-red-100 dark:border-red-500/10 font-black uppercase tracking-widest text-[11px] flex justify-center items-center gap-2 hover:bg-red-100 dark:hover:bg-red-500/20 active:scale-[0.98] transition-all"
+              >
+                <AlertCircle size={15} />
+                Cancel Order
+              </button>
+            )}
+
           </div>
         </motion.div>
       </div>

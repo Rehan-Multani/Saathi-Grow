@@ -137,7 +137,7 @@ const ManagerDeliveryTracking = () => {
     }
 
     return (
-        <div className="p-6 max-w-7xl mx-auto h-[calc(100vh-140px)] flex flex-col space-y-6">
+        <div className="p-6 max-w-7xl mx-auto h-full flex flex-col space-y-6">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shrink-0">
                 <div>
                     <h1 className="text-2xl font-bold text-slate-900">Assign Deliveries</h1>

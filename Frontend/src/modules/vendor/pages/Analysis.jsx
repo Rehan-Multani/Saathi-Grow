@@ -29,8 +29,8 @@ const Analysis = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-5">
                 {/* Sales Chart */}
-                <div className="bg-white p-6 lg:p-5 rounded-xl shadow-sm border border-gray-100">
-                    <h2 className="text-lg lg:text-lg font-bold text-gray-900 tracking-tight mb-4 lg:mb-3">Revenue Trend</h2>
+                <div className="bg-white p-6 lg:p-5 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                    <h2 className="text-lg lg:text-lg font-extrabold text-gray-900 tracking-tight mb-4 lg:mb-3">Revenue Trend</h2>
                     <div className="h-[300px] lg:h-[250px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <AreaChart data={salesData}>
@@ -41,8 +41,8 @@ const Analysis = () => {
                                     </linearGradient>
                                 </defs>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
-                                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#9ca3af' }} dy={10} />
-                                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#9ca3af' }} tickFormatter={(value) => `₹${value}`} />
+                                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#9ca3af', fontWeight: 'bold' }} dy={10} />
+                                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#9ca3af', fontWeight: 'bold' }} tickFormatter={(value) => `₹${value}`} />
                                 <Tooltip
                                     contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #f3f4f6' }}
                                     itemStyle={{ color: '#0c831f', fontWeight: 'bold' }}
@@ -54,19 +54,20 @@ const Analysis = () => {
                 </div>
 
                 {/* Orders Bar Chart */}
-                <div className="bg-white p-6 lg:p-5 rounded-xl shadow-sm border border-gray-100">
-                    <h2 className="text-lg lg:text-lg font-bold text-gray-900 tracking-tight mb-4 lg:mb-3">Orders Volume</h2>
+                <div className="bg-white p-6 lg:p-5 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                    <h2 className="text-lg lg:text-lg font-extrabold text-gray-900 tracking-tight mb-4 lg:mb-3">Orders Volume</h2>
                     <div className="h-[300px] lg:h-[250px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={salesData}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
-                                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#9ca3af' }} dy={10} />
-                                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#9ca3af' }} />
+                                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#9ca3af', fontWeight: 'bold' }} dy={10} />
+                                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#9ca3af', fontWeight: 'bold' }} />
                                 <Tooltip
                                     cursor={{ fill: '#f3f4f6' }}
-                                    contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #f3f4f6' }}
+                                    contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #f3f4f6', fontWeight: 'bold' }}
+                                    itemStyle={{ color: '#eab308', fontWeight: 'bold' }}
                                 />
-                                <Bar dataKey="orders" fill="#fef08a" radius={[4, 4, 0, 0]} />
+                                <Bar dataKey="orders" fill="#fef08a" activeBar={{ fill: '#facc15' }} radius={[4, 4, 0, 0]} />
                             </BarChart>
                         </ResponsiveContainer>
                     </div>

@@ -60,33 +60,59 @@ const FirebaseNotificationHandler = ({ token, role, isApp = false, showToast = f
       const title = payload.notification?.title || payload.data?.title || 'New Notification';
       const body = payload.notification?.body || payload.data?.body || '';
 
-      const popupTypes = ['admin_message', 'resolution', 'admin_broadcast', 'individual'];
+      // Trigger native desktop notification in foreground if permission is granted
+      if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+        try {
+          new Notification(title, {
+            body: body,
+            icon: '/favicon.png',
+            badge: '/favicon.png',
+            tag: payload.data?.runId || payload.data?.orderId || undefined,
+            requireInteraction: ['assignment', 'run_assignment', 'return_batch'].includes(payload.data?.type)
+          });
+        } catch (e) {
+          console.error('Error displaying native foreground notification:', e);
+        }
+      }
+
+      const popupTypes = ['admin_message', 'resolution', 'ticket_closed', 'store_response', 'admin_broadcast', 'individual'];
       
       if (role === 'user' || popupTypes.includes(payload.data?.type)) {
+        const type = payload.data?.type;
+        const icon = (type === 'resolution' || type === 'ticket_closed') ? 'success' : 'info';
         Swal.fire({
           title: title,
           text: body,
-          icon: payload.data?.type === 'resolution' ? 'success' : 'info',
+          icon: icon,
           confirmButtonText: 'Got it!',
           confirmButtonColor: '#2563eb',
           customClass: { popup: 'rounded-3xl' }
         });
       } else if (showToast) {
-        toast.info(
-          <div className="flex flex-col gap-1">
-            <strong className="font-bold text-sm">{title}</strong>
-            <span className="text-xs opacity-90">{body}</span>
-          </div>,
-          {
-            position: "top-right",
-            autoClose: 5000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            theme: "colored"
-          }
+        // Skip default toast for delivery assignment runs so they only get the high-priority fullscreen modal overlay
+        const isDeliveryAssignment = role === 'delivery' && (
+          title.toLowerCase().includes('assign') ||
+          title.toLowerCase().includes('pickup') ||
+          ['assignment', 'run_assignment', 'return_batch'].includes(payload.data?.type)
         );
+
+        if (!isDeliveryAssignment) {
+          toast.info(
+            <div className="flex flex-col gap-1">
+              <strong className="font-bold text-sm">{title}</strong>
+              <span className="text-xs opacity-90">{body}</span>
+            </div>,
+            {
+              position: "top-right",
+              autoClose: 5000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: true,
+              theme: "colored"
+            }
+          );
+        }
       }
 
       // Dispatch a custom event so other components can react (e.g., show a big modal for new orders)

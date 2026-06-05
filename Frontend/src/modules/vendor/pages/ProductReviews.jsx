@@ -50,8 +50,8 @@ const ProductReviews = () => {
         const matchesRating = filterRating === 'all' || review.rating === parseInt(filterRating);
         const custName = review.user?.name || 'Anonymous';
         const prodName = review.product?.name || 'Unknown Product';
-        const matchesSearch = custName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            prodName.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesSearch = custName.toLowerCase().includes(searchQuery.trim().toLowerCase()) ||
+            prodName.toLowerCase().includes(searchQuery.trim().toLowerCase());
         return matchesRating && matchesSearch;
     });
 

@@ -262,7 +262,7 @@ const EditProduct = () => {
         e.preventDefault();
 
         if (!validateForm()) {
-            return toast.error('Please fix the validation errors before submitting');
+            return;
         }
 
         setLoading(true);

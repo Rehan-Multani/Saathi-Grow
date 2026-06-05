@@ -12,6 +12,7 @@ const StoreManagerLogin = () => {
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [agreedToTerms, setAgreedToTerms] = useState(false);
+    const [rememberMe, setRememberMe] = useState(false);
     const [viewPolicy, setViewPolicy] = useState({ isOpen: false, slug: '', title: '' });
     const { managerLogin } = useStoreManagerAuth();
     const navigate = useNavigate();
@@ -111,24 +112,29 @@ const StoreManagerLogin = () => {
                             </div>
                         </div>
 
-                        <div className="flex items-center justify-between px-1">
-                            <label className="flex items-center text-[11px] font-bold text-slate-500 cursor-pointer select-none group/check">
-                                <input type="checkbox" className="hidden" />
-                                <div className="w-4 h-4 rounded border border-slate-300 flex items-center justify-center mr-2 transition-all group-hover/check:border-blue-500">
-                                    <div className="w-2 h-2 rounded-sm bg-blue-600 hidden checked-parent:block"></div>
-                                </div>
-                                <span className="group-hover/check:text-slate-900 transition-colors uppercase tracking-tight">Remember me</span>
-                            </label>
+                        <div className="flex items-center justify-between px-1 mb-3">
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    id="remember"
+                                    checked={rememberMe}
+                                    onChange={(e) => setRememberMe(e.target.checked)}
+                                    className="w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500 cursor-pointer"
+                                />
+                                <label htmlFor="remember" className="text-[11px] font-bold text-slate-500 uppercase tracking-wider cursor-pointer select-none">
+                                    Remember me
+                                </label>
+                            </div>
                             <Link to="/store-manager/forgot-password" size="sm" className="text-[11px] font-black text-blue-600 hover:text-blue-800 transition-colors uppercase tracking-tighter">Forgot Password?</Link>
                         </div>
 
-                        <div className="flex items-start gap-2 mt-2 px-1">
+                        <div className="flex items-center gap-2 mt-2 px-1">
                             <input 
                                 type="checkbox" 
                                 id="terms" 
                                 checked={agreedToTerms}
                                 onChange={(e) => setAgreedToTerms(e.target.checked)}
-                                className="mt-1 w-4 h-4 text-emerald-600 border-slate-300 rounded focus:ring-emerald-500 cursor-pointer"
+                                className="w-4 h-4 text-emerald-600 border-slate-300 rounded focus:ring-emerald-500 cursor-pointer"
                             />
                             <label htmlFor="terms" className="text-xs text-slate-500 font-medium leading-tight">
                                 I agree to the{' '}

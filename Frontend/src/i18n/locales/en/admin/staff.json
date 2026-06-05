@@ -60,8 +60,7 @@
     }
   },
   "permissions": {
-    "VIEW_DASHBOARD": "View Dashboard",
-    "VIEW_ORDERS": "Manage Orders",
+    "VIEW_ORDERS": "View Orders",
     "MANAGE_PRODUCTS": "Manage Products",
     "VIEW_CUSTOMERS": "Manage Customers",
     "MANAGE_INVENTORY": "Manage Inventory",

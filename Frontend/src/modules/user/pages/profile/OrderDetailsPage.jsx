@@ -115,6 +115,18 @@ const OrderDetailsPage = () => {
         }
     }, [token]);
 
+    // Prevent body scroll when tag modal is open
+    useEffect(() => {
+        if (showTagModal) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, [showTagModal]);
+
     const handleSaveTag = async () => {
         if (!tagInput.trim()) return;
         setTagLoading(true);
@@ -207,6 +219,17 @@ const OrderDetailsPage = () => {
             </div>
 
             <div className="max-w-2xl md:max-w-3xl mx-auto px-4 py-4">
+                {order.status === 'cancelled' ? (
+                    <div className="bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-2xl p-4 mb-4 flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-500/20 flex items-center justify-center text-red-600 dark:text-red-400">
+                            <XCircle size={24} />
+                        </div>
+                        <div>
+                            <h3 className="text-sm font-black text-red-600 dark:text-red-400 uppercase tracking-wide">Order Cancelled</h3>
+                            <p className="text-xs font-medium text-red-500 dark:text-red-300">This order has been cancelled.</p>
+                        </div>
+                    </div>
+                ) : (
                 <div className="bg-white dark:bg-[#1c1c1c] rounded-2xl p-4 mb-4 border border-gray-100 dark:border-white/5 shadow-sm overflow-hidden relative">
                     {/* Background Line */}
                     <div className="absolute top-[27px] md:top-[38px] left-[12.5%] right-[12.5%] h-[2px] bg-gray-200 dark:bg-white/10 z-0"></div>
@@ -251,6 +274,7 @@ const OrderDetailsPage = () => {
                         </div>
                     </div>
                 </div>
+                )}
 
                 {/* Tag Modal */}
                 {showTagModal && (
@@ -410,7 +434,7 @@ const OrderDetailsPage = () => {
                                     </div>
                                     <div className="flex-1">
                                         <div className="text-[12px] font-black text-gray-800 dark:text-gray-100 leading-tight">{item.name}</div>
-                                        <div className="text-[10px] text-gray-400 font-bold mt-0.5">Qty: {item.qty} · {item.price}</div>
+                                        <div className="text-[10px] text-gray-400 font-bold mt-0.5">{item.qty} × {item.price}</div>
                                     </div>
                                 </div>
                             ))}
@@ -521,14 +545,10 @@ const OrderDetailsPage = () => {
                                 </button>
                             )}
 
-                            {!['out_for_delivery', 'delivered', 'cancelled', 'returned'].includes(order.status) && (
+                            {order.status === 'pending' && (
                                 <button
-                                    onClick={() => {
-                                        const restricted = ['out_for_delivery', 'delivered', 'cancelled', 'returned'];
-                                        if (!restricted.includes(order.status)) { navigate(`/orders/${order.id}/cancel`); }
-                                        else { toast.info('Cancellation no longer available for this order.'); }
-                                    }}
-                                    className={`w-full py-4 px-4 flex items-center justify-between transition-all group ${['out_for_delivery', 'delivered', 'cancelled', 'returned'].includes(order.status) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50 dark:hover:bg-white/5 active:scale-[0.98]'}`}
+                                    onClick={() => navigate(`/orders/${order.id}/cancel`)}
+                                    className="w-full py-4 px-4 flex items-center justify-between transition-all group hover:bg-gray-50 dark:hover:bg-white/5 active:scale-[0.98]"
                                 >
                                     <div className="flex items-center gap-3">
                                         <div className="w-9 h-9 rounded-xl bg-red-50 dark:bg-red-500/10 flex items-center justify-center text-red-500 border border-red-100 dark:border-red-500/10 flex-shrink-0">
@@ -536,12 +556,10 @@ const OrderDetailsPage = () => {
                                         </div>
                                         <div className="text-left">
                                             <div className="text-[12px] font-black text-gray-800 dark:text-gray-100">Cancel order</div>
-                                            <p className="text-[10px] text-gray-400 font-medium">
-                                                {['out_for_delivery', 'delivered'].includes(order.status) ? 'Already out for delivery' : order.status === 'cancelled' ? 'This order was cancelled' : 'Cancel before delivery'}
-                                            </p>
+                                            <p className="text-[10px] text-gray-400 font-medium">Cancel before the order is confirmed</p>
                                         </div>
                                     </div>
-                                    {!['out_for_delivery', 'delivered', 'cancelled', 'returned'].includes(order.status) && <ChevronRight size={14} className="text-gray-300 group-hover:text-red-500 transition-all flex-shrink-0" />}
+                                    <ChevronRight size={14} className="text-gray-300 group-hover:text-red-500 transition-all flex-shrink-0" />
                                 </button>
                             )}
                         </div>

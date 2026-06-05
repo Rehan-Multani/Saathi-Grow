@@ -21,7 +21,7 @@ const StockManagement = () => {
 
     // Filter Logic
     const filteredProducts = products.filter(product => {
-        const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesSearch = product.name.toLowerCase().includes(searchQuery.trim().toLowerCase());
         const stock = stockUpdates[product._id] ?? product.stock;
         const matchesFilter =
             filterStatus === 'all' ? true :

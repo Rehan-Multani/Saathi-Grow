@@ -195,7 +195,7 @@ const LegalManagement = () => {
                     <div className="overflow-x-auto">
                         <table className="w-full text-left">
                             <thead>
-                                <tr className="bg-slate-50/50 border-b border-slate-100 font-bold text-slate-500 uppercase text-[10px] tracking-widest">
+                                <tr className="bg-slate-50/50 border-b border-slate-100 font-black text-slate-600 uppercase text-[11px] tracking-widest">
                                     <th className="px-8 py-5">{t('table.title')}</th>
                                     <th className="px-6 py-5">{t('table.roles')}</th>
                                     <th className="px-6 py-5 text-center">{t('table.status')}</th>
@@ -237,22 +237,22 @@ const LegalManagement = () => {
                                                 </div>
                                             )}
                                         </td>
-                                        <td className="px-6 py-5 text-center text-[10px] font-bold text-slate-400 opacity-80 uppercase align-middle mb-[6px]">
+                                        <td className="px-6 py-5 text-center text-[11px] font-black text-slate-600 uppercase align-middle">
                                             {new Date(page.updatedAt).toLocaleDateString()}
                                         </td>
-                                        <td className="px-8 py-5 text-right align-middle text-[#94a3b8]">
-                                            <div className="flex justify-end gap-2 align-middle mb-[6px]">
+                                        <td className="px-8 py-5 text-right align-middle text-slate-500">
+                                            <div className="flex justify-end gap-2 align-middle">
                                                 <button
                                                     onClick={() => handleEdit(page)}
-                                                    className="p-2 text-slate-300 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
+                                                    className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
                                                 >
-                                                    <Edit size={16} />
+                                                    <Edit size={18} />
                                                 </button>
                                                 <button
                                                     onClick={() => handleDelete(page._id, page.title)}
-                                                    className="p-2 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all"
+                                                    className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all"
                                                 >
-                                                    <Trash2 size={16} />
+                                                    <Trash2 size={18} />
                                                 </button>
                                             </div>
                                         </td>

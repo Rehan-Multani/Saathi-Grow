@@ -48,7 +48,7 @@ const ProductCard = memo(({ product, isCompact = false, customTheme, imgPadding,
 
   return (
     <div
-      className="rounded-lg sm:rounded-xl p-2 sm:p-5 shadow-[0_4px_12px_rgba(0,0,0,0.08)] md:shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-gray-200/60 dark:border-white/10 hover:shadow-lg active:shadow-md transition-all duration-500 flex flex-col gap-1 sm:gap-3 h-auto md:h-full group relative overflow-hidden mb-1 md:ring-0 md:!bg-white dark:md:!bg-[#111111] will-change-transform hover:-translate-y-1.5 hover:scale-[1.02] animate-[fade-in-up_0.4s_ease-out]"
+      className="rounded-lg sm:rounded-xl p-2 sm:p-5 shadow-[0_4px_12px_rgba(0,0,0,0.08)] md:shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-gray-200/60 dark:border-white/10 hover:shadow-lg active:shadow-md transition-all duration-500 flex flex-col gap-1 sm:gap-3 h-auto md:h-full group relative overflow-hidden mb-1 md:ring-0 md:!bg-white dark:md:!bg-[#111111] hover:-translate-y-1.5 hover:scale-[1.02]"
       style={{
         background: isDarkMode ? '#111111' : (customTheme?.bgColor || '#ffffff'),
         borderColor: customTheme ? `${customTheme.themeColor}30` : undefined,
@@ -102,7 +102,6 @@ const ProductCard = memo(({ product, isCompact = false, customTheme, imgPadding,
             src={product.image || categoryPlaceholder}
             alt={product.name}
             className={`w-full h-full object-contain transition-transform duration-500 group-hover:scale-110 ${imgPadding || 'p-2'}`}
-            style={{ willChange: 'transform', transform: 'translateZ(0)', WebkitTransform: 'translateZ(0)' }}
             onError={(e) => {
               if (e.target.src !== categoryPlaceholder) {
                 e.target.src = categoryPlaceholder;
@@ -119,10 +118,8 @@ const ProductCard = memo(({ product, isCompact = false, customTheme, imgPadding,
         {/* Title */}
         <Link to={`/product/${productId}`} className="z-10">
           <div
-            className="font-bold text-gray-800 dark:text-zinc-100 text-[8.5px] sm:text-[15px] leading-tight mb-0.5 line-clamp-2 min-h-[20px] sm:min-h-[32px] transition-colors tracking-tight"
+            className="font-bold text-gray-800 dark:text-zinc-100 text-[8.5px] sm:text-[15px] leading-tight mb-0.5 line-clamp-2 min-h-[20px] sm:min-h-[32px] transition-colors tracking-tight hover:text-[var(--theme-color)]"
             style={{ color: 'inherit' }}
-            onMouseEnter={(e) => e.target.style.color = customTheme ? customTheme.themeColor : '#0c831f'}
-            onMouseLeave={(e) => e.target.style.color = ''}
           >
             {product.name}
           </div>
@@ -179,16 +176,7 @@ const ProductCard = memo(({ product, isCompact = false, customTheme, imgPadding,
         </div>
       </div>
 
-      <style>{`
-        @keyframes fade-in-up {
-          0% { opacity: 0; transform: translateY(10px) scale(0.95); }
-          100% { opacity: 1; transform: translateY(0) scale(1); }
-        }
-        @keyframes shine-sweep-fast {
-          0% { left: -100%; }
-          100% { left: 200%; }
-        }
-      `}</style>
+
     </div >
   );
 });

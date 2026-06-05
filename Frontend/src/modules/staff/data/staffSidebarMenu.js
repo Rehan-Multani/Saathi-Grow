@@ -21,7 +21,7 @@ export const staffSidebarMenu = [
         ],
     },
     {
-        title: 'Manage Stock',
+        title: 'Inventory',
         path: '/staff/inventory',
         icon: 'Package',
         permission: 'MANAGE_INVENTORY'
@@ -37,6 +37,15 @@ export const staffSidebarMenu = [
         path: '/staff/customers',
         icon: 'Users',
         permission: 'VIEW_CUSTOMERS'
+    },
+    {
+        title: 'Reports',
+        icon: 'BarChart3',
+        permission: 'VIEW_REPORTS',
+        submenu: [
+            { title: 'Analytics', path: '/staff/reports', permission: 'VIEW_REPORTS' },
+            { title: 'Vyapar Report', path: '/staff/reports/vyapar', permission: 'VIEW_REPORTS' }
+        ]
     },
     {
         title: 'Support',

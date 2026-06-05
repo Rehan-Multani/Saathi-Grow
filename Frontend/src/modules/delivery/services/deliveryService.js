@@ -22,8 +22,8 @@ export const updatePartnerLocation = async (token, longitude, latitude) => {
     return data;
 };
 
-export const getDeliveryOrders = async (token, type = 'active') => {
-    const { data } = await axios.get(`${API_URL}/delivery/orders?type=${type}`, getAuthHeaders(token));
+export const getDeliveryOrders = async (token, type = 'active', queryParams = '') => {
+    const { data } = await axios.get(`${API_URL}/delivery/orders?type=${type}${queryParams}`, getAuthHeaders(token));
     return data;
 };
 

@@ -3,10 +3,12 @@ import { useCart } from '../../context/CartContext';
 import { ChevronRight } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useSearch } from '../../context/SearchContext';
 
 const FloatingCartStrip = () => {
     const { cartCount, cart, toggleCart, isCartOpen } = useCart();
     const { protectAction } = useAuth();
+    const { isSearchOverlayOpen } = useSearch();
     const routerLocation = useLocation();
 
     // Hide if cart is empty, if sidebar is open, or on checkout/auth/profile/support routes
@@ -32,6 +34,7 @@ const FloatingCartStrip = () => {
     ];
     const shouldHide = cartCount === 0 || 
                        isCartOpen || 
+                       isSearchOverlayOpen ||
                        hiddenPrefixes.some(prefix => routerLocation.pathname.startsWith(prefix));
     if (shouldHide) return null;
 

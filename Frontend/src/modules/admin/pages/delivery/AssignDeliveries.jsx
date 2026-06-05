@@ -77,6 +77,17 @@ const AssignDeliveries = () => {
         fetchData();
     }, [viewType]);
 
+    useEffect(() => {
+        if (showAssignModal) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, [showAssignModal]);
+
     const handleSelectOrder = (orderId, slotContextId) => {
         if (currentSlotContext && currentSlotContext !== slotContextId && selectedOrders.length > 0) {
             toast.warning("Please assign orders from one slot at a time.");
@@ -312,7 +323,7 @@ const AssignDeliveries = () => {
                                                     const streetB = (b.shippingAddress?.street || '').toLowerCase().trim();
                                                     return streetA.localeCompare(streetB);
                                                 })
-                                                : group.data.orders;
+                                                : [...group.data.orders].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
                                             const rows = [];
                                             let lastArea = null;

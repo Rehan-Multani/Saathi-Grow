@@ -257,13 +257,13 @@ const VendorEarnings = () => {
                             {records.length > 0 ? records.map((r, idx) => (
                                 <tr key={idx} className="hover:bg-slate-50/30 transition-colors group">
                                     <td className="px-8 py-5">
-                                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">#{view === 'earnings' ? r.recordId.slice(-8) : r.recordId}</div>
+                                        <div className="text-[11px] font-black text-slate-600 uppercase tracking-tight">#{view === 'earnings' ? r.recordId.slice(-8) : r.recordId}</div>
                                     </td>
                                     <td className="px-6 py-5">
                                         <div className="text-xs font-black text-slate-800 uppercase tracking-tight">{r.vendor}</div>
                                     </td>
                                     <td className="px-6 py-5">
-                                        <div className="text-[10px] font-bold text-slate-400 uppercase opacity-70">{r.date}</div>
+                                        <div className="text-[11px] font-black text-slate-600 uppercase">{r.date}</div>
                                     </td>
                                     <td className={`px-6 py-5 text-xs font-black ${view === 'earnings' ? 'text-slate-800' : 'text-blue-600'}`}>
                                         {view === 'earnings' ? formatCurrency(r.orderTotal || 0) : formatCurrency(r.amount)}

@@ -249,16 +249,17 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
                                         onChange={(e) => handleStatusUpdate(e.target.value)}
                                         disabled={updatingStatus}
                                     >
-                                        {statusOptions.map(opt => {
-                                            const currentRank = statusOrderMap[displayOrder.status] || 0;
-                                            const optRank = statusOrderMap[opt.value] || 0;
-                                            const isDisabled = optRank < currentRank;
-                                            return (
-                                                <option key={opt.value} value={opt.value} disabled={isDisabled}>
+                                        {statusOptions
+                                            .filter(opt => {
+                                                const currentRank = statusOrderMap[displayOrder.status] || 0;
+                                                const optRank = statusOrderMap[opt.value] || 0;
+                                                return optRank >= currentRank;
+                                            })
+                                            .map(opt => (
+                                                <option key={opt.value} value={opt.value}>
                                                     {opt.label}
                                                 </option>
-                                            );
-                                        })}
+                                        ))}
                                     </select>
                                     <p className="hidden print:block text-[11px] font-bold text-slate-900 uppercase">
                                         {displayOrder.status?.replace(/_/g, ' ')}

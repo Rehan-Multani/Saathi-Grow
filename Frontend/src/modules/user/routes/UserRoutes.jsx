@@ -8,6 +8,7 @@ import MobileRecommendations from '../components/layout/MobileRecommendations';
 import CartSidebar from '../components/cart/CartSidebar';
 import ScrollToTop from '../components/layout/ScrollToTop';
 import LocationModal from '../components/location/LocationModal';
+import LocationPermissionModal from '../components/location/LocationPermissionModal';
 import FloatingCartStrip from '../components/cart/FloatingCartStrip';
 import MobileFooter from '../components/layout/MobileFooter';
 import SearchOverlay from '../components/search/SearchOverlay';
@@ -215,6 +216,7 @@ const UserLayout = () => {
             )}
             <CartSidebar />
             <LocationModal />
+            <LocationPermissionModal />
             <FloatingCartStrip />
             <LoginModal />
             <SearchOverlay />

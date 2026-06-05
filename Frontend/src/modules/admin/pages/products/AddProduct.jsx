@@ -111,6 +111,7 @@ const AddProduct = () => {
     const [showNewShelf, setShowNewShelf] = useState(false);
     const [newShelf, setNewShelf] = useState({ label: '', description: '' });
     const [shelfCreating, setShelfCreating] = useState(false);
+    const [errors, setErrors] = useState({});
 
     // Form State
     const [formData, setFormData] = useState({
@@ -223,12 +224,21 @@ const AddProduct = () => {
 
     // Handlers
     const handleChange = useCallback((e) => {
-        const { name, value, type, checked } = e.target;
+        let { name, value, type, checked } = e.target;
+        if (type === 'number' && value.length > 1) {
+            value = value.replace(/^0+(?=\d)/, '');
+            if (e.target.value !== value) e.target.value = value;
+        }
         setFormData(prev => ({
             ...prev,
-            [name]: type === 'checkbox' ? checked : (['basePrice', 'mrp', 'purchasePrice', 'unitValue', 'stock', 'lowStockThreshold'].includes(name) ? (value === '' ? '' : Number(value)) : value)
+            [name]: type === 'checkbox' ? checked : (['basePrice', 'mrp', 'purchasePrice', 'unitValue', 'stock', 'lowStockThreshold', 'reorderThreshold', 'maxCapacityPerSku', 'pickPriority', 'pickSequence'].includes(name) ? (value === '' ? '' : Number(value)) : value)
         }));
-    }, []);
+        
+        // Clear error when user types
+        if (errors[name]) {
+            setErrors(prev => ({ ...prev, [name]: null }));
+        }
+    }, [errors]);
 
     const handleBranchToggle = useCallback((branch) => {
         setBranchStocks(prev => {
@@ -243,7 +253,12 @@ const AddProduct = () => {
         });
     }, []);
 
-    const handleBranchStockChange = useCallback((branchId, field, value) => {
+    const handleBranchStockChange = useCallback((e, branchId, field) => {
+        let value = e.target.value;
+        if (e.target.type === 'number' && value.length > 1) {
+            value = value.replace(/^0+(?=\d)/, '');
+            if (e.target.value !== value) e.target.value = value;
+        }
         setBranchStocks(prev => prev.map(bs => bs.branchId === branchId ? { ...bs, [field]: value === '' ? '' : Number(value) } : bs));
     }, []);
 
@@ -353,12 +368,32 @@ const AddProduct = () => {
         finally { setAiLoading(prev => ({ ...prev, [type]: false })); }
     }, [adminUser.token, formData.name]);
 
+    const validateForm = () => {
+        const newErrors = {};
+        if (!formData.name?.trim()) newErrors.name = 'Product name is required';
+        if (!formData.category) newErrors.category = 'Category is required';
+        if (!formData.brandName) newErrors.brandName = 'Brand is required';
+        if (!formData.description?.trim()) newErrors.description = 'Description is required';
+        if (formData.basePrice === '' || formData.basePrice === null) newErrors.basePrice = 'Base price is required';
+        if (formData.mrp === '' || formData.mrp === null) newErrors.mrp = 'MRP is required';
+        
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+        
+        const isValid = validateForm();
         if (!imageFile) {
             toast.error('Product image is required. Please upload a featured image.');
             return;
         }
+        if (!isValid) {
+            toast.error('Please fill in all required fields correctly.');
+            return;
+        }
+        
         setLoading(true);
         try {
             const data = new FormData();
@@ -441,18 +476,22 @@ const AddProduct = () => {
 
                             <div className="space-y-2">
                                 <label className="text-sm font-semibold text-black">{t('fields.name')}<span className="text-red-500 ml-1">*</span></label>
-                                <input type="text" name="name" value={formData.name} onChange={handleChange} required placeholder={t('fields.name_placeholder')} className="form-input-simple" />
+                                <input type="text" name="name" value={formData.name} onChange={handleChange} placeholder={t('fields.name_placeholder')} className={`form-input-simple ${errors.name ? 'border-red-500 focus:border-red-500 focus:ring-red-100' : ''}`} />
+                                {errors.name && <p className="text-red-500 text-[10px] font-bold mt-1 uppercase tracking-wide">{errors.name}</p>}
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                                 <div className="space-y-2">
                                     <label className="text-sm font-semibold text-black">{t('fields.category')}<span className="text-red-500 ml-1">*</span></label>
-                                    <DownDropdown
-                                        value={formData.category}
-                                        onChange={val => handleChange({ target: { name: 'category', value: val } })}
-                                        options={categories.map(c => ({ value: c.name, label: c.name }))}
-                                        placeholder="Select Category"
-                                    />
+                                    <div className={errors.category ? 'border border-red-500 rounded-xl' : ''}>
+                                        <DownDropdown
+                                            value={formData.category}
+                                            onChange={val => { handleChange({ target: { name: 'category', value: val } }); if(errors.category) setErrors(p => ({...p, category: null})); }}
+                                            options={categories.map(c => ({ value: c.name, label: c.name }))}
+                                            placeholder="Select Category"
+                                        />
+                                    </div>
+                                    {errors.category && <p className="text-red-500 text-[10px] font-bold mt-1 uppercase tracking-wide">{errors.category}</p>}
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-sm font-semibold text-slate-700">{t('fields.sub_category')}</label>
@@ -466,13 +505,16 @@ const AddProduct = () => {
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-sm font-semibold text-slate-700">{t('fields.brand')}<span className="text-red-500 ml-1">*</span></label>
-                                    <DownDropdown
-                                        value={formData.brandName}
-                                        onChange={val => handleChange({ target: { name: 'brandName', value: val } })}
-                                        options={filteredBrands.map(b => ({ value: b.name, label: b.name }))}
-                                        placeholder="Select Brand"
-                                        disabled={!formData.category}
-                                    />
+                                    <div className={errors.brandName ? 'border border-red-500 rounded-xl' : ''}>
+                                        <DownDropdown
+                                            value={formData.brandName}
+                                            onChange={val => { handleChange({ target: { name: 'brandName', value: val } }); if(errors.brandName) setErrors(p => ({...p, brandName: null})); }}
+                                            options={filteredBrands.map(b => ({ value: b.name, label: b.name }))}
+                                            placeholder="Select Brand"
+                                            disabled={!formData.category}
+                                        />
+                                    </div>
+                                    {errors.brandName && <p className="text-red-500 text-[10px] font-bold mt-1 uppercase tracking-wide">{errors.brandName}</p>}
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-sm font-semibold text-slate-700">Vendor (Optional)</label>
@@ -492,7 +534,8 @@ const AddProduct = () => {
                                         {aiLoading.description ? '...' : <><Sparkles size={14} /> {t('form.ai_write')}</>}
                                     </button>
                                 </div>
-                                <textarea name="description" value={formData.description} onChange={handleChange} rows={4} className="form-input-simple" required />
+                                <textarea name="description" value={formData.description} onChange={handleChange} rows={4} className={`form-input-simple ${errors.description ? 'border-red-500 focus:border-red-500 focus:ring-red-100' : ''}`} />
+                                {errors.description && <p className="text-red-500 text-[10px] font-bold mt-1 uppercase tracking-wide">{errors.description}</p>}
                             </div>
 
                             <div className="space-y-3">
@@ -530,11 +573,13 @@ const AddProduct = () => {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
                                     <label className="text-sm font-semibold text-slate-700">{t('fields.base_price')}<span className="text-red-500 ml-1">*</span></label>
-                                    <input type="number" onWheel={(e) => e.target.blur()} name="basePrice" value={formData.basePrice} onChange={handleChange} required className="form-input-simple font-bold text-lg" />
+                                    <input type="number" onWheel={(e) => e.target.blur()} name="basePrice" value={formData.basePrice} onChange={handleChange} className={`form-input-simple font-bold text-lg ${errors.basePrice ? 'border-red-500 focus:border-red-500 focus:ring-red-100' : ''}`} />
+                                    {errors.basePrice && <p className="text-red-500 text-[10px] font-bold mt-1 uppercase tracking-wide">{errors.basePrice}</p>}
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-sm font-semibold text-slate-700">{t('fields.mrp')}<span className="text-red-500 ml-1">*</span></label>
-                                    <input type="number" onWheel={(e) => e.target.blur()} name="mrp" value={formData.mrp} onChange={handleChange} required className="form-input-simple font-bold text-slate-500" />
+                                    <input type="number" onWheel={(e) => e.target.blur()} name="mrp" value={formData.mrp} onChange={handleChange} className={`form-input-simple font-bold text-slate-500 ${errors.mrp ? 'border-red-500 focus:border-red-500 focus:ring-red-100' : ''}`} />
+                                    {errors.mrp && <p className="text-red-500 text-[10px] font-bold mt-1 uppercase tracking-wide">{errors.mrp}</p>}
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-sm font-semibold text-slate-700">Purchase Price</label>
@@ -590,13 +635,13 @@ const AddProduct = () => {
                                                     <div key={bs.branchId} className="flex flex-col md:flex-row gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 items-center">
                                                         <div className="flex-1 font-bold text-xs text-slate-700 uppercase tracking-tight">{bs.name}</div>
                                                         <div className="flex gap-4">
-                                                            <div className="space-y-1">
+                                                             <div className="space-y-1">
                                                                  <span className="text-[9px] font-bold text-slate-400 uppercase ml-1">Stock</span>
-                                                                 <input type="number" onWheel={(e) => e.target.blur()} value={bs.stock} onChange={e => handleBranchStockChange(bs.branchId, 'stock', e.target.value)} className="w-24 bg-white border border-slate-200 rounded-lg py-1.5 px-3 text-sm outline-none" />
+                                                                 <input type="number" onWheel={(e) => e.target.blur()} value={bs.stock} onChange={e => handleBranchStockChange(e, bs.branchId, 'stock')} className="w-24 bg-white border border-slate-200 rounded-lg py-1.5 px-3 text-sm outline-none" />
                                                             </div>
                                                             <div className="space-y-1">
                                                                  <span className="text-[9px] font-bold text-slate-400 uppercase ml-1">Alert Limit</span>
-                                                                 <input type="number" onWheel={(e) => e.target.blur()} value={bs.lowStockThreshold} onChange={e => handleBranchStockChange(bs.branchId, 'lowStockThreshold', e.target.value)} className="w-24 bg-white border border-slate-200 rounded-lg py-1.5 px-3 text-sm outline-none text-rose-500" />
+                                                                 <input type="number" onWheel={(e) => e.target.blur()} value={bs.lowStockThreshold} onChange={e => handleBranchStockChange(e, bs.branchId, 'lowStockThreshold')} className="w-24 bg-white border border-slate-200 rounded-lg py-1.5 px-3 text-sm outline-none text-rose-500" />
                                                             </div>
                                                         </div>
                                                     </div>

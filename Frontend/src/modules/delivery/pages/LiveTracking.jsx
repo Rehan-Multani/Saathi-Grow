@@ -293,19 +293,7 @@ const LiveTracking = () => {
                     </div>
                 </div>
 
-                <button
-                    onClick={() => {
-                        setIsFOLLOWING(true);
-                        if (map && trimmedRoute.length > 0) {
-                            const bounds = new window.google.maps.LatLngBounds();
-                            trimmedRoute.forEach(p => bounds.extend(p));
-                            map.fitBounds(bounds, { top: 120, bottom: 250, left: 50, right: 50 });
-                        }
-                    }}
-                    className={`w-10 h-10 flex items-center justify-center shadow-2xl transition-all rounded-none border border-slate-200 ${isFOLLOWING ? (isReturn ? 'bg-emerald-600' : 'bg-[#00965e]') + ' text-slate-900 font-bold' : 'bg-white text-slate-500'}`}
-                >
-                    <Navigation size={20} className={isFOLLOWING ? 'fill-white' : ''} />
-                </button>
+                <div className="w-10 h-10"></div>
             </div>
 
             {/* Bottom Sheet */}
@@ -315,7 +303,7 @@ const LiveTracking = () => {
                         <div className="w-12 h-1 bg-slate-200 rounded-full" />
                     </div>
 
-                    <div className="px-6 pb-6 pt-2 h-full flex flex-col overflow-hidden">
+                    <div className="px-6 pb-6 pt-2 flex-1 flex flex-col min-h-0 overflow-hidden">
                         <div className="flex items-center justify-between gap-4 mb-5 flex-shrink-0">
                             <div className="flex-1">
                                 <p className="text-[#00c982] font-black text-[9px] uppercase tracking-[0.2em] mb-1">

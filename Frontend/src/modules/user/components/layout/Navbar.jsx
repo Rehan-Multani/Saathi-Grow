@@ -36,7 +36,7 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen, customTheme }) => {
           headers: { Authorization: `Bearer ${user.token}` }
         });
         if (res.data.success) {
-          setUnreadCount(res.data.unreadCount);
+          setUnreadCount(res.data.count); // API returns 'count' not 'unreadCount'
         }
       } catch (err) {
         console.error('Error fetching unread notifications:', err);
@@ -44,13 +44,18 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen, customTheme }) => {
     };
 
     fetchUnreadCount();
+    // Poll every 30 seconds so bell badge updates when complaint resolved
+    const interval = setInterval(fetchUnreadCount, 30000);
 
     const handleFirebaseMessage = (e) => {
       setUnreadCount(prev => prev + 1);
     };
 
     window.addEventListener('onFirebaseMessage', handleFirebaseMessage);
-    return () => window.removeEventListener('onFirebaseMessage', handleFirebaseMessage);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('onFirebaseMessage', handleFirebaseMessage);
+    };
   }, [user?.token]);
 
   useEffect(() => {

@@ -38,10 +38,32 @@ const CountdownTimer = ({ expiryDate }) => {
 };
 
 const OfferTicker = () => {
-    const { offers, loading } = useShop();
+    const { offers, settings, loading } = useShop();
 
     const renderTickerItems = useMemo(() => {
-        if (loading || !offers || offers.length === 0) return null;
+        if (loading) return null;
+
+        if (settings?.isOfferStripEnabled && settings?.offerStripText) {
+            const staticItem = (
+                <div className="flex items-center gap-2 md:gap-4 mx-6 md:mx-10 whitespace-nowrap">
+                    <Flame size={13} className="text-orange-400 fill-orange-400 hidden sm:block" />
+                    <span className="font-extrabold text-[10px] md:text-[13px] tracking-tight">
+                        {settings.offerStripText}
+                    </span>
+                </div>
+            );
+            return (
+                <div className="flex animate-marquee py-1 md:py-1.5">
+                    {[...Array(8)].map((_, i) => (
+                        <React.Fragment key={i}>
+                            {staticItem}
+                        </React.Fragment>
+                    ))}
+                </div>
+            );
+        }
+
+        if (!offers || offers.length === 0) return null;
 
         const singleTicker = offers.map(offer => {
             const isFlash = offer.discountPercentage >= 40 || offer.title.toLowerCase().includes('flash');
@@ -89,7 +111,7 @@ const OfferTicker = () => {
                 ))}
             </div>
         );
-    }, [offers, loading]);
+    }, [offers, settings, loading]);
 
     if (!renderTickerItems) return null;
 

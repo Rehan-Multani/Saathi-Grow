@@ -32,7 +32,7 @@ const OrderManagement = () => {
     const displayRuns = activeTab === 'completed' ? history : orders;
 
     return (
-        <div className="space-y-3 md:space-y-4">
+        <div className="space-y-3 md:space-y-4 pb-28 md:pb-8">
             <div className="flex justify-between items-center">
                 <div>
                     <h1 className="text-lg md:text-xl font-black tracking-tight text-slate-800 dark:text-zinc-100 leading-tight">Deliveries</h1>

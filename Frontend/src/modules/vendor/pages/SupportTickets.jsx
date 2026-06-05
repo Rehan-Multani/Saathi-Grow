@@ -36,9 +36,9 @@ const SupportTickets = () => {
 
     const filteredTickets = complaints.filter(ticket => {
         const matchesStatus = filterStatus === 'all' || ticket.status === filterStatus;
-        const matchesSearch = ticket.ticketId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            ticket.user?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            ticket.category?.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesSearch = ticket.ticketId.toLowerCase().includes(searchQuery.trim().toLowerCase()) ||
+            ticket.user?.name?.toLowerCase().includes(searchQuery.trim().toLowerCase()) ||
+            ticket.category?.toLowerCase().includes(searchQuery.trim().toLowerCase());
         return matchesStatus && matchesSearch;
     });
 

@@ -241,8 +241,12 @@ const AddProduct = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        if (!imageFile) {
+            return toast.error('Product image is compulsory. Please upload a main image.');
+        }
+
         if (!validateForm()) {
-            return toast.error('Please fix the validation errors before submitting');
+            return;
         }
 
         setLoading(true);

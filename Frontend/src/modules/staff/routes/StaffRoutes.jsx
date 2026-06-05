@@ -15,6 +15,8 @@ import StaffProfile from '../pages/StaffProfile';
 import LegalSupport from '../pages/LegalSupport';
 import StaffPOS from '../pages/StaffPOS';
 import Notifications from '../pages/Notifications';
+import StaffReports from '../pages/reports/StaffReports';
+import StaffVyaparReport from '../pages/reports/StaffVyaparReport';
 
 const PlaceholderPage = ({ title }) => (
     <div className="p-4 text-center d-flex flex-column align-items-center justify-content-center" style={{ minHeight: '60vh' }}>
@@ -42,12 +44,13 @@ const ProtectedStaffRoute = () => {
     return <Outlet />;
 };
 
-const StaffPOSWrapper = () => {
+const ProtectedStaffModuleRoute = ({ permission, children }) => {
     const { staffUser } = useStaffAuth();
-    if (!staffUser?.permissions?.includes('MANAGE_POS_BILLING')) {
+    const permissions = Array.isArray(staffUser?.permissions) ? staffUser.permissions : [];
+    if (!permissions.includes(permission)) {
         return <Navigate to="/staff/dashboard" replace />;
     }
-    return <StaffPOS />;
+    return children;
 };
 
 const StaffRoutes = () => {
@@ -62,13 +65,51 @@ const StaffRoutes = () => {
                     <Route element={<StaffLayout />}>
                         <Route path="/" element={<Navigate to="dashboard" replace />} />
                         <Route path="dashboard" element={<StaffDashboard />} />
-                        <Route path="pos-billing" element={<StaffPOSWrapper />} />
-                        <Route path="orders/active" element={<StaffOrders />} />
-                        <Route path="orders/returns" element={<StaffReturns />} />
-                        <Route path="inventory" element={<StaffInventory />} />
-                        <Route path="products" element={<StaffProducts />} />
-                        <Route path="customers" element={<StaffCustomers />} />
-                        <Route path="staff" element={<StaffManagement />} />
+                        <Route path="pos-billing" element={
+                            <ProtectedStaffModuleRoute permission="MANAGE_POS_BILLING">
+                                <StaffPOS />
+                            </ProtectedStaffModuleRoute>
+                        } />
+                        <Route path="orders/active" element={
+                            <ProtectedStaffModuleRoute permission="VIEW_ORDERS">
+                                <StaffOrders />
+                            </ProtectedStaffModuleRoute>
+                        } />
+                        <Route path="orders/returns" element={
+                            <ProtectedStaffModuleRoute permission="MANAGE_REFUNDS_RETURNS">
+                                <StaffReturns />
+                            </ProtectedStaffModuleRoute>
+                        } />
+                        <Route path="inventory" element={
+                            <ProtectedStaffModuleRoute permission="MANAGE_INVENTORY">
+                                <StaffInventory />
+                            </ProtectedStaffModuleRoute>
+                        } />
+                        <Route path="products" element={
+                            <ProtectedStaffModuleRoute permission="MANAGE_PRODUCTS">
+                                <StaffProducts />
+                            </ProtectedStaffModuleRoute>
+                        } />
+                        <Route path="customers" element={
+                            <ProtectedStaffModuleRoute permission="VIEW_CUSTOMERS">
+                                <StaffCustomers />
+                            </ProtectedStaffModuleRoute>
+                        } />
+                        <Route path="reports" element={
+                            <ProtectedStaffModuleRoute permission="VIEW_REPORTS">
+                                <StaffReports />
+                            </ProtectedStaffModuleRoute>
+                        } />
+                        <Route path="reports/vyapar" element={
+                            <ProtectedStaffModuleRoute permission="VIEW_REPORTS">
+                                <StaffVyaparReport />
+                            </ProtectedStaffModuleRoute>
+                        } />
+                        <Route path="staff" element={
+                            <ProtectedStaffModuleRoute permission="MANAGE_STAFF">
+                                <StaffManagement />
+                            </ProtectedStaffModuleRoute>
+                        } />
                         <Route path="support" element={<StaffTickets />} />
                         <Route path="profile" element={<StaffProfile />} />
                         <Route path="legal" element={<LegalSupport />} />

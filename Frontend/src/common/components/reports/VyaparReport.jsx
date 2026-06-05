@@ -114,7 +114,7 @@ const VyaparReport = ({ token }) => {
     };
 
     return (
-        <div className="p-6 bg-slate-50 h-[calc(100vh-72px)] flex flex-col">
+        <div className="p-6 bg-slate-50 h-full flex flex-col">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 shrink-0">
                 <div>
                     <h1 className="text-2xl font-bold text-slate-800">Vyapar Report</h1>

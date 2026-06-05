@@ -23,9 +23,9 @@ const ProductFAQs = () => {
         const matchesTab = activeTab === 'all' ||
             (activeTab === 'pending' && faq.status === 'Pending') ||
             (activeTab === 'answered' && faq.status === 'Answered');
-        const matchesSearch = faq.product.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            faq.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            faq.customer.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesSearch = faq.product.toLowerCase().includes(searchQuery.trim().toLowerCase()) ||
+            faq.question.toLowerCase().includes(searchQuery.trim().toLowerCase()) ||
+            faq.customer.toLowerCase().includes(searchQuery.trim().toLowerCase());
         return matchesTab && matchesSearch;
     });
 

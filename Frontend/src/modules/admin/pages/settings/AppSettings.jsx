@@ -1,17 +1,71 @@
 import React, { useState } from 'react';
-import { Save, Globe, Settings, Smartphone, Mail, Settings2 } from 'lucide-react';
+import { Save, Globe, Settings, Smartphone, Mail, Settings2, Loader } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useAdminAuth } from '../../context/AdminAuthContext';
+import * as settingApi from '../../api/settingApi';
+import { toast } from 'react-toastify';
 import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
 import { pageInfoData } from '../../../../common/data/pageInfoData';
 
 const AppSettings = () => {
     const { t } = useTranslation('admin_settings');
+    const { adminUser } = useAdminAuth();
+    const token = adminUser?.token;
+    
+    const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
+    const [settings, setSettings] = useState({
+        supportEmail: '',
+        supportPhone: '',
+        offerStripText: '',
+        isOfferStripEnabled: false
+    });
 
-    const handleSave = () => {
-        setIsSaving(true);
-        setTimeout(() => setIsSaving(false), 1000); // Mock save
+    useEffect(() => {
+        if (token) {
+            fetchSettings();
+        }
+    }, [token]);
+
+    const fetchSettings = async () => {
+        try {
+            const data = await settingApi.getAdminSettings(token);
+            setSettings(prev => ({ ...prev, ...data }));
+        } catch (error) {
+            toast.error('Failed to load settings');
+        } finally {
+            setIsLoading(false);
+        }
     };
+
+    const handleInputChange = (e) => {
+        const { name, value, type, checked } = e.target;
+        setSettings(prev => ({
+            ...prev,
+            [name]: type === 'checkbox' ? checked : value
+        }));
+    };
+
+    const handleSave = async () => {
+        setIsSaving(true);
+        try {
+            const updated = await settingApi.updateAdminSettings(token, settings);
+            setSettings(updated);
+            toast.success('Settings saved successfully!');
+        } catch (error) {
+            toast.error('Failed to save settings');
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    if (isLoading) {
+        return (
+            <div className="flex justify-center items-center py-40">
+                <Loader className="animate-spin text-blue-600" size={40} />
+            </div>
+        );
+    }
 
     return (
         <div className="container-fluid py-6 bg-slate-50/30 min-h-screen px-4 md:px-6 max-w-7xl mx-auto font-sans text-slate-800">
@@ -74,7 +128,9 @@ const AppSettings = () => {
                                     <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2" />
                                     <input
                                         type="email"
-                                        defaultValue="support@Saathigro.com"
+                                        name="supportEmail"
+                                        value={settings.supportEmail || ''}
+                                        onChange={handleInputChange}
                                         className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-normal text-slate-800 focus:bg-white focus:border-blue-500 outline-none transition-all"
                                     />
                                 </div>
@@ -85,7 +141,9 @@ const AppSettings = () => {
                                     <Smartphone size={16} className="absolute left-4 top-1/2 -translate-y-1/2" />
                                     <input
                                         type="text"
-                                        defaultValue="+91 800-GROCERY"
+                                        name="supportPhone"
+                                        value={settings.supportPhone || ''}
+                                        onChange={handleInputChange}
                                         className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-normal text-slate-800 focus:bg-white focus:border-blue-500 outline-none transition-all"
                                     />
                                 </div>
@@ -144,6 +202,40 @@ const AppSettings = () => {
                                     <span className="text-sm text-slate-700">{t('app_settings.maintenance_desc')}</span>
                                 </div>
 
+                            </div>
+                        </div>
+                        
+                        {/* Offer Strip Settings */}
+                        <div className="pt-6 border-t border-slate-100">
+                            <h4 className="text-base font-semibold text-slate-700 mb-4 ml-1">Top Offer Strip (Header)</h4>
+                            <div className="bg-slate-50 border border-slate-100 rounded-2xl p-5 space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex flex-col">
+                                        <span className="text-sm font-bold text-slate-800">Enable Static Offer Strip</span>
+                                        <span className="text-[11px] text-slate-500">If enabled, this text will replace the scrolling "Banner Deals" at the top of the app.</span>
+                                    </div>
+                                    <div className="relative inline-block w-12 align-middle select-none">
+                                        <input 
+                                            type="checkbox" 
+                                            name="isOfferStripEnabled"
+                                            checked={settings.isOfferStripEnabled}
+                                            onChange={handleInputChange}
+                                            className="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer border-slate-300 transition-transform duration-200 ease-in-out" style={{ top: '2px', left: '2px' }} 
+                                        />
+                                        <label className={`toggle-label block overflow-hidden h-7 rounded-full cursor-pointer transition-colors ${settings.isOfferStripEnabled ? 'bg-blue-600' : 'bg-slate-300'}`}></label>
+                                    </div>
+                                </div>
+                                <div className={`transition-opacity duration-300 ${!settings.isOfferStripEnabled ? 'opacity-50 pointer-events-none' : ''}`}>
+                                    <label className="text-xs font-medium ml-1 text-slate-500 mb-1.5 block">Offer Strip Custom Text</label>
+                                    <input
+                                        type="text"
+                                        name="offerStripText"
+                                        value={settings.offerStripText || ''}
+                                        onChange={handleInputChange}
+                                        placeholder="e.g. Free Delivery on all orders above ₹500!"
+                                        className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 focus:border-blue-500 outline-none transition-all"
+                                    />
+                                </div>
                             </div>
                         </div>
                     </div>

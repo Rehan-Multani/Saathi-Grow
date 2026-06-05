@@ -116,7 +116,18 @@ export const getUserById = async (req, res) => {
 
     // Fetch Statistics
     const [stats] = await Order.aggregate([
-      { $match: { ...orderMatchCondition, status: 'delivered' } },
+      {
+        $match: {
+          ...orderMatchCondition,
+          $or: [
+            { paymentMethod: 'cod', status: 'delivered' },
+            {
+              paymentMethod: { $ne: 'cod' },
+              status: { $nin: ['cancelled', 'returned', 'return_picked_up'] }
+            }
+          ]
+        }
+      },
       {
         $group: {
           _id: null,

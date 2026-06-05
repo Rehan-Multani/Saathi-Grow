@@ -82,9 +82,9 @@ const StaffTickets = () => {
 
     const filtered = complaints.filter(c => {
         const matchesStatus = filterStatus === 'all' || c.status === filterStatus;
-        const matchesSearch = c.ticketId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            c.user?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            c.category?.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesSearch = c.ticketId.toLowerCase().includes(searchQuery.trim().toLowerCase()) ||
+            c.user?.name?.toLowerCase().includes(searchQuery.trim().toLowerCase()) ||
+            c.category?.toLowerCase().includes(searchQuery.trim().toLowerCase());
         return matchesStatus && matchesSearch;
     });
 

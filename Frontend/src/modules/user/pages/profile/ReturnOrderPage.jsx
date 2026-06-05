@@ -31,42 +31,7 @@ const ReturnOrderPage = () => {
     const [submitting, setSubmitting] = useState(false);
     const [submitted, setSubmitted] = useState(false);
 
-    // ── Flutter Camera Bridge Logic ──
-    const triggerFlutterCamera = () => {
-        if (window.FlutterCameraBridge) {
-            window.FlutterCameraBridge.postMessage('openCamera');
-            toast.info('Opening Native Camera...');
-        } else {
-            // Standard Fallback handled via label + input
-        }
-    };
 
-    useEffect(() => {
-        // Listener for Flutter callback
-        const handleFlutterImage = (e) => {
-            const base64Data = e.detail;
-            if (images.length >= 5) {
-                return toast.warning('Max 5 images allowed.');
-            }
-
-            // Convert Base64 back to a Blob so existing API logic remains unchanged
-            fetch(base64Data)
-                .then(res => res.blob())
-                .then(blob => {
-                    const file = new File([blob], `return_proof_${Date.now()}.jpg`, { type: 'image/jpeg' });
-                    setImages(prev => [...prev, file]);
-                    setImagePreviews(prev => [...prev, base64Data]);
-                });
-        };
-
-        window.onFlutterImageReceived = (base64Data) => {
-            const event = new CustomEvent('flutter_image_captured', { detail: base64Data });
-            window.dispatchEvent(event);
-        };
-
-        window.addEventListener('flutter_image_captured', handleFlutterImage);
-        return () => window.removeEventListener('flutter_image_captured', handleFlutterImage);
-    }, [images]);
 
     useEffect(() => {
         const loadOrder = async () => {
@@ -293,16 +258,12 @@ const ReturnOrderPage = () => {
                         ))}
                         {images.length < 5 && (
                             <div className="contents">
-                                {/* Flutter Native Camera Button */}
-                                {window.FlutterCameraBridge && (
-                                    <button 
-                                        onClick={triggerFlutterCamera}
-                                        className="w-28 h-28 rounded-2xl border-2 border-dashed border-blue-200 dark:border-blue-500/30 bg-blue-50/30 dark:bg-blue-500/5 flex flex-col items-center justify-center gap-2 group transition-all active:scale-95"
-                                    >
-                                        <Camera size={24} className="text-blue-600" />
-                                        <span className="text-[9px] font-black text-blue-600 uppercase tracking-widest text-center px-2">Camera</span>
-                                    </button>
-                                )}
+                                {/* Standard HTML5 Camera Upload (Works in Web & WebViews) */}
+                                <label className="w-28 h-28 rounded-2xl border-2 border-dashed border-blue-200 dark:border-blue-500/30 bg-blue-50/30 dark:bg-blue-500/5 flex flex-col items-center justify-center gap-2 cursor-pointer group transition-all active:scale-95">
+                                    <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handleImageChange} />
+                                    <Camera size={24} className="text-blue-600" />
+                                    <span className="text-[9px] font-black text-blue-600 uppercase tracking-widest text-center px-2">Camera</span>
+                                </label>
                                 
                                 {/* Standard Gallery Upload */}
                                 <label className="w-28 h-28 rounded-2xl border-2 border-dashed border-gray-200 dark:border-white/10 bg-gray-50/30 dark:bg-white/5 flex flex-col items-center justify-center gap-2 cursor-pointer group transition-all active:scale-95">
@@ -334,7 +295,7 @@ const ReturnOrderPage = () => {
             </div>
 
             {/* Fixed Bottom Action */}
-            <div className="fixed bottom-[65px] md:bottom-0 left-0 right-0 p-5 bg-white/95 dark:bg-black/95 backdrop-blur-xl border-t border-gray-100 dark:border-white/10 z-50">
+            <div className="fixed bottom-0 left-0 right-0 p-5 bg-white/95 dark:bg-black/95 backdrop-blur-xl border-t border-gray-100 dark:border-white/10 z-50">
                 <div className="max-w-2xl mx-auto">
                     <button
                         disabled={!selectedReason || submitting}

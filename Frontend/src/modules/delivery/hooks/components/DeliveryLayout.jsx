@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import {
     LayoutDashboard,
     Package,
@@ -20,15 +20,73 @@ const OPEN_ORDER_EVENT = 'delivery:open-order';
 
 const DeliveryLayout = ({ children }) => {
     const navigate = useNavigate();
+    const location = useLocation();
+    const isTrackingPage = location.pathname.includes('/tracking/');
+
     const {
         notifications,
         markAsRead,
         markAllAsRead,
         clearNotifications
     } = useNotifications();
-    const { profile, logout } = useDeliveryStore();
+    const profile = useDeliveryStore(state => state.profile);
+    const logout = useDeliveryStore(state => state.logout);
     const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+    const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
     const notificationPanelRef = useRef(null);
+
+    // Bypass layout elements entirely for tracking pages
+    if (isTrackingPage) {
+        return <>{children}</>;
+    }
+
+    useEffect(() => {
+        let timeoutId;
+        const MIN_KEYBOARD_HEIGHT = 150;
+        const initialHeight = window.innerHeight;
+
+        const handleFocusIn = (e) => {
+            const target = e.target;
+            if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT') {
+                clearTimeout(timeoutId);
+                setIsKeyboardOpen(true);
+            }
+        };
+
+        const handleFocusOut = () => {
+            timeoutId = setTimeout(() => {
+                setIsKeyboardOpen(false);
+            }, 100);
+        };
+
+        const handleResize = () => {
+            const currentHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+            if (initialHeight - currentHeight > MIN_KEYBOARD_HEIGHT) {
+                clearTimeout(timeoutId);
+                setIsKeyboardOpen(true);
+            } else if (currentHeight >= initialHeight - MIN_KEYBOARD_HEIGHT) {
+                setIsKeyboardOpen(false);
+            }
+        };
+
+        window.addEventListener('focusin', handleFocusIn);
+        window.addEventListener('focusout', handleFocusOut);
+        window.addEventListener('resize', handleResize);
+        
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', handleResize);
+        }
+
+        return () => {
+            clearTimeout(timeoutId);
+            window.removeEventListener('focusin', handleFocusIn);
+            window.removeEventListener('focusout', handleFocusOut);
+            window.removeEventListener('resize', handleResize);
+            if (window.visualViewport) {
+                window.visualViewport.removeEventListener('resize', handleResize);
+            }
+        };
+    }, []);
 
     const unreadCount = useMemo(
         () => notifications.filter((notification) => !notification.read).length,
@@ -99,9 +157,18 @@ const DeliveryLayout = ({ children }) => {
                     </button>
                     <div 
                         onClick={() => navigate('/delivery/profile')}
-                        className="w-9 h-9 rounded-xl bg-slate-100 overflow-hidden border-2 border-white shadow-sm"
+                        className="w-9 h-9 rounded-xl overflow-hidden border-2 border-white shadow-sm cursor-pointer"
                     >
-                        <img src={profile?.profileImage || "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"} className="w-full h-full object-cover" alt="avatar" />
+                        {profile?.profileImage ? (
+                            <img src={profile.profileImage} className="w-full h-full object-cover" alt="avatar" />
+                        ) : (
+                            <div className="w-full h-full bg-slate-900 flex items-center justify-center">
+                                <div className="flex flex-col items-center justify-center gap-0.5">
+                                    <div className="w-3.5 h-3.5 rounded-full bg-white/90" />
+                                    <div className="w-5 h-2.5 rounded-t-full bg-white/90 mt-0.5" />
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             </header>
@@ -186,8 +253,17 @@ const DeliveryLayout = ({ children }) => {
                 <div className="p-6">
                     <div className="bg-slate-50 rounded-[2rem] p-6 mb-4 border border-slate-100">
                         <div className="flex items-center gap-4 mb-4">
-                            <div className="w-12 h-12 rounded-2xl border-2 border-white shadow-md overflow-hidden bg-white">
-                                <img src={profile?.profileImage || "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"} className="w-full h-full object-cover" alt="profile" />
+                            <div className="w-12 h-12 rounded-2xl border-2 border-white shadow-md overflow-hidden">
+                                {profile?.profileImage ? (
+                                    <img src={profile.profileImage} className="w-full h-full object-cover" alt="profile" />
+                                ) : (
+                                    <div className="w-full h-full bg-slate-900 flex items-center justify-center">
+                                        <div className="flex flex-col items-center justify-center gap-0.5">
+                                            <div className="w-4 h-4 rounded-full bg-white/90" />
+                                            <div className="w-6 h-3 rounded-t-full bg-white/90 mt-0.5" />
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                             <div className="flex-1 min-w-0">
                                 <h4 className="font-black text-sm text-slate-900 truncate">{profile?.name || 'Rider'}</h4>
@@ -228,7 +304,7 @@ const DeliveryLayout = ({ children }) => {
             </main>
 
             {/* Mobile Bottom Nav */}
-            <nav className="fixed bottom-0 left-0 right-0 h-[72px] bg-white/95 backdrop-blur-xl border-t border-slate-50 flex items-center justify-around px-2 z-40 md:hidden shadow-[0_-5px_20px_-5px_rgba(0,0,0,0.05)]">
+            <nav className={`fixed bottom-0 left-0 right-0 h-[72px] bg-white/95 backdrop-blur-xl border-t border-slate-50 flex items-center justify-around px-2 z-[999] md:hidden shadow-[0_-5px_20px_-5px_rgba(0,0,0,0.05)] transition-all duration-300 transform ${isKeyboardOpen ? 'translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'}`}>
                 {navItems.map((item) => (
                     <NavLink
                         key={item.path}

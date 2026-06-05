@@ -175,9 +175,12 @@ export const getDeliveryDetail = async (req, res) => {
                 populate: [
                     { path: 'user', select: 'name phone' },
                     { path: 'branchId', select: 'name address phone location' },
+                    { path: 'vendor', select: 'storeName address phone location' },
                     { path: 'items.product', select: 'name images price' }
                 ]
-            });
+            })
+            .populate('branchId')
+            .populate('vendor');
 
         if (!run) return res.status(404).json({ message: 'Delivery run not found' });
         res.json(run);

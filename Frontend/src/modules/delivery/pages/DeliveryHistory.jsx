@@ -53,10 +53,15 @@ const DeliveryHistory = () => {
         ).sort((a, b) => b.rawDate - a.rawDate);
 
         const q = searchQuery.trim().toLowerCase();
+        // Remove # or SG- prefixes from search query to match raw IDs, or match against a simulated string
+        const normalizedQuery = q.replace(/^#?sg-?/, '');
+        
         return q ? all.filter(o =>
+            o.id.toLowerCase().includes(normalizedQuery) ||
             o.id.toLowerCase().includes(q) ||
             o.customer.toLowerCase().includes(q) ||
-            o.status.toLowerCase().includes(q)
+            o.status.toLowerCase().includes(q) ||
+            ('#sg-' + o.id.toLowerCase()).includes(q)
         ) : all;
     }, [history, searchQuery]);
 
@@ -64,21 +69,10 @@ const DeliveryHistory = () => {
         const id = toast.loading("Generating delivery history report...");
         try {
             const csvContent = "Order ID,Date,Customer,Location,Status,Amount\n" +
-                historicalOrders.map(o => `${o.id},${o.date},${o.customer},${o.location},${o.status},${o.amount}`).join("\n");
+                historicalOrders.map(o => `"${o.id}","${o.date}","${o.customer.replace(/"/g, '""')}","${o.location.replace(/"/g, '""')}","${o.status}","${o.amount}"`).join("\n");
 
             const fileName = `delivery_history_${new Date().toISOString().split('T')[0]}.csv`;
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const file = new File([blob], fileName, { type: 'text/csv' });
-
-            if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                await navigator.share({
-                    files: [file],
-                    title: 'Delivery History Export',
-                    text: 'Here is the delivery history export.'
-                });
-                toast.update(id, { render: "Report Shared Successfully", type: "success", isLoading: false, autoClose: 2000 });
-                return;
-            }
 
             const url = URL.createObjectURL(blob);
             const link = document.createElement("a");
@@ -92,11 +86,7 @@ const DeliveryHistory = () => {
             toast.update(id, { render: "Report downloaded successfully", type: "success", isLoading: false, autoClose: 2000 });
         } catch (error) {
             console.error("Export failed:", error);
-            if (error.name !== 'AbortError') {
-                toast.update(id, { render: "Export Failed or Canceled", type: "error", isLoading: false, autoClose: 2000 });
-            } else {
-                toast.dismiss(id);
-            }
+            toast.update(id, { render: "Export Failed", type: "error", isLoading: false, autoClose: 2000 });
         }
     };
 
@@ -118,7 +108,7 @@ const DeliveryHistory = () => {
     };
 
     return (
-        <div className="space-y-4 md:space-y-6">
+        <div className="space-y-4 md:space-y-6 pb-28 md:pb-8">
             <div className="flex items-center justify-between gap-3">
                 <div>
                     <h1 className="text-lg font-black tracking-tight text-slate-900 leading-none">History</h1>
@@ -146,20 +136,35 @@ const DeliveryHistory = () => {
                             setCurrentPage(1);
                         }}
                         placeholder="Search order id..."
-                        className="flex-1 bg-transparent text-[11px] font-bold outline-none"
+                        className="flex-1 plain-input bg-transparent text-[11px] !text-slate-900 font-bold outline-none"
                     />
                 </div>
-                <div className="relative shrink-0">
+                <div className="relative shrink-0 flex items-center gap-1">
+                    {dateFilter && (
+                        <button
+                            onClick={() => {
+                                setDateFilter('');
+                                setCurrentPage(1);
+                            }}
+                            className="h-full px-2.5 flex items-center justify-center bg-rose-50 border border-rose-100 rounded-2xl text-rose-600 hover:bg-rose-100 transition-all active:scale-95 shadow-sm text-[10px] font-black uppercase tracking-wider"
+                            title="Clear Date Filter"
+                        >
+                            Clear ({dateFilter})
+                        </button>
+                    )}
                     <button
                         onClick={() => document.getElementById('hist-date').showPicker()}
-                        className="h-full px-3 flex items-center justify-center bg-white border border-slate-100 rounded-2xl text-slate-600 hover:border-[#028A0F] transition-all active:scale-95 shadow-sm"
+                        className={`h-full px-3 flex items-center justify-center bg-white border rounded-2xl transition-all active:scale-95 shadow-sm ${
+                            dateFilter ? 'border-[#028A0F] text-[#028A0F] bg-[#028A0F]/5' : 'border-slate-100 text-slate-600 hover:border-[#028A0F]'
+                        }`}
                     >
-                        <Calendar size={18} className="text-[#028A0F]" />
+                        <Calendar size={18} className={dateFilter ? 'text-[#028A0F]' : 'text-slate-400'} />
                     </button>
                     <input 
                         id="hist-date"
                         type="date"
                         max={new Date().toISOString().split('T')[0]}
+                        value={dateFilter}
                         className="absolute inset-0 opacity-0 pointer-events-none"
                         onChange={(e) => {
                             setDateFilter(e.target.value);

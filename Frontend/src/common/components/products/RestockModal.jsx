@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import { Package, RefreshCw, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { adjustInventory } from '../../api/productApi';
@@ -23,13 +24,23 @@ const RestockModal = ({ show, onHide, product, onRestockSuccess }) => {
 
     useEffect(() => {
         if (show) {
+            document.body.classList.add('modal-open');
+            document.body.style.overflow = 'hidden';
             setAmount('');
             setType('Addition');
             setReason('');
             if (!isVendorProduct && product?.branchStocks?.length > 0) setBranchId(product.branchStocks[0].branchId._id || product.branchStocks[0].branchId);
             else if (product?.vendor) setBranchId('vendor');
             else setBranchId('');
+        } else {
+            document.body.classList.remove('modal-open');
+            document.body.style.overflow = 'unset';
         }
+
+        return () => {
+            document.body.classList.remove('modal-open');
+            document.body.style.overflow = 'unset';
+        };
     }, [show, product, isVendorProduct]);
 
     const getSelectedBranchStock = () => {
@@ -55,8 +66,8 @@ const RestockModal = ({ show, onHide, product, onRestockSuccess }) => {
 
     if (!show) return null;
 
-    return (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
+    return ReactDOM.createPortal(
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-200">
             <div className="bg-white w-full max-w-md rounded-3xl overflow-hidden shadow-2xl flex flex-col scale-in duration-200">
                 <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-white">
                     <div className="flex items-center gap-3">
@@ -135,7 +146,8 @@ const RestockModal = ({ show, onHide, product, onRestockSuccess }) => {
                     </button>
                 </form>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
 

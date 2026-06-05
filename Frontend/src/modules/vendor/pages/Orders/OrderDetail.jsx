@@ -1,6 +1,6 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Package, MapPin, Phone, Mail, Clock, CheckCircle2, Truck, User, CreditCard, Calendar, Hash } from 'lucide-react';
+import { ArrowLeft, Package, MapPin, Phone, Mail, Clock, CheckCircle2, Truck, User, CreditCard, Calendar, Hash, XCircle } from 'lucide-react';
 import { useVendor } from '../../contexts/VendorContext';
 import { formatCurrency, formatDate } from '../../../../common/utils/formatUtils';
 
@@ -77,35 +77,47 @@ const OrderDetail = () => {
             </div>
 
             {/* Status Timeline */}
-            <div className="premium-card p-3">
-                <h2 className="text-sm font-bold text-gray-900 mb-4">Order Status</h2>
-                <div className="flex items-center justify-between relative">
-                    {statusSteps.map((step, index) => {
-                        const isCompleted = index <= currentStepIndex;
-                        const isCurrent = index === currentStepIndex;
-                        return (
-                            <div key={step} className="flex-1 relative">
-                                <div className="flex flex-col items-center">
-                                    <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center ${isCompleted
-                                        ? 'bg-[#0c831f] border-[#0c831f] text-white'
-                                        : 'bg-white border-gray-300 text-gray-400'
-                                        }`}>
-                                        {isCompleted ? <CheckCircle2 size={16} /> : <div className="w-2 h-2 rounded-full bg-gray-300" />}
-                                    </div>
-                                    <p className={`text-[10px] font-bold mt-2 text-center ${isCurrent ? 'text-[#0c831f]' : isCompleted ? 'text-gray-900' : 'text-gray-400'
-                                        }`}>
-                                        {step.replace('_', ' ')}
-                                    </p>
-                                </div>
-                                {index < statusSteps.length - 1 && (
-                                    <div className={`absolute top-4 left-1/2 w-full h-0.5 ${index < currentStepIndex ? 'bg-[#0c831f]' : 'bg-gray-300'
-                                        }`} style={{ transform: 'translateY(-50%)' }} />
-                                )}
-                            </div>
-                        );
-                    })}
+            {order.status === 'cancelled' ? (
+                <div className="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-red-600">
+                        <XCircle size={24} />
+                    </div>
+                    <div>
+                        <h3 className="text-sm font-black text-red-600 uppercase tracking-wide">Order Cancelled</h3>
+                        <p className="text-xs font-medium text-red-500">This order has been cancelled.</p>
+                    </div>
                 </div>
-            </div>
+            ) : (
+                <div className="premium-card p-3">
+                    <h2 className="text-sm font-bold text-gray-900 mb-4">Order Status</h2>
+                    <div className="flex items-center justify-between relative">
+                        {statusSteps.map((step, index) => {
+                            const isCompleted = index <= currentStepIndex;
+                            const isCurrent = index === currentStepIndex;
+                            return (
+                                <div key={step} className="flex-1 relative">
+                                    <div className="flex flex-col items-center">
+                                        <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center ${isCompleted
+                                            ? 'bg-[#0c831f] border-[#0c831f] text-white'
+                                            : 'bg-white border-gray-300 text-gray-400'
+                                            }`}>
+                                            {isCompleted ? <CheckCircle2 size={16} /> : <div className="w-2 h-2 rounded-full bg-gray-300" />}
+                                        </div>
+                                        <p className={`text-[10px] font-bold mt-2 text-center ${isCurrent ? 'text-[#0c831f]' : isCompleted ? 'text-gray-900' : 'text-gray-400'
+                                            }`}>
+                                            {step.replace('_', ' ')}
+                                        </p>
+                                    </div>
+                                    {index < statusSteps.length - 1 && (
+                                        <div className={`absolute top-4 left-1/2 w-full h-0.5 ${index < currentStepIndex ? 'bg-[#0c831f]' : 'bg-gray-300'
+                                            }`} style={{ transform: 'translateY(-50%)' }} />
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
                 {/* Left Column */}

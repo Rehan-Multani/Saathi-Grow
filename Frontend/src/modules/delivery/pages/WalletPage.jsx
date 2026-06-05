@@ -19,31 +19,18 @@ import useDeliveryStore from '../store/deliveryStore';
 import { formatCurrency } from '../../vendor/utils/formatDate';
 
 const WalletPage = () => {
-    const { token } = useDeliveryStore();
+    const token = useDeliveryStore(state => state.token);
     const { wallet, transactions = [], stats, profile, walletPagination, refreshWallet } = useDelivery();
 
     const handleExport = async () => {
         const toastId = toast.loading("Processing tactical audit...");
         try {
-            const csvContent = "date,order,type,amount,status\n" +
-                transactions.map(tx => `${new Date(tx.createdAt).toLocaleDateString()},${tx.order?.orderId || 'N/A'},${tx.type},${tx.amount},${tx.status}`).join("\n");
+            const csvContent = "Date,Order ID,Type,Amount,Status\n" +
+                transactions.map(tx => `"${new Date(tx.createdAt).toLocaleDateString()}","${tx.order?.orderId || 'N/A'}","${tx.type}","${tx.amount}","${tx.status}"`).join("\n");
 
             const fileName = `cash_audit_${new Date().toISOString().split('T')[0]}.csv`;
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const file = new File([blob], fileName, { type: 'text/csv' });
 
-            // Try Web Share API first (ideal for mobile WebViews to bypass storage permissions)
-            if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                await navigator.share({
-                    files: [file],
-                    title: 'Cash Audit Export',
-                    text: 'Here is the cash audit export.'
-                });
-                toast.update(toastId, { render: "Audit Shared Successfully", type: "success", isLoading: false, autoClose: 2000 });
-                return;
-            }
-
-            // Fallback for desktop or browsers without Web Share API
             const url = URL.createObjectURL(blob);
             const link = document.createElement("a");
             link.setAttribute("href", url);
@@ -52,15 +39,10 @@ const WalletPage = () => {
             link.click();
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
-
             toast.update(toastId, { render: "Audit Log Downloaded", type: "success", isLoading: false, autoClose: 2000 });
         } catch (error) {
             console.error("Export failed:", error);
-            if (error.name !== 'AbortError') {
-                toast.update(toastId, { render: "Export Failed or Canceled", type: "error", isLoading: false, autoClose: 2000 });
-            } else {
-                toast.dismiss(toastId);
-            }
+            toast.update(toastId, { render: "Export Failed", type: "error", isLoading: false, autoClose: 2000 });
         }
     };
 
@@ -69,7 +51,7 @@ const WalletPage = () => {
     const liabilityProgress = Math.min((cashLiability / liabilityLimit) * 100, 100);
 
     return (
-        <div className="max-w-[1200px] mx-auto space-y-4">
+        <div className="max-w-[1200px] mx-auto space-y-4 pb-28 md:pb-8">
             {/* Professional Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>

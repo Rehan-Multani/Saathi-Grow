@@ -182,7 +182,7 @@ const VendorDetails = () => {
                         <div className="space-y-6">
                             {[
                                 { icon: <User size={16} />, label: t('details.profile.owner'), value: vendor.ownerName },
-                                { icon: <Mail size={16} />, label: t('details.profile.email'), value: vendor.email, lowercase: true },
+                                { icon: <Mail size={16} />, label: t('details.profile.email'), value: vendor.email },
                                 { icon: <Phone size={16} />, label: t('details.profile.phone'), value: vendor.phone },
                                 { icon: <MapPin size={16} />, label: t('details.profile.address'), value: vendor.address?.street || vendor.address },
                                 { icon: <Calendar size={16} />, label: t('details.profile.joined'), value: new Date(vendor.createdAt).toLocaleDateString() }
@@ -193,7 +193,7 @@ const VendorDetails = () => {
                                     </div>
                                     <div className="min-w-0">
                                         <div className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.15em] mb-0.5">{item.label}</div>
-                                        <div className={`text-xs font-bold text-slate-800 tracking-tight uppercase ${item.lowercase ? 'lowercase' : ''} truncate`}>{item.value}</div>
+                                        <div className="text-xs font-bold text-slate-800 tracking-tight truncate">{item.value}</div>
                                     </div>
                                 </div>
                             ))}

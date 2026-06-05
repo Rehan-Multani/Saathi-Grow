@@ -31,7 +31,7 @@ const DeliveryGuard = ({ children }) => {
 };
 
 const DeliveryRoutes = () => {
-    const { token } = useDeliveryStore();
+    const token = useDeliveryStore(state => state.token);
     return (
         <div className="delivery-module-root min-h-screen">
             <FirebaseNotificationHandler token={token} role="delivery" isApp={isWebView()} showToast={true} />

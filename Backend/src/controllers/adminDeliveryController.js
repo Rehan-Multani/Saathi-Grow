@@ -406,7 +406,7 @@ export const getAvailablePartners = async (req, res) => {
 // Helper for assignment logic (internal use)
 const performAssignment = async (orderId, partnerId, session) => {
   // 1. Fetch both with write-locks logic applied (or transaction guaranteed isolation)
-  const order = await Order.findById(orderId).session(session);
+  const order = await Order.findById(orderId).populate('vendor').populate('branchId').session(session);
   if (!order) throw new Error('Order not found');
   if (order.orderSource === 'pos') throw new Error('Assignment failed: POS orders do not require delivery partners');
   if (order.deliveryPartnerId) throw new Error('Order is already assigned to a driver');
@@ -582,6 +582,63 @@ export const autoAssignOrder = async (req, res) => {
     res.json({ message: 'Auto-assigned to nearest partner', ...result });
   } catch (error) {
     res.status(error.statusCode || 500).json({ message: error.message || 'Auto-assignment failed' });
+  } finally {
+    await session.endSession();
+  }
+};
+
+// Reusable helper to auto-assign a new order upon creation/payment verification
+export const triggerAutoAssignmentForOrder = async (orderId) => {
+  const session = await mongoose.startSession();
+  try {
+    let result = null;
+    await session.withTransaction(async () => {
+      const order = await Order.findById(orderId)
+        .populate('vendor')
+        .populate('branchId')
+        .session(session);
+
+      if (!order) return;
+      if (order.deliveryPartnerId) return;
+
+      let pickupLocation = null;
+      if (order.vendor && order.vendor.address && order.vendor.address.location) {
+        pickupLocation = order.vendor.address.location;
+      } else if (order.branchId && order.branchId.address && order.branchId.address.location) {
+        pickupLocation = order.branchId.address.location;
+      }
+
+      if (!pickupLocation || !pickupLocation.coordinates || pickupLocation.coordinates.length < 2) {
+        return;
+      }
+
+      const nearestPartner = await DeliveryPartner.findOne({
+        authStatus: 'Active',
+        assignmentStatus: 'Free',
+        dutyStatus: 'Online',
+        currentLocation: {
+          $near: {
+            $geometry: {
+              type: 'Point',
+              coordinates: pickupLocation.coordinates
+            },
+            $maxDistance: 10000 // 10km radius
+          }
+        }
+      }).session(session);
+
+      if (!nearestPartner) {
+        console.log(`[AutoAssign] No near partner found for order ${orderId}`);
+        return;
+      }
+
+      result = await performAssignment(order._id, nearestPartner._id, session);
+      console.log(`[AutoAssign] Successfully auto-assigned order ${orderId} to partner ${nearestPartner.name}`);
+    });
+    return result;
+  } catch (error) {
+    console.error(`[AutoAssign] Error auto-assigning order ${orderId}:`, error);
+    return null;
   } finally {
     await session.endSession();
   }

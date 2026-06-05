@@ -104,6 +104,8 @@ const DeliveryLogin = () => {
                       name="phone"
                       type="tel"
                       maxLength={10}
+                      inputMode="numeric"
+                      pattern="[0-9]*"
                       required
                       value={phone}
                       onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}

@@ -83,11 +83,6 @@ const LoginModal = () => {
             setEmail('');
             setOtp('');
             setShowOTP(false);
-            
-            // Ask for location immediately after login/register
-            setTimeout(() => {
-                openLocationModal();
-            }, 500);
         }
     };
 
@@ -147,7 +142,10 @@ const LoginModal = () => {
                                 <div className="relative">
                                     <span className="absolute left-3 top-3.5 text-gray-500 font-bold text-sm">+91</span>
                                     <input
-                                        type="tel" maxLength="10" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ''))}
+                                        type="tel" maxLength="10"
+                                        inputMode="numeric"
+                                        pattern="[0-9]*"
+                                        value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ''))}
                                         className="block w-full pl-12 pr-3 py-3 border border-gray-200 rounded-xl focus:ring-1 focus:ring-[var(--saathi-green)] focus:border-[var(--saathi-green)] outline-none bg-gray-50 text-sm font-bold"
                                         placeholder="98765 43210" required />
                                 </div>

@@ -114,7 +114,6 @@ const AllStaff = () => {
     }, [searchTerm]);
 
     const PERMISSIONS_DEF = [
-        { id: 'VIEW_DASHBOARD', label: t('permissions.VIEW_DASHBOARD', 'View Dashboard') },
         { id: 'MANAGE_POS_BILLING', label: t('permissions.MANAGE_POS_BILLING', 'POS Billing') },
         { id: 'VIEW_ORDERS', label: t('permissions.VIEW_ORDERS', 'View Orders') },
         { id: 'MANAGE_ORDERS', label: t('permissions.MANAGE_ORDERS', 'Manage Orders') },

@@ -169,9 +169,6 @@ const StaffOrders = () => {
                                     <tr key={order._id} className="group/row hover:bg-blue-50/20 transition-all duration-300">
                                         <td className="px-8 py-5 text-left border-0">
                                             <div className="flex items-center gap-4 text-left">
-                                                <div className="w-12 h-12 bg-slate-950 text-white rounded-xl flex items-center justify-center font-black text-xs shadow-xl group-hover/row:scale-110 group-hover/row:bg-blue-600 transition-all duration-500 shrink-0 italic">
-                                                   {order.orderId || 'ORD'}
-                                                </div>
                                                 <div className="text-left font-black">
                                                    <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-mono italic font-black leading-none text-left">Ref: #{order.orderId || order._id}</div>
                                                    <div className="flex items-center gap-1.5 mt-2.5 font-black text-left leading-none font-black italic">

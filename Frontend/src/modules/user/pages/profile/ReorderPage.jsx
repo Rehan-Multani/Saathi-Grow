@@ -10,8 +10,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 const ReorderPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { token } = useAuth();
-    const { addToCart, setIsCartOpen } = useCart();
+    const { token, user } = useAuth();
+    const { addToCart, clearCart } = useCart();
 
     const [order, setOrder] = useState(null);
     const [items, setItems] = useState([]);
@@ -75,7 +75,6 @@ const ReorderPage = () => {
         }));
     };
 
-    const { user } = useAuth();
     const handleReorder = async () => {
         const itemsToOrder = items.filter(item => item.quantity > 0);
         if (itemsToOrder.length === 0) {
@@ -87,34 +86,27 @@ const ReorderPage = () => {
         setIsLoading(true);
 
         try {
-            // Prepare order data based on original order contexts
-            const orderData = {
-                items: itemsToOrder.map(item => ({
-                    product: item.productId,
-                    quantity: item.quantity,
-                    price: item.price,
+            await clearCart();
+            
+            itemsToOrder.forEach(item => {
+                const productToCart = {
+                    id: item.productId,
+                    _id: item.productId,
                     name: item.name,
-                    image: item.image
-                })),
-                shippingAddress: {
-                    ...order.shippingAddress,
-                    name: user?.name || order.shippingAddress?.name,
-                    phone: user?.phone || order.shippingAddress?.phone
-                },
-                totalAmount: itemsToOrder.reduce((sum, item) => sum + (item.price * item.quantity), 0),
-                deliverySlot: 'Immediate',
-                isImmediate: true,
-                storeId: order.branchId?._id || order.branchId || order.storeId?._id || order.storeId,
-                storeType: order.branchId ? 'branch' : (order.vendorId ? 'vendor' : 'branch'),
-                paymentMethod: 'cod' // Default to COD for instant reorder
-            };
+                    price: item.price,
+                    image: item.image,
+                    isDeliverable: true,
+                    availableStock: 999,
+                    maxAllowed: 999
+                };
+                addToCart(productToCart, item.quantity);
+            });
 
-            const res = await createCODOrder(token, orderData);
-            toast.success("Order placed successfully!");
-            navigate('/order-success', { state: { orderId: res.order._id } });
+            toast.success("Items added to cart for checkout!");
+            navigate('/checkout');
         } catch (error) {
-            console.error("Reorder failed:", error);
-            toast.error(error.message || "Failed to place reorder");
+            console.error("Reorder routing failed:", error);
+            toast.error(error.message || "Failed to process reorder");
         } finally {
             setIsLoading(false);
         }

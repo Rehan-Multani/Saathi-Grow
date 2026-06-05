@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
     Search, Eye, Filter, Clock, CreditCard, Store, Zap,
-    ChevronLeft, ChevronRight, IndianRupee, Calendar, Pencil, Trash2
+    ChevronLeft, ChevronRight, IndianRupee, Calendar, Pencil, Trash2, CheckCircle
 } from 'lucide-react';
 import OrderDetailsModal from '../../../../common/components/orders/OrderDetailsModal';
 import { getAllOrdersAdmin, updateOrderStatus } from '../../api/orderApi';
@@ -133,7 +133,23 @@ const OnlineOrders = () => {
             { value: 'cancelled', label: t('status.cancelled'), icon: '❌', color: '#ef4444', bgColor: '#fee2e2' }
         ];
 
-        const optionsHtml = statusOptions.map(opt => 
+        const statusOrderMap = {
+            'pending': 1,
+            'confirmed': 2,
+            'preparing': 3,
+            'ready_for_pickup': 4,
+            'out_for_delivery': 5,
+            'delivered': 6,
+            'cancelled': 7
+        };
+
+        const currentRank = statusOrderMap[currentStatus] || 0;
+        const filteredOptions = statusOptions.filter(opt => {
+            const optRank = statusOrderMap[opt.value] || 0;
+            return optRank >= currentRank;
+        });
+
+        const optionsHtml = filteredOptions.map(opt => 
             `<div class="status-option ${opt.value === currentStatus ? 'status-option-active' : ''}" data-value="${opt.value}" style="border-color: ${opt.color}20; background: ${opt.value === currentStatus ? opt.bgColor : 'white'};">
                 <span class="status-icon" style="background: ${opt.bgColor}; color: ${opt.color};">${opt.icon}</span>
                 <span class="status-label" style="color: ${opt.value === currentStatus ? opt.color : '#334155'};">${opt.label}</span>
@@ -277,6 +293,16 @@ const OnlineOrders = () => {
             } catch (error) {
                 toast.error(error.response?.data?.message || t('common:error_occurred'));
             }
+        }
+    };
+
+    const acceptOrder = async (orderId) => {
+        try {
+            await updateOrderStatus(orderId, 'confirmed');
+            toast.success(t('actions.update_success', 'Order Accepted!'));
+            fetchOrders();
+        } catch (error) {
+            toast.error(error.response?.data?.message || t('common:error_occurred'));
         }
     };
 
@@ -434,13 +460,20 @@ const OnlineOrders = () => {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 text-center">
-                                            <OrderStatusBadge status={order.status} t={t} />
+                                            <button onClick={() => handleUpdateStatus(order._id, order.status)} className="hover:opacity-80 transition-opacity" title="Update Status">
+                                                <OrderStatusBadge status={order.status} t={t} />
+                                            </button>
                                         </td>
                                         <td className="px-6 py-4 text-right font-bold text-slate-900">
                                             ₹{order.totalAmount?.toLocaleString()}
                                         </td>
                                         <td className="px-6 py-4 text-center">
                                             <div className="flex justify-center gap-2">
+                                                {order.status === 'pending' && (
+                                                    <button onClick={() => acceptOrder(order._id)} title="Accept Order" className="p-2 hover:bg-emerald-50 text-emerald-500 hover:text-emerald-600 rounded-lg transition-colors">
+                                                        <CheckCircle size={16} />
+                                                    </button>
+                                                )}
                                                 <button onClick={() => handleShowDetails(order)} className="p-2 hover:bg-slate-100 hover:text-slate-900 rounded-lg text-slate-400 transition-colors"><Eye size={16} /></button>
                                                 <button className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"><Trash2 size={18} /></button>
                                             </div>

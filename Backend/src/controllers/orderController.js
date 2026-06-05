@@ -22,6 +22,7 @@ import PromoUsage from '../models/PromoUsage.js';
 import { sendPushNotification, notifyByBranchAndPermission, notifySuperAdmins } from '../services/notificationService.js';
 import { sendSystemNotificationEmail } from '../services/emailService.js';
 import { buildRouteCacheKey, getCachedRoute, setCachedRoute } from '../services/routeCacheService.js';
+import { triggerAutoAssignmentForOrder } from './adminDeliveryController.js';
 
 /**
  * Enrich order items with physicalLocation from the product document.
@@ -455,6 +456,11 @@ export const verifyRazorpayPayment = async (req, res) => {
       title: 'Order Placed!',
       body: `Your order ${createdOrder.orderId} was successful and is being processed.`
     }, { orderId: createdOrder.orderId, status: 'confirmed' });
+
+    // Auto-assign to nearest delivery partner if applicable
+    triggerAutoAssignmentForOrder(createdOrder._id).catch(err => {
+      console.error('[AutoAssign] Error in verifyRazorpayPayment background trigger:', err);
+    });
 
     // 2. Notify Staff/Admin/Vendor based on product ownership
     if (createdOrder.vendor) {
@@ -1145,6 +1151,11 @@ export const createWalletOrder = async (req, res) => {
       body: `Order ${createdOrder.orderId} was successful using your wallet balance.`
     }, { orderId: createdOrder.orderId, status: 'confirmed' });
 
+    // Auto-assign to nearest delivery partner if applicable
+    triggerAutoAssignmentForOrder(createdOrder._id).catch(err => {
+      console.error('[AutoAssign] Error in createWalletOrder background trigger:', err);
+    });
+
     // 2. Notify Staff/Admin/Vendor
     if (createdOrder.vendor) {
       sendPushNotification(createdOrder.vendor, 'Vendor', {
@@ -1759,6 +1770,13 @@ export const updateOrderStatus = async (req, res) => {
 
     res.json(updatedOrder);
 
+    // Auto-assign to delivery partner if status is confirmed or preparing
+    if (status === 'confirmed' || status === 'preparing') {
+      triggerAutoAssignmentForOrder(updatedOrder._id).catch(err => {
+        console.error('[AutoAssign] Error in updateOrderStatus background trigger:', err);
+      });
+    }
+
     // --- Production Notifications ---
     // Notify Customer of Status Update
     sendPushNotification(updatedOrder.user, 'User', {
@@ -2009,6 +2027,13 @@ export const updateVendorOrderStatus = async (req, res) => {
     await order.save();
 
     res.json({ message: `Order status updated to ${status}`, order });
+
+    // Auto-assign to nearest delivery partner if order is ready or preparing and lacks partner
+    if (status === 'preparing' || status === 'ready_for_pickup') {
+      triggerAutoAssignmentForOrder(order._id).catch(err => {
+        console.error('[AutoAssign] Error in updateVendorOrderStatus background trigger:', err);
+      });
+    }
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -2186,12 +2211,12 @@ export const createReturnBatch = async (req, res) => {
     const normalizedOrderIds = Array.isArray(orderIds)
       ? [...new Set(orderIds.map((id) => String(id)))]
       : [];
-
     if (!partnerId || normalizedOrderIds.length === 0 || !destinationType || !destinationId) {
       return res.status(400).json({ message: 'partnerId, orderIds, destinationType, and destinationId are required' });
     }
 
     let createdRun = null;
+    let totalRefundAmount = 0;
 
     await session.withTransaction(async () => {
       const partner = await DeliveryPartner.findById(partnerId).session(session);
@@ -2207,6 +2232,8 @@ export const createReturnBatch = async (req, res) => {
         err.statusCode = 400;
         throw err;
       }
+
+      totalRefundAmount = orders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
 
       const ineligibleOrders = orders.filter((order) => {
         if (!order.returnRequest?.isRequested) return true;
@@ -2266,7 +2293,12 @@ export const createReturnBatch = async (req, res) => {
       sendPushNotification(partnerId, 'DeliveryPartner', {
         title: 'New Return Pickup Batch',
         body: `You have been assigned ${normalizedOrderIds.length} return pickups.`
-      }, { runId: createdRun._id.toString(), type: 'return_batch' });
+      }, { 
+        runId: createdRun._id.toString(), 
+        type: 'return_batch',
+        totalAmount: totalRefundAmount.toString(),
+        paymentMethod: 'Return (Prepaid)'
+      });
     }
   } catch (error) {
     res.status(error.statusCode || 500).json({ message: error.message });

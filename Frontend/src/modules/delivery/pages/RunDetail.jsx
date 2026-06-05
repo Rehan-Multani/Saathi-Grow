@@ -59,6 +59,15 @@ const RunDetail = () => {
         isReturn ? ['pending', 'out_for_delivery'].includes(o.status) : ['pending', 'out_for_delivery'].includes(o.status)
     ).length || 0;
 
+    // Calculate source/pickup point info safely
+    const pickupSource = run.vendor || run.branchId || run.orders?.[0]?.order?.vendor || run.orders?.[0]?.order?.branchId;
+    const isVendor = !!(run.vendor || run.orders?.[0]?.order?.vendor);
+    const sourceName = isVendor ? (pickupSource?.storeName || 'Vendor Store') : (pickupSource?.name || 'Central Branch');
+    const sourceAddress = typeof pickupSource?.address === 'object' 
+        ? `${pickupSource.address.street || ''}, ${pickupSource.address.city || ''}, ${pickupSource.address.state || ''}`.trim().replace(/^,\s*/, '')
+        : (pickupSource?.address || 'Store Location Address not specified');
+    const sourcePhone = pickupSource?.phone || 'N/A';
+
     return (
         <div className="space-y-4 md:space-y-6 pb-24">
             {/* Header */}
@@ -109,6 +118,57 @@ const RunDetail = () => {
                         <MapPin size={16} />
                         View Live Map
                     </button>
+                </div>
+            </div>
+
+            {/* Route Points Info */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Pickup Point (Source) */}
+                <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-slate-100 dark:border-zinc-800 p-5 shadow-sm relative overflow-hidden">
+                    <span className="absolute top-4 right-4 bg-lime-100 text-lime-800 dark:bg-lime-950/40 dark:text-lime-400 px-2.5 py-1 rounded-full text-[8px] font-black tracking-widest uppercase">
+                        {isReturn ? 'Return Target' : 'Pickup Point'}
+                    </span>
+                    <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                        <MapPin size={12} className="text-[#028A0F]" />
+                        {isReturn ? 'Destination Store' : 'Source Store'}
+                    </h3>
+                    <h4 className="text-lg font-black text-slate-800 dark:text-zinc-100">{sourceName}</h4>
+                    <p className="text-sm text-slate-500 mt-2 leading-relaxed">{sourceAddress}</p>
+                    {sourcePhone && sourcePhone !== 'N/A' && (
+                        <a 
+                            href={`tel:${sourcePhone}`} 
+                            className="inline-flex items-center gap-1.5 text-xs font-bold text-[#028A0F] mt-3 bg-[#028A0F]/10 hover:bg-[#028A0F]/20 px-3 py-1.5 rounded-xl transition-all"
+                        >
+                            <Phone size={12} /> Call Store ({sourcePhone})
+                        </a>
+                    )}
+                </div>
+
+                {/* Batch Information */}
+                <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-slate-100 dark:border-zinc-800 p-5 shadow-sm relative overflow-hidden">
+                    <span className="absolute top-4 right-4 bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-400 px-2.5 py-1 rounded-full text-[8px] font-black tracking-widest uppercase">
+                        Run Batch
+                    </span>
+                    <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                        <Package size={12} className="text-blue-500" />
+                        Summary & Notes
+                    </h3>
+                    <div className="space-y-2 mt-2">
+                        <div className="flex justify-between text-sm">
+                            <span className="text-slate-400 font-medium">Batch Type:</span>
+                            <span className="font-bold uppercase text-slate-700 dark:text-slate-200">{run.runType}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                            <span className="text-slate-400 font-medium">Created On:</span>
+                            <span className="font-bold text-slate-700 dark:text-slate-200">{new Date(run.createdAt).toLocaleDateString()}</span>
+                        </div>
+                        {run.notes && (
+                            <div className="mt-3 p-3 bg-amber-50 dark:bg-amber-950/25 border border-amber-100 dark:border-amber-900/50 rounded-2xl text-xs text-amber-800 dark:text-amber-400 leading-relaxed font-semibold">
+                                <span className="font-black uppercase tracking-wider block mb-0.5">Admin Note:</span>
+                                {run.notes}
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
 

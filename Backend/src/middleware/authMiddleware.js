@@ -6,8 +6,10 @@ import DeliveryPartner from '../models/DeliveryPartner.js';
 
 const PERMISSION_ALIASES = {
   MANAGE_DELIVERY: ['MANAGE_DELIVERY_BOYS'],
-  MANAGE_DELIVERY_BOYS: ['MANAGE_DELIVERY']
+  MANAGE_DELIVERY_BOYS: ['MANAGE_DELIVERY'],
+  VIEW_PRODUCTS: ['MANAGE_PRODUCTS']
 };
+
 
 // Protect Customer/User Routes
 export const protect = async (req, res, next) => {

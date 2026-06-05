@@ -12,6 +12,7 @@ const StaffLogin = () => {
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [agreedToTerms, setAgreedToTerms] = useState(false);
+    const [rememberMe, setRememberMe] = useState(false);
     const [viewPolicy, setViewPolicy] = useState({ isOpen: false, slug: '', title: '' });
     const { staffLogin } = useStaffAuth();
     const navigate = useNavigate();
@@ -112,13 +113,31 @@ const StaffLogin = () => {
                             </div>
                         </div>
 
-                        <div className="flex items-start gap-2 mt-2 px-1">
+                        <div className="flex items-center justify-between px-1 mb-3">
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    id="remember"
+                                    checked={rememberMe}
+                                    onChange={(e) => setRememberMe(e.target.checked)}
+                                    className="w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500 cursor-pointer"
+                                />
+                                <label htmlFor="remember" className="text-[11px] font-bold text-slate-500 uppercase tracking-wider cursor-pointer select-none">
+                                    Remember me
+                                </label>
+                            </div>
+                            <button type="button" onClick={() => alert('Please contact System Admin to reset password')} className="text-[11px] font-black text-blue-600 hover:text-blue-800 transition-colors uppercase tracking-tighter">
+                                Forgot Password?
+                            </button>
+                        </div>
+
+                        <div className="flex items-center gap-2 mt-2 px-1">
                             <input 
                                 type="checkbox" 
                                 id="terms" 
                                 checked={agreedToTerms}
                                 onChange={(e) => setAgreedToTerms(e.target.checked)}
-                                className="mt-1 w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500 cursor-pointer"
+                                className="w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500 cursor-pointer"
                             />
                             <label htmlFor="terms" className="text-xs text-slate-500 font-medium leading-tight">
                                 I agree to the{' '}
@@ -157,8 +176,7 @@ const StaffLogin = () => {
                     </form>
                     
                     <div className="mt-8 text-center pt-6 border-t border-slate-50">
-                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Forgot password?</p>
-                        <p className="text-[10px] text-slate-500 font-medium mt-1 uppercase">Contact System Admin</p>
+                        <p className="text-[10px] text-slate-500 font-medium uppercase">Need help? Contact System Admin</p>
                     </div>
                 </div>
 

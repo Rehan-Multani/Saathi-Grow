@@ -102,7 +102,6 @@ const ReturnRequests = () => {
         } else {
             const confirm = await Swal.fire({
                 title: t('actions.approve_title', 'Approve Request?'),
-                icon: 'question',
                 showCancelButton: true,
             });
             if (!confirm.isConfirmed) return;

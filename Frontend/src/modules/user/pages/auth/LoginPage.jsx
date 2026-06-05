@@ -187,13 +187,7 @@ const LoginPage = () => {
                             Register
                         </Link>
                     </p>
-                    <div className="h-[1px] bg-gray-100 dark:bg-white/5 w-1/2 mx-auto my-0.5" />
-                    <p className="text-[9px] text-gray-400 dark:text-gray-500 font-medium">
-                        Having trouble?{' '}
-                        <Link to="/help" className="font-bold text-gray-500 hover:text-[#0c831f] dark:hover:text-[#10b981] hover:underline transition-colors">
-                            Contact Support
-                        </Link>
-                    </p>
+
                 </div>
             </div>
         </div>

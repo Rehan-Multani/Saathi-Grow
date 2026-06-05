@@ -190,7 +190,7 @@ export const getDashboardStats = async (req, res) => {
 
     const canViewOrders = isSuperAdmin || isBranchManager || permissions.includes('VIEW_ORDERS');
     const canViewRevenue = isSuperAdmin || isBranchManager || permissions.includes('MANAGE_POS_BILLING');
-    const canViewProducts = isSuperAdmin || isBranchManager || permissions.includes('VIEW_PRODUCTS');
+    const canViewProducts = isSuperAdmin || isBranchManager || permissions.includes('VIEW_PRODUCTS') || permissions.includes('MANAGE_PRODUCTS');
     const canViewInventory = isSuperAdmin || isBranchManager || permissions.includes('MANAGE_INVENTORY');
     const canViewCustomers = isSuperAdmin || isBranchManager || permissions.includes('VIEW_CUSTOMERS');
 

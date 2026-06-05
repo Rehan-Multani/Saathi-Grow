@@ -57,9 +57,9 @@ body {
   width: 100%;
 }
 
-/* Global Transition — transform excluded to prevent Safari flicker with framer-motion */
-* {
-    transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, opacity 0.15s ease-in-out;
+/* Restrict transition to interactive elements to prevent global layout thrashing and opacity conflicts */
+a, button, input, select, textarea, [role="button"], .transition-all {
+    transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, opacity 0.15s ease-in-out, color 0.15s ease-in-out;
 }
 
 /* Safari GPU acceleration for animated elements */
@@ -68,9 +68,8 @@ body {
     animation: none !important;
   }
 
-  /* Force GPU layer for product cards on Safari */
-  [data-framer-component-type],
-  .group {
+  /* Force GPU layer for Framer components on Safari */
+  [data-framer-component-type] {
     -webkit-transform: translateZ(0);
     transform: translateZ(0);
     -webkit-backface-visibility: hidden;
@@ -157,12 +156,12 @@ body {
 /* Form Elements */
 input[type="text"], input[type="number"], input[type="email"], input[type="password"], input[type="tel"], select, textarea {
     width: 100%;
-    background-color: #f8fafc !important;
-    border: 1px solid #e2e8f0 !important;
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
     border-radius: 0.75rem;
     font-size: 0.875rem;
     font-weight: 600;
-    color: #0f172a !important;
+    color: #0f172a;
     transition: all 0.2s;
 }
 
@@ -174,9 +173,9 @@ input[type="text"], input[type="number"], input[type="email"], input[type="passw
 .dark input[type="tel"],
 .dark select,
 .dark textarea {
-    background-color: rgba(255, 255, 255, 0.05) !important;
-    border-color: rgba(255, 255, 255, 0.1) !important;
-    color: #ffffff !important;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
 }
 
 .dark input::placeholder,
@@ -195,40 +194,42 @@ input[type="text"], input[type="number"], input[type="email"], input[type="passw
 }
 
 input:focus, select:focus, textarea:focus {
-    background-color: white !important;
-    border-color: #0c831f !important;
-    color: #0f172a !important;
-    outline: none !important;
+    background-color: white;
+    border-color: #0c831f;
+    color: #0f172a;
+    outline: none;
 }
 
 /* Inline search bars — no inner input box */
 input.search-input-plain,
 input.search-input-plain:focus {
-    width: auto !important;
-    background-color: transparent !important;
-    border: none !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
-    outline: none !important;
-    font-weight: 500 !important;
-    padding: 0 !important;
+    width: auto;
+    background-color: transparent;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    outline: none;
+    font-weight: 500;
+    padding: 0;
+    color: inherit;
 }
 
 /* For inputs inside custom wrapper borders */
 input.plain-input,
 input.plain-input:focus {
-    background-color: transparent !important;
-    border: none !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
-    outline: none !important;
-    padding: 0 !important;
+    background-color: transparent;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    outline: none;
+    padding: 0;
+    color: inherit;
 }
 
 .dark input:focus, .dark select:focus, .dark textarea:focus {
-    background-color: rgba(255, 255, 255, 0.08) !important;
-    border-color: #0c831f !important;
-    color: #ffffff !important;
+    background-color: rgba(255, 255, 255, 0.08);
+    border-color: #0c831f;
+    color: #ffffff;
 }
 
 /* Tables */
@@ -380,4 +381,15 @@ body.modal-open [class*="sidebar"] {
 body.modal-open .main-content, 
 body.modal-open #root > div {
     overflow: hidden !important;
+}
+
+/* Product Card Animations */
+@keyframes fade-in-up {
+    0% { opacity: 0; transform: translateY(10px) scale(0.95); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes shine-sweep-fast {
+    0% { left: -100%; }
+    100% { left: 200%; }
 }

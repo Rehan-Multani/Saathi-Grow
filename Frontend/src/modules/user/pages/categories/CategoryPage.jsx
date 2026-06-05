@@ -366,12 +366,6 @@ const CategoryPage = () => {
                             >
                                 <Search size={22} strokeWidth={2.5} />
                             </button>
-                            <button
-                                onClick={() => setIsFilterOpen(!isFilterOpen)}
-                                className={`back-btn-clear p-2 transition-all ${isFilterOpen ? 'text-black dark:text-white' : 'text-gray-600 dark:text-gray-300'}`}
-                            >
-                                <SlidersHorizontal size={22} strokeWidth={2.5} />
-                            </button>
                         </div>
                     </div>
 

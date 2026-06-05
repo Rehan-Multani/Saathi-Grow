@@ -382,8 +382,13 @@ const AddProduct = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        
+        if (!imageFile) {
+            toast.error('Product image is compulsory. Please upload a main image.');
+            return;
+        }
+
         if (!validateForm()) {
-            toast.error('Please fix the errors before submitting');
             return;
         }
         setLoading(true);
@@ -839,12 +844,22 @@ const AddProduct = () => {
                     <div className="space-y-8">
                         {/* Featured Image */}
                         <div className="bg-white rounded-3xl border border-slate-200 p-8 shadow-sm text-center space-y-4">
-                            <label className="text-sm font-semibold text-slate-700 block text-left">Featured Image</label>
-                            <div className="relative group w-full max-w-[280px] mx-auto aspect-square bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl overflow-hidden flex items-center justify-center cursor-pointer hover:border-blue-400 transition-all">
-                                {imagePreview ? <img src={imagePreview} className="w-full h-full object-cover" /> : <Camera size={40} className="text-slate-300" />}
+                            <label className="text-sm font-semibold text-slate-700 block text-left">
+                                Featured Image <span className="text-red-500">*</span>
+                            </label>
+                            <div className={`relative group w-full max-w-[280px] mx-auto aspect-square bg-slate-50 border-2 border-dashed rounded-2xl overflow-hidden flex flex-col items-center justify-center cursor-pointer transition-all ${imagePreview ? 'border-blue-400' : 'border-red-300 hover:border-red-400'}`}>
+                                {imagePreview ? <img src={imagePreview} className="w-full h-full object-cover" /> : (
+                                    <>
+                                        <Camera size={40} className="text-red-300" />
+                                        <span className="text-[11px] text-red-400 font-semibold mt-2">Required</span>
+                                    </>
+                                )}
                                 <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleImageChange} accept="image/*" />
                                 {imagePreview && <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-xs font-bold">Replace Main Photo</div>}
                             </div>
+                            {!imagePreview && (
+                                <p className="text-[11px] text-red-400 font-semibold">Upload a product image to continue</p>
+                            )}
                         </div>
 
                         {/* Gallery Section */}

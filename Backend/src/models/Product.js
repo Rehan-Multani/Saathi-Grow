@@ -110,7 +110,7 @@ const productSchema = new mongoose.Schema({
   },
   image: {
     type: String, // Cloudinary URL
-    default: ''
+    required: [true, 'Product image is compulsory']
   },
   status: {
     type: String,

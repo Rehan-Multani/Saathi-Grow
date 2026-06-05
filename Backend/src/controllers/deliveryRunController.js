@@ -3,6 +3,7 @@ import Order from '../models/Order.js';
 import DeliveryPartner from '../models/DeliveryPartner.js';
 import DeliverySlot from '../models/DeliverySlot.js';
 import mongoose from 'mongoose';
+import { sendPushNotification } from '../services/notificationService.js';
 
 // Google Maps setup for route optimization
 import axios from 'axios';
@@ -109,6 +110,8 @@ export const createDeliveryRun = async (req, res) => {
   session.startTransaction();
 
   try {
+    const admin = req.admin;
+    const vendor = req.vendor;
     const { partnerId, slotId, slotDate, orderIds, branchId, optimizeRoute } = req.body;
 
     if (!partnerId || !orderIds || orderIds.length === 0) {
@@ -155,7 +158,8 @@ export const createDeliveryRun = async (req, res) => {
     }).filter(Boolean);
 
     // Build a unique RUN ID
-    const runIdString = `RUN-${Date.now().toString().slice(-6)}-${partner.uniqueId.slice(-4)}`;
+    const safeUniqueId = partner.uniqueId || partner._id.toString();
+    const runIdString = `RUN-${Date.now().toString().slice(-6)}-${safeUniqueId.slice(-4)}`;
 
     // Build stops
     let waypointOrderArray = orders.map((_, i) => i); 
@@ -258,9 +262,30 @@ export const createDeliveryRun = async (req, res) => {
     await session.commitTransaction();
     session.endSession();
 
+    // Calculate total amount and payment method label for the run
+    const totalRunAmount = orders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+    const codCount = orders.filter(o => o.paymentMethod?.toLowerCase() === 'cod').length;
+    const onlineCount = orders.length - codCount;
+    const paymentMethodLabel = codCount > 0 ? (onlineCount > 0 ? 'Mixed' : 'COD') : 'Online';
+
+    // Notify the Delivery Partner (Push)
+    sendPushNotification(partner._id, 'DeliveryPartner', {
+      title: 'New Delivery Run Assigned! 🛵',
+      body: `You have been assigned a new delivery run ${run.runId} with ${orders.length} orders.`
+    }, { 
+      runId: run._id.toString(), 
+      type: 'run_assignment',
+      totalAmount: totalRunAmount.toString(),
+      paymentMethod: paymentMethodLabel
+    });
+
     res.status(201).json({ message: 'Delivery Run created successfully', run });
   } catch (error) {
-    await session.abortTransaction();
+    try {
+      await session.abortTransaction();
+    } catch (abortErr) {
+      console.error('Abort transaction error:', abortErr);
+    }
     session.endSession();
     console.error('Create run error:', error);
     res.status(400).json({ message: error.message || 'Transaction Failed' });
@@ -377,15 +402,27 @@ export const cancelDeliveryRun = async (req, res) => {
     // Update run status
     run.status = 'cancelled';
     run.cancelledAt = new Date();
-    run.cancelledBy = req.admin._id;
+    run.cancelledBy = req.admin ? req.admin._id : (req.vendor ? req.vendor._id : null);
     await run.save({ session });
 
     await session.commitTransaction();
     session.endSession();
 
+    // Notify the Delivery Partner (Push)
+    if (partner) {
+      sendPushNotification(partner._id, 'DeliveryPartner', {
+        title: 'Delivery Run Cancelled ❌',
+        body: `Your delivery run ${run.runId} has been cancelled.`
+      }, { runId: run._id.toString(), type: 'run_cancelled' });
+    }
+
     res.json({ message: 'Delivery run cancelled and orders freed up' });
   } catch (err) {
-    await session.abortTransaction();
+    try {
+      await session.abortTransaction();
+    } catch (abortErr) {
+      console.error('Abort transaction error:', abortErr);
+    }
     session.endSession();
     res.status(400).json({ message: err.message });
   }

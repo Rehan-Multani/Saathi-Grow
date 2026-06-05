@@ -72,7 +72,7 @@ const HomePage = ({ }) => {
     };
 
     const itemsToShow = Math.min(getItemsToShow(), activeOffers.length || 1);
-    const isCarousel = activeOffers.length > itemsToShow;
+    const isCarousel = activeOffers.length > 1;
 
     // Manual & Infinite Scroll Logic - Starts at middle set to allow bidirectional scrolling
     const [offerIndex, setOfferIndex] = useState(isCarousel ? activeOffers.length : 0);
@@ -193,7 +193,7 @@ const HomePage = ({ }) => {
             if (isTransitioning) {
                 setOfferIndex((prev) => prev + 1);
             }
-        }, 5000); // Scroll every 5 seconds
+        }, 3000); // Scroll every 3 seconds
 
         return () => clearInterval(interval);
     }, [isCarousel, activeOffers.length, isTransitioning]);
@@ -241,7 +241,7 @@ const HomePage = ({ }) => {
     const isSearching = searchQuery.length > 0;
 
     const filteredCategories = categories.filter(cat =>
-        cat.name.toLowerCase().includes(searchQuery.toLowerCase())
+        cat.name.toLowerCase().includes(searchQuery.trim().toLowerCase())
     );
 
     // getProductsByCategory comes from ShopContext, uses live backend data
@@ -270,10 +270,7 @@ const HomePage = ({ }) => {
     };
 
     return (
-        <motion.div
-            initial="hidden"
-            animate="visible"
-            variants={containerVariants}
+        <div
             className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#000000] dark:to-[#000000] md:bg-none md:bg-white md:dark:bg-black transition-colors duration-300 overflow-x-hidden"
         >
             <SEO
@@ -288,8 +285,7 @@ const HomePage = ({ }) => {
                         <BannerSkeleton />
                     </div>
                 ) : activeOffers.length > 0 ? (
-                    <motion.div
-                        variants={sectionVariants}
+                    <div
                         className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 mt-4 md:mt-8 mb-6 md:mb-10 group/offers relative"
                     >
                         <div className="relative overflow-hidden sm:rounded-2xl">
@@ -302,9 +298,9 @@ const HomePage = ({ }) => {
                                 onTouchStart={handleTouchStart}
                                 onTouchMove={handleTouchMove}
                                 onTouchEnd={handlePointerUp}
-                                className={`flex cursor-grab active:cursor-grabbing ${isTransitioning && isCarousel && !isDragging ? 'transition-transform duration-700 ease-in-out' : ''}`}
+                                className={`flex w-full cursor-grab active:cursor-grabbing ${isTransitioning && isCarousel && !isDragging ? 'transition-transform duration-700 ease-in-out' : ''}`}
                                 style={{
-                                    transform: isCarousel ? `translateX(calc(-${offerIndex * (100 / itemsToShow)}% + ${dragOffset}px))` : 'none',
+                                    transform: isCarousel ? `translateX(calc(-${offerIndex * (100 / itemsToShow)}% - ${offerIndex * (itemsToShow === 1 ? 0 : 12 / itemsToShow)}px + ${dragOffset}px))` : 'none',
                                     gap: itemsToShow === 1 ? '0px' : '12px',
                                     touchAction: 'pan-y'
                                 }}
@@ -337,27 +333,14 @@ const HomePage = ({ }) => {
                             </div>
                         </div>
 
-                        {isCarousel && (
-                            <div className="flex justify-center gap-2.5 mt-4">
-                                {activeOffers.map((_, idx) => (
-                                    <div
-                                        key={idx}
-                                        className={`h-1.5 rounded-full transition-all duration-500 cursor-pointer hover:scale-110 ${(offerIndex % activeOffers.length) === idx
-                                            ? 'w-10 bg-[#0c831f] shadow-[0_0_8px_rgba(12,131,31,0.2)]'
-                                            : 'w-4 bg-gray-200 dark:bg-white/10 hover:bg-gray-300 dark:hover:bg-white/20'
-                                            }`}
-                                    />
-                                ))}
-                            </div>
-                        )}
-                    </motion.div>
+
+                    </div>
                 ) : null
             )}
 
             {/* Categories */}
             {(filteredCategories.length > 0 || !isSearching) && (
-                <motion.div
-                    variants={sectionVariants}
+                <div
                     className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-10 mb-6 md:mb-10"
                 >
                     <div className="flex items-center justify-between mb-2 md:mb-6">
@@ -387,7 +370,7 @@ const HomePage = ({ }) => {
                             ) : (
                                 filteredCategories.map((cat, idx) => {
                                     return (
-                                        <motion.div
+                                        <div
                                             key={cat._id || cat.id}
                                             className="flex-shrink-0"
                                         >
@@ -418,13 +401,13 @@ const HomePage = ({ }) => {
                                                     />
                                                 </div>
                                             </Link>
-                                        </motion.div>
+                                        </div>
                                     );
                                 })
                             )}
                         </div>
                     </div>
-                </motion.div>
+                </div>
             )}
 
             {/* Gap between Category and Campaigns */}
@@ -444,12 +427,8 @@ const HomePage = ({ }) => {
                         isDeliverable: cp.productId?.isDeliverable
                     }));
                 return (
-                    <motion.div
+                    <div
                         key={campaign._id}
-                        initial="hidden"
-                        whileInView="visible"
-                        viewport={{ once: true, margin: "-100px" }}
-                        variants={sectionVariants}
                     >
                         {campaign.displayType === 'lowest_prices' ? (
                             <LowestPricesSection
@@ -472,7 +451,7 @@ const HomePage = ({ }) => {
                                 totalProductsCount={campaign.totalProducts}
                             />
                         )}
-                    </motion.div>
+                    </div>
                 );
             })}
 
@@ -480,22 +459,18 @@ const HomePage = ({ }) => {
             {!isSearching && (
                 <div className="pb-12">
                     {categories.map((category) => (
-                        <motion.div
+                        <div
                             key={category._id || category.id}
-                            initial="hidden"
-                            whileInView="visible"
-                            viewport={{ once: true, margin: "-100px" }}
-                            variants={sectionVariants}
                         >
                             <ProductRow
                                 category={category}
                                 loading={loading}
                             />
-                        </motion.div>
+                        </div>
                     ))}
                 </div>
             )}
-        </motion.div>
+        </div>
     );
 };
 
@@ -631,7 +606,7 @@ const ProductRow = ({ category, loading: globalLoading }) => {
     };
 
     return (
-        <div ref={observerRef} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 md:py-4 border-b border-gray-50 dark:border-white/5 last:border-0 mb-3 md:mb-5" style={{ contentVisibility: 'auto', containIntrinsicSize: '350px' }}>
+        <div ref={observerRef} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 md:py-4 border-b border-gray-50 dark:border-white/5 last:border-0 mb-3 md:mb-5">
             <div className="flex items-center justify-between mb-2 md:mb-6">
                 <h2 className="text-[15px] md:text-xl font-bold text-[#1e293b] dark:text-gray-300 tracking-tight capitalize">
                     {category.name}
@@ -832,7 +807,7 @@ const OccasionSection = ({
     };
 
     return (
-        <div ref={observerRef} className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 mb-3 md:mb-5 rounded-xl relative transition-all duration-300 ${className || ''}`} style={{ backgroundColor: isDarkMode ? '' : bgColor, contentVisibility: 'auto', containIntrinsicSize: '350px' }}>
+        <div ref={observerRef} className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 mb-3 md:mb-5 rounded-xl relative transition-all duration-300 ${className || ''}`} style={{ backgroundColor: isDarkMode ? '' : bgColor }}>
             <div className="flex items-center justify-between mb-1">
                 <div className="flex flex-col">
                     <h2 className="text-lg md:text-xl font-bold tracking-tight" style={{ color: isDarkMode ? 'var(--text-primary)' : themeColor }}>

@@ -18,16 +18,64 @@ const ORDER_ACCEPTED_EVENT = 'delivery:order-accepted';
 export const NotificationProvider = ({ children }) => {
     const [notifications, setNotifications] = useState([]);
     const navigate = useNavigate();
-    const { token } = useDeliveryStore();
+    const token = useDeliveryStore(state => state.token);
 
-    const fetchNotifications = async () => {
+    const alertedNotificationsRef = React.useRef(new Set());
+    const isFetchingRef = React.useRef(false);
+
+    const fetchNotifications = useCallback(async () => {
+        if (!token || isFetchingRef.current) return;
+        isFetchingRef.current = true;
         try {
-            if (!token) return;
             const res = await axios.get(`${API_BASE_URL}/notifications/my`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             if (res.data.success) {
-                const mapped = res.data.notifications.map(n => ({
+                const rawNotifications = res.data.notifications || [];
+
+                rawNotifications.forEach(n => {
+                    const isUnread = !n.isRead;
+                    const isNotAlerted = !alertedNotificationsRef.current.has(n._id);
+
+                    if (isUnread && isNotAlerted) {
+                        alertedNotificationsRef.current.add(n._id);
+
+                        // Only trigger audio/popup alerts for notifications received in the last 5 minutes
+                        const isRecent = (new Date() - new Date(n.createdAt)) < 300000;
+                        if (isRecent) {
+                            const title = n.title || '';
+                            const body = n.body || '';
+                            const data = n.data || {};
+
+                            const isAssignment = 
+                                title.toLowerCase().includes('assign') || 
+                                title.toLowerCase().includes('pickup') ||
+                                ['assignment', 'run_assignment', 'return_batch'].includes(data.type || n.type);
+
+                            if (isAssignment) {
+                                const firebasePayload = {
+                                    notification: {
+                                        title: title,
+                                        body: body
+                                    },
+                                    data: {
+                                        type: data.type || n.type || 'run_assignment',
+                                        runId: data.runId || null,
+                                        orderId: data.orderId || null,
+                                        totalAmount: data.totalAmount || null,
+                                        paymentMethod: data.paymentMethod || null
+                                    }
+                                };
+
+                                console.log('Dispatching synthetic FCM event for assignment:', firebasePayload);
+                                const event = new CustomEvent('onFirebaseMessage', { detail: firebasePayload });
+                                window.dispatchEvent(event);
+                            }
+                        }
+                    }
+                });
+
+                const mapped = rawNotifications.map(n => ({
                     id: n._id,
                     orderId: n.data?.orderId || 'N/A',
                     customerName: n.data?.customerName || 'N/A',
@@ -40,12 +88,22 @@ export const NotificationProvider = ({ children }) => {
             }
         } catch (error) {
             console.error('Error fetching notifications:', error);
+        } finally {
+            isFetchingRef.current = false;
         }
-    };
+    }, [token]);
 
     useEffect(() => {
+        if (!token) return;
+        
         fetchNotifications();
-    }, [token]);
+
+        const interval = setInterval(() => {
+            fetchNotifications();
+        }, 15000); // Poll every 15 seconds to reduce server load while maintaining freshness
+
+        return () => clearInterval(interval);
+    }, [token, fetchNotifications]);
 
     useEffect(() => {
         const handleNewOrder = (event) => {

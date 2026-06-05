@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
-import { Search, Eye, Printer, Filter, Download, Store, Upload, Clock, ChevronLeft, ChevronRight, Zap, CreditCard, Calendar, Truck, Edit3, Trash2 } from 'lucide-react';
+import { Search, Eye, Printer, Filter, Download, Store, Upload, Clock, ChevronLeft, ChevronRight, Zap, CreditCard, Calendar, Truck, Edit3, Trash2, CheckCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import OrderDetailsModal from '../../../../common/components/orders/OrderDetailsModal';
 import { getAllOrdersAdmin, deleteOrder, updateOrderStatus, getOrderDetails } from '../../api/orderApi';
@@ -521,6 +521,16 @@ const AllOrders = () => {
         }
     };
 
+    const acceptOrder = async (orderId) => {
+        try {
+            await updateOrderStatus(orderId, 'confirmed');
+            toast.success(t('actions.update_success', 'Order Accepted!'));
+            fetchOrders();
+        } catch (error) {
+            toast.error(error.response?.data?.message || t('common:error_occurred'));
+        }
+    };
+
     return (
         <div className="container-fluid px-0">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
@@ -678,13 +688,20 @@ const AllOrders = () => {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <OrderStatusBadge status={order.status} t={t} />
+                                            <button onClick={() => handleUpdateStatus(order._id, order.status)} className="hover:opacity-80 transition-opacity" title="Update Status">
+                                                <OrderStatusBadge status={order.status} t={t} />
+                                            </button>
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <span className="text-sm font-bold text-slate-900">₹{order.totalAmount?.toLocaleString()}</span>
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex justify-center gap-1">
+                                                {order.status === 'pending' && (
+                                                    <button onClick={() => acceptOrder(order._id)} title="Accept Order" className="p-2 hover:bg-emerald-50 text-emerald-500 hover:text-emerald-600 rounded-lg transition-colors">
+                                                        <CheckCircle size={16} />
+                                                    </button>
+                                                )}
                                                 <button onClick={() => handleShowDetails(order)} title="View Details" className="p-2 hover:bg-slate-100 hover:text-slate-900 rounded-lg text-slate-400 transition-colors"><Eye size={16} /></button>
                                                 <button onClick={() => handlePrintReceipt(order)} title="Print Receipt" className="p-2 hover:bg-blue-50 hover:text-blue-600 rounded-lg text-slate-400 transition-colors"><Printer size={16} /></button>
                                             </div>

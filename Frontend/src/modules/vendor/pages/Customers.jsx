@@ -17,9 +17,9 @@ const Customers = () => {
     ];
 
     const filteredCustomers = customers.filter(customer =>
-        customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        customer.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        customer.phone.includes(searchQuery)
+        customer.name.toLowerCase().includes(searchQuery.trim().toLowerCase()) ||
+        customer.email.toLowerCase().includes(searchQuery.trim().toLowerCase()) ||
+        customer.phone.includes(searchQuery.trim())
     );
 
     const totalCustomers = customers.length;

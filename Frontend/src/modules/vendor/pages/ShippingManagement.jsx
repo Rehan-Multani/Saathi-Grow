@@ -15,9 +15,9 @@ const ShippingManagement = () => {
     ];
 
     const filteredShipments = shipments.filter(shipment => {
-        const matchesSearch = shipment.orderId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            shipment.customer.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            shipment.awb.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesSearch = shipment.orderId.toLowerCase().includes(searchQuery.trim().toLowerCase()) ||
+            shipment.customer.toLowerCase().includes(searchQuery.trim().toLowerCase()) ||
+            shipment.awb.toLowerCase().includes(searchQuery.trim().toLowerCase());
         const matchesStatus = filterStatus === 'all' || shipment.status === filterStatus;
         return matchesSearch && matchesStatus;
     });

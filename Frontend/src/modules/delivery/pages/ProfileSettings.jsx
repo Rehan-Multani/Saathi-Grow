@@ -334,49 +334,39 @@ const ProfileSettings = () => {
                     </div>
 
                     {/* Active sessions */}
-                    <div>
-                        <div
-                            onClick={() => setShowActiveSessions(p => !p)}
-                            className="flex items-center justify-between py-3 border-b border-slate-50 dark:border-zinc-800/30 cursor-pointer group"
-                        >
-                            <div className="flex items-center gap-3">
-                                <div className="text-slate-400"><Smartphone size={16} /></div>
-                                <span className="text-sm font-medium text-slate-800 dark:text-zinc-100 group-hover:text-[#028A0F] transition-colors">Active sessions</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <span className="text-[9px] font-bold text-[#028A0F] uppercase tracking-tighter">1 Active</span>
-                                <ChevronRight size={14} className={`text-slate-300 transition-transform ${showActiveSessions ? 'rotate-90' : ''}`} />
-                            </div>
+                    <div className="py-3 border-b border-slate-50 dark:border-zinc-800/30">
+                        <div className="flex items-center gap-3 mb-3">
+                            <div className="text-slate-400"><Smartphone size={16} /></div>
+                            <span className="text-sm font-medium text-slate-800 dark:text-zinc-100">Active sessions</span>
+                            <span className="text-[9px] font-bold text-[#028A0F] uppercase tracking-tighter px-1.5 py-0.5 bg-[#028A0F]/10 rounded-full">1 Active</span>
                         </div>
 
-                        {showActiveSessions && (
-                            <div className="py-3 px-1 space-y-3 border-b border-slate-50">
-                                <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 bg-[#028A0F]/10 rounded-lg flex items-center justify-center">
-                                            <Smartphone size={16} className="text-[#028A0F]" />
-                                        </div>
-                                        <div>
-                                            <p className="text-xs font-bold text-slate-800">This device</p>
-                                            <p className="text-[9px] text-slate-400 font-medium">
-                                                {navigator.userAgent.includes('Mobile') ? 'Mobile Browser' : 'Desktop Browser'} • Active now
-                                            </p>
-                                            <p className="text-[9px] text-slate-400 font-medium">
-                                                Logged in as {profile?.name || 'Partner'} • {profile?.phone}
-                                            </p>
-                                        </div>
+                        <div className="py-1 px-1 space-y-3">
+                            <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-zinc-800/20 rounded-xl border border-slate-100 dark:border-zinc-800">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 bg-[#028A0F]/10 rounded-lg flex items-center justify-center">
+                                        <Smartphone size={16} className="text-[#028A0F]" />
                                     </div>
-                                    <span className="text-[9px] font-bold text-emerald-500 bg-emerald-50 px-2 py-0.5 rounded-full">Current</span>
+                                    <div>
+                                        <p className="text-xs font-bold text-slate-800 dark:text-zinc-200">This device</p>
+                                        <p className="text-[9px] text-slate-400 font-medium">
+                                            {navigator.userAgent.includes('Mobile') ? 'Mobile Browser' : 'Desktop Browser'} • Active now
+                                        </p>
+                                        <p className="text-[9px] text-slate-400 font-medium">
+                                            Logged in as {profile?.name || 'Partner'} • {profile?.phone}
+                                        </p>
+                                    </div>
                                 </div>
-                                <p className="text-[9px] text-slate-400 font-medium px-1">Only 1 active session found. You are logged in on this device only.</p>
-                                <button
-                                    onClick={handleLogout}
-                                    className="w-full py-2 text-xs font-bold text-red-500 border border-red-100 rounded-xl hover:bg-red-50 transition-all"
-                                >
-                                    Log out this session
-                                </button>
+                                <span className="text-[9px] font-bold text-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-full">Current</span>
                             </div>
-                        )}
+                            <p className="text-[9px] text-slate-400 font-medium px-1">Only 1 active session found. You are logged in on this device only.</p>
+                            <button
+                                onClick={handleLogout}
+                                className="w-full py-2 text-xs font-bold text-red-500 border border-red-100 dark:border-red-500/20 rounded-xl hover:bg-red-50 dark:hover:bg-red-500/10 transition-all"
+                            >
+                                Log out this session
+                            </button>
+                        </div>
                     </div>
                 </div>
             ),
@@ -463,11 +453,20 @@ const ProfileSettings = () => {
             <div className="flex items-center gap-4 py-2">
                 <div className="relative">
                     <div className="w-16 h-16 rounded-xl overflow-hidden shadow-lg border border-slate-100 dark:border-zinc-800">
-                        <img
-                            src={profile?.profileImage || "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"}
-                            className="w-full h-full object-cover bg-white"
-                            alt="avatar"
-                        />
+                        {profile?.profileImage ? (
+                            <img
+                                src={profile.profileImage}
+                                className="w-full h-full object-cover"
+                                alt="avatar"
+                            />
+                        ) : (
+                            <div className="w-full h-full bg-slate-900 flex items-center justify-center">
+                                <div className="flex flex-col items-center justify-center gap-0.5">
+                                    <div className="w-5 h-5 rounded-full bg-white/90" />
+                                    <div className="w-8 h-4 rounded-t-full bg-white/90 mt-0.5" />
+                                </div>
+                            </div>
+                        )}
                     </div>
                     <label className="absolute -bottom-1 -right-1 w-6 h-6 bg-[#028A0F] text-white rounded-lg shadow-lg flex items-center justify-center cursor-pointer border-2 border-white dark:border-zinc-900 transition-transform active:scale-90">
                         <Camera size={12} />

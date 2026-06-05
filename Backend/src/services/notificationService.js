@@ -89,11 +89,16 @@ export const sendPushNotification = async (recipientId, recipientModel, notifica
         },
         // ✅ Web push config (Windows Notification Center + browser)
         webpush: {
+          headers: {
+            Urgency: 'high'
+          },
           notification: {
             title: notification.title,
             body: notification.body,
             icon: '/favicon.png',
             badge: '/favicon.png',
+            requireInteraction: true, // Keep notification until user clicks or dismisses it
+            vibrate: [200, 100, 200, 100, 200, 100, 200],
           },
           fcmOptions: {
             link: process.env.CLIENT_URL || 'https://saathi-grow-8oyg.vercel.app',
@@ -105,13 +110,20 @@ export const sendPushNotification = async (recipientId, recipientModel, notifica
           notification: {
             sound: 'default',
             clickAction: 'FLUTTER_NOTIFICATION_CLICK',
+            channelId: 'high_importance_channel',
+            priority: 'high',
+            visibility: 'public',
           },
         },
         // ✅ iOS config
         apns: {
+          headers: {
+            'apns-priority': '10',
+          },
           payload: {
             aps: {
               sound: 'default',
+              contentAvailable: true,
             },
           },
         },
@@ -122,9 +134,42 @@ export const sendPushNotification = async (recipientId, recipientModel, notifica
 
     // sendEach is the replacement for sendAll in firebase-admin 12.x
     const response = await firebaseAdmin.messaging().sendEach(messages);
-    console.log(`Successfully sent notifications to ${recipientId} (${response.successCount} succeeded)`);
+    console.log(`[FCM Diagnostic] Results for recipient ${recipientId} (${recipientModel}):`);
+    console.log(`  Success count: ${response.successCount}`);
+    console.log(`  Failure count: ${response.failureCount}`);
 
-    return true;
+    let saveNeeded = false;
+    response.responses.forEach((res, index) => {
+      const token = uniqueTokens[index];
+      if (res.success) {
+        console.log(`  [Success] Token index ${index} (ends with ...${token.slice(-8)}): Message ID ${res.messageId}`);
+      } else {
+        console.error(`  [Failure] Token index ${index} (ends with ...${token.slice(-8)}): Error Code: ${res.error.code}, Message: ${res.error.message}`);
+        
+        // Clean up invalid / unregistered tokens
+        if (res.error.code === 'messaging/registration-token-not-registered' || res.error.code === 'messaging/invalid-argument') {
+          if (recipient.fcmToken) {
+            if (recipient.fcmToken.app === token) {
+              console.log(`  [Cleanup] Clearing invalid app token for ${recipientId}`);
+              recipient.fcmToken.app = '';
+              saveNeeded = true;
+            }
+            if (recipient.fcmToken.web === token) {
+              console.log(`  [Cleanup] Clearing invalid web token for ${recipientId}`);
+              recipient.fcmToken.web = '';
+              saveNeeded = true;
+            }
+          }
+        }
+      }
+    });
+
+    if (saveNeeded) {
+      await recipient.save();
+      console.log(`  [Cleanup] Recipient document updated with cleared tokens`);
+    }
+
+    return response.successCount > 0;
 
   } catch (error) {
     console.error('Error sending push notification:', error);

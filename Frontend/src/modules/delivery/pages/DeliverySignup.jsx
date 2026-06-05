@@ -30,6 +30,15 @@ const DeliverySignup = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (form.phone.length !== 10) return toast.error('Enter a valid 10-digit phone number');
+    
+    // Vehicle Number Format Validation: 2 letters, 2 digits, 2 letters, 4 digits
+    if (form.vehicleNumber) {
+      const vehicleRegex = /^[A-Z]{2}[0-9]{2}[A-Z]{2}[0-9]{4}$/;
+      if (!vehicleRegex.test(form.vehicleNumber)) {
+        return toast.error('Vehicle number must be in format: 2 Letters, 2 Digits, 2 Letters, 4 Digits (e.g. MP09AB1234)');
+      }
+    }
+
     if (!agreedToTerms) return toast.error('Please agree to the Terms & Conditions and Privacy Policy');
 
     setLoading(true);
@@ -109,7 +118,12 @@ const DeliverySignup = () => {
                   type="text"
                   required
                   value={form.name}
-                  onChange={handleChange}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (/^[a-zA-Z\s]*$/.test(val)) {
+                      setForm((p) => ({ ...p, name: val }));
+                    }
+                  }}
                   placeholder="Raju Kumar"
                   className="block w-full pl-11 pr-4 py-4 rounded-2xl font-bold transition-all delivery-input outline-none"
                 />
@@ -130,6 +144,8 @@ const DeliverySignup = () => {
                   type="tel"
                   required
                   maxLength={10}
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   value={form.phone}
                   onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value.replace(/\D/g, '') }))}
                   placeholder="9876543210"
@@ -193,9 +209,10 @@ const DeliverySignup = () => {
                 <input
                   name="vehicleNumber"
                   type="text"
+                  maxLength={10}
                   value={form.vehicleNumber}
-                  onChange={(e) => setForm((p) => ({ ...p, vehicleNumber: e.target.value.toUpperCase() }))}
-                  placeholder="MP09-AB-1234"
+                  onChange={(e) => setForm((p) => ({ ...p, vehicleNumber: e.target.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase() }))}
+                  placeholder="MP09AB1234"
                   className="block w-full pl-11 pr-4 py-4 rounded-2xl font-bold transition-all delivery-input outline-none uppercase tracking-widest"
                 />
               </div>

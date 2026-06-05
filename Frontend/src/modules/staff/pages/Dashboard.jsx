@@ -223,11 +223,11 @@ const StaffDashboard = () => {
 
                         <div className="overflow-x-auto custom-scrollbar">
                             <table className="w-full text-left border-collapse">
-                                <thead className="bg-slate-50/30 text-[9px] font-black text-slate-300 uppercase tracking-[0.3em] border-b border-slate-50">
+                                <thead className="bg-slate-50/30 text-[10px] font-black text-slate-600 uppercase tracking-[0.3em] border-b border-slate-50">
                                     <tr>
-                                        <th className="px-10 py-5">User</th>
-                                        <th className="px-10 py-5 text-center">Amount</th>
-                                        <th className="px-10 py-5 text-right">Progress</th>
+                                        <th className="px-10 py-5 font-black">User</th>
+                                        <th className="px-10 py-5 text-center font-black">Amount</th>
+                                        <th className="px-10 py-5 text-right font-black">Progress</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-50">
