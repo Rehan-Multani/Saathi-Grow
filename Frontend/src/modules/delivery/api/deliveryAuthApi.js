@@ -1,4 +1,4 @@
-﻿import axios from 'axios';
+import axios from 'axios';
 import { API_BASE_URL } from '../../../config/apiConfig';
 
 const API_URL = API_BASE_URL;
@@ -28,8 +28,9 @@ export const getDeliveryProfile = async (token) => {
 export const updateDeliveryProfile = async (token, formData) => {
   const { data } = await axios.put(`${API_URL}/delivery/auth/profile`, formData, {
     headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'multipart/form-data'
+      Authorization: `Bearer ${token}`
+      // NOTE: Do NOT set Content-Type here. Axios sets it automatically
+      // with the correct multipart boundary when FormData is passed.
     }
   });
   return data;

@@ -11,45 +11,81 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-const storage = new CloudinaryStorage({
-  cloudinary: cloudinary,
-  params: async (req, file) => {
-    let format = 'jpg';
-    if (file.originalname && file.originalname.includes('.')) {
-      const parts = file.originalname.split('.');
-      const fileExt = parts[parts.length - 1].toLowerCase();
-      if (['jpg', 'png', 'jpeg', 'webp', 'avif', 'heic', 'heif'].includes(fileExt)) {
-        format = fileExt === 'jpeg' ? 'jpg' : fileExt;
-      }
-    } else if (file.mimetype) {
-      const mimeExt = file.mimetype.split('/')[1];
-      if (['jpg', 'png', 'jpeg', 'webp', 'avif', 'heic', 'heif'].includes(mimeExt)) {
-        format = mimeExt === 'jpeg' ? 'jpg' : mimeExt;
-      }
+/**
+ * Helper: Detect the best output format from a file object.
+ * Falls back to 'jpg' for camera captures / blobs with no extension.
+ */
+const detectFormat = (file) => {
+  if (file.originalname && file.originalname.includes('.')) {
+    const ext = file.originalname.split('.').pop().toLowerCase();
+    if (['jpg', 'jpeg', 'png', 'webp', 'avif', 'heic', 'heif'].includes(ext)) {
+      return ext === 'jpeg' ? 'jpg' : ext;
     }
-    return {
-      folder: 'saathigro/admin-profiles',
-      format: format,
-      transformation: [{ width: 500, height: 500, crop: 'limit' }],
-    };
-  },
+  }
+  if (file.mimetype) {
+    const mimeExt = file.mimetype.split('/')[1];
+    if (['jpg', 'jpeg', 'png', 'webp', 'avif', 'heic', 'heif'].includes(mimeExt)) {
+      return mimeExt === 'jpeg' ? 'jpg' : mimeExt;
+    }
+  }
+  return 'jpg';
+};
+
+/**
+ * Factory: Create a multer-storage-cloudinary storage for a given folder.
+ */
+const makeCloudinaryStorage = (folder) => new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: async (req, file) => ({
+    folder: folder,
+    format: detectFormat(file),
+    transformation: [{ width: 800, height: 800, crop: 'limit', quality: 'auto' }],
+  }),
 });
 
-const upload = multer({ storage: storage });
-const allowedMimeTypes = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/avif', 'image/heic', 'image/heif']);
+// ── Per-entity Cloudinary storages ──────────────────────────────────────────
+const adminStorage     = makeCloudinaryStorage('saathigro/admin-profiles');
+const userStorage      = makeCloudinaryStorage('saathigro/user-profiles');
+const deliveryStorage  = makeCloudinaryStorage('saathigro/delivery-profiles');
+const productStorage   = makeCloudinaryStorage('saathigro/products');
+const complaintStorage = makeCloudinaryStorage('saathigro/complaint-attachments');
+const returnStorage    = makeCloudinaryStorage('saathigro/return-proof');
 
+// ── Default "general" upload (kept for backward compat) ─────────────────────
+const generalStorage = makeCloudinaryStorage('saathigro/uploads');
+
+const allowedMimeTypes = new Set([
+  'image/jpeg', 'image/jpg', 'image/png', 'image/webp',
+  'image/avif', 'image/heic', 'image/heif'
+]);
+
+const makeFileFilter = () => (req, file, cb) => {
+  // Accept anything that looks like an image — camera blobs sometimes arrive
+  // as application/octet-stream on certain Android WebViews.
+  const isImage = allowedMimeTypes.has(file.mimetype) ||
+                  file.mimetype.startsWith('image/') ||
+                  file.mimetype === 'application/octet-stream';
+  if (!isImage) {
+    return cb(new Error('Only image files are allowed'));
+  }
+  cb(null, true);
+};
+
+const uploadOpts = { fileFilter: makeFileFilter(), limits: { fileSize: 10 * 1024 * 1024 } };
+
+// Named exports — routes import whichever they need
+const upload          = multer({ storage: adminStorage,    ...uploadOpts });
+const userUpload      = multer({ storage: userStorage,     ...uploadOpts });
+const deliveryUpload  = multer({ storage: deliveryStorage, ...uploadOpts });
+const productUpload   = multer({ storage: productStorage,  ...uploadOpts });
+const complaintUpload = multer({ storage: complaintStorage,...uploadOpts });
+const returnUpload    = multer({ storage: returnStorage,   ...uploadOpts });
+
+// Memory-based upload (used for programmatic Cloudinary streaming)
 const memoryUpload = multer({
   storage: multer.memoryStorage(),
-  limits: {
-    fileSize: 8 * 1024 * 1024
-  },
-  fileFilter: (req, file, cb) => {
-    if (!allowedMimeTypes.has(file.mimetype)) {
-      cb(new Error('Only JPG, PNG, WEBP, and AVIF images are allowed'));
-      return;
-    }
-    cb(null, true);
-  }
+  limits: { fileSize: 8 * 1024 * 1024 },
+  fileFilter: makeFileFilter(),
 });
 
 const uploadBufferToCloudinary = ({
@@ -66,15 +102,21 @@ const uploadBufferToCloudinary = ({
       transformation
     },
     (error, result) => {
-      if (error) {
-        reject(error);
-        return;
-      }
+      if (error) { reject(error); return; }
       resolve(result);
     }
   );
-
   stream.end(buffer);
 });
 
-export { cloudinary, upload, memoryUpload, uploadBufferToCloudinary };
+export {
+  cloudinary,
+  upload,
+  userUpload,
+  deliveryUpload,
+  productUpload,
+  complaintUpload,
+  returnUpload,
+  memoryUpload,
+  uploadBufferToCloudinary,
+};

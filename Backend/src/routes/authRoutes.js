@@ -14,7 +14,7 @@ import {
   validateUserOtpResendPayload,
 } from '../middleware/requestValidation.js';
 
-import { upload } from '../config/cloudinary.js';
+import { userUpload } from '../config/cloudinary.js';
 
 const router = express.Router();
 
@@ -25,7 +25,7 @@ router.post('/resend-otp', validateUserOtpResendPayload, resendOTP);
 
 // Profile Management
 router.get('/profile', protect, getUserProfile);
-router.put('/profile', protect, upload.single('image'), updateProfile);
+router.put('/profile', protect, userUpload.single('image'), updateProfile);
 router.put('/fcm-token', protect, updateFCMToken);
 
 export default router;

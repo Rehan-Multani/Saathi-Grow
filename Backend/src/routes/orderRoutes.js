@@ -25,7 +25,7 @@ import {
 import { protect, protectAdmin, requirePermission } from '../middleware/authMiddleware.js';
 import { sensitiveAdminActionLimiter, auditAction, idempotencyGuard } from '../middleware/securityMiddleware.js';
 
-import { upload } from '../config/cloudinary.js';
+import { returnUpload } from '../config/cloudinary.js';
 
 const router = express.Router();
 
@@ -36,7 +36,7 @@ router.get('/by-tag/:tag', protect, getOrdersByTag);
 router.get('/:id', protect, getOrderById);
 router.get('/:id/route', protect, getOrderRoute);
 router.post('/:id/cancel', protect, cancelOrderUser);
-router.post('/:id/return', protect, upload.array('images', 5), requestReturn);
+router.post('/:id/return', protect, returnUpload.array('images', 5), requestReturn);
 router.put('/:id/tag', protect, setOrderTag);
 router.delete('/:id/tag', protect, removeOrderTag);
 router.post('/:id/feedback', protect, submitOrderFeedback);
