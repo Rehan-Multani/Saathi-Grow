@@ -37,11 +37,12 @@ const WalletPage = () => {
                     const type = tx.type || 'N/A';
                     const amount = tx.amount || 0;
                     const status = tx.status || 'N/A';
-                    return `"${dateStr}","${orderId}","${type}","${amount}","${status}"`;
+                    return `" ${dateStr}","${orderId}","${type}","${amount}","${status}"`;
                 }).join("\n");
 
+            const bomCsvContent = "\uFEFF" + csvContent;
             const fileName = `cash_audit_${new Date().toISOString().split('T')[0]}.csv`;
-            downloadCSV(csvContent, fileName);
+            downloadCSV(bomCsvContent, fileName);
             toast.update(toastId, { render: "Audit Log Downloaded", type: "success", isLoading: false, autoClose: 2000 });
         } catch (error) {
             console.error("Export failed:", error);

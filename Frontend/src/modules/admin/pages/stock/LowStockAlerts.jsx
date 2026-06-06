@@ -26,7 +26,7 @@ const LowStockAlerts = () => {
     // Debounce search
     useEffect(() => {
         const timer = setTimeout(() => {
-            setDebouncedSearch(searchTerm);
+            setDebouncedSearch(searchTerm.trim());
             setPage(1);
         }, 500);
         return () => clearTimeout(timer);

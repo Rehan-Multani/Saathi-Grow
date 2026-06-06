@@ -5,9 +5,13 @@ const BASE_URL = `${API_BASE_URL}/complaints`;
 
 export const raiseComplaint = async (token, complaintData) => {
   const isFormData = complaintData instanceof FormData;
-  const headers = { Authorization: `Bearer ${token}` };
+  const headers = { 
+    Authorization: `Bearer ${token}` 
+  };
 
-  if (!isFormData) {
+  if (isFormData) {
+    headers['Content-Type'] = 'multipart/form-data';
+  } else {
     headers['Content-Type'] = 'application/json';
   }
 

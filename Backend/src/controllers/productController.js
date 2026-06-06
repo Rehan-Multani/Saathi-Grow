@@ -1823,8 +1823,9 @@ export const getBranchWiseStock = async (req, res) => {
     });
     pipeline.push({ $unwind: "$branchInfo" });
 
-    if (search) {
-      const escapedSearch = escapeRegExp(search);
+    const trimmedSearch = typeof search === 'string' ? search.trim() : '';
+    if (trimmedSearch) {
+      const escapedSearch = escapeRegExp(trimmedSearch);
       pipeline.push({
         $match: {
           $or: [
@@ -2041,8 +2042,9 @@ export const getLowStockAlerts = async (req, res) => {
     }
 
     // Search
-    if (search) {
-      const escapedSearch = escapeRegExp(search);
+    const trimmedSearch = typeof search === 'string' ? search.trim() : '';
+    if (trimmedSearch) {
+      const escapedSearch = escapeRegExp(trimmedSearch);
       pipeline.push({
         $match: {
           $or: [

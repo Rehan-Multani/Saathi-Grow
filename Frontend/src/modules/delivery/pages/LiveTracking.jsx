@@ -150,9 +150,15 @@ const LiveTracking = () => {
                 await fetchProfile();
                 navigate('/delivery/dashboard');
             } else if (type === 'stop') {
-                await updateDeliveryStatus(token, id, run.status, stopOrderId, stopStatus, otp);
+                const response = await updateDeliveryStatus(token, id, run.status, stopOrderId, stopStatus, otp);
                 toast.success('Task Updated');
                 setOtpInput('');
+                if (response && (response.status === 'completed' || response.status === 'partial_complete')) {
+                    toast.success(isReturn ? 'Returns Finalized!' : 'Mission Accomplished!');
+                    await fetchProfile();
+                    navigate('/delivery/dashboard');
+                    return;
+                }
             }
             fetchDetail();
         } catch (error) {

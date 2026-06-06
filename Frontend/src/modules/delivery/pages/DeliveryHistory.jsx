@@ -77,11 +77,12 @@ const DeliveryHistory = () => {
                 historicalOrders.map(o => {
                     const cust = String(o.customer || '').replace(/"/g, '""');
                     const loc = String(o.location || '').replace(/"/g, '""');
-                    return `"${o.id}","${o.date}","${cust}","${loc}","${o.status}","${o.amount}"`;
+                    return `"${o.id}"," ${o.date}","${cust}","${loc}","${o.status}","${o.amount}"`;
                 }).join("\n");
 
+            const bomCsvContent = "\uFEFF" + csvContent;
             const fileName = `delivery_history_${new Date().toISOString().split('T')[0]}.csv`;
-            downloadCSV(csvContent, fileName);
+            downloadCSV(bomCsvContent, fileName);
 
             toast.update(id, { render: "Report downloaded successfully", type: "success", isLoading: false, autoClose: 2000 });
         } catch (error) {

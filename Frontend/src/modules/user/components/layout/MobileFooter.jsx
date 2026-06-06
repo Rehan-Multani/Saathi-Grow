@@ -95,8 +95,9 @@ const MobileFooter = ({ setIsMenuOpen, isBottomSheetOpen }) => {
     const hideOnPages = ['/login', '/register', '/checkout', '/order-success'];
     const isTrackingPage = location.pathname.includes('/tracking');
     const isComplaintPage = location.pathname.includes('/complaint') || location.pathname.includes('/support/raise-ticket');
+    const isReturnPage = location.pathname.includes('/return');
     const isCategoryPage = location.pathname.startsWith('/category');
-    const isActuallyHidden = hideOnPages.includes(location.pathname) || isTrackingPage || isComplaintPage || (isKeyboardOpen && !isCategoryPage);
+    const isActuallyHidden = hideOnPages.includes(location.pathname) || isTrackingPage || isComplaintPage || isReturnPage || (isKeyboardOpen && !isCategoryPage);
 
     const navItems = [
         { path: '/', label: 'Home', icon: Home },

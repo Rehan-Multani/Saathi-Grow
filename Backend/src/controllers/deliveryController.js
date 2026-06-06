@@ -314,8 +314,11 @@ export const updateDeliveryStatus = async (req, res) => {
             }
         }
 
+        const isReturnRun = run.runType === 'return';
+        const allStopsDone = run.orders.length > 0 && run.orders.every(o => isReturnRun ? o.status === 'picked_up' : (o.status === 'delivered' || o.status === 'failed'));
+
         // Finalize completed run (All types)
-        if (status === 'completed') {
+        if (status === 'completed' || allStopsDone) {
             run.status = run.orders.some(o => o.status === 'failed') ? 'partial_complete' : 'completed';
             run.completedAt = Date.now();
 

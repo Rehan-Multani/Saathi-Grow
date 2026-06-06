@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useStaffAuth } from '../../context/StaffAuthContext';
 import { Eye, EyeOff, Lock, Mail, Loader2, ArrowRight, ShieldCheck } from 'lucide-react';
 import logo from '../../../../assets/logo_fav.png';
@@ -126,9 +126,9 @@ const StaffLogin = () => {
                                     Remember me
                                 </label>
                             </div>
-                            <button type="button" onClick={() => alert('Please contact System Admin to reset password')} className="text-[11px] font-black text-blue-600 hover:text-blue-800 transition-colors uppercase tracking-tighter">
+                            <Link to="/staff/forgot-password" className="text-[11px] font-black text-blue-600 hover:text-blue-800 transition-colors uppercase tracking-tighter">
                                 Forgot Password?
-                            </button>
+                            </Link>
                         </div>
 
                         <div className="flex items-center gap-2 mt-2 px-1">
@@ -176,7 +176,9 @@ const StaffLogin = () => {
                     </form>
                     
                     <div className="mt-8 text-center pt-6 border-t border-slate-50">
-                        <p className="text-[10px] text-slate-500 font-medium uppercase">Need help? Contact System Admin</p>
+                        <p className="text-[10px] text-slate-500 font-medium uppercase">
+                            Need help? <a href="mailto:support@saathigro.in?subject=Staff Portal Support" className="text-blue-600 font-bold hover:underline">Contact Support</a>
+                        </p>
                     </div>
                 </div>
 

@@ -5,7 +5,7 @@ import logo from '../../../../assets/logo_fav.png';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 
-const ManagerResetPassword = () => {
+const StaffResetPassword = () => {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
@@ -31,7 +31,7 @@ const ManagerResetPassword = () => {
             await axios.post(`${import.meta.env.VITE_API_URL}/admin/reset-password/${token}`, { password });
             setSuccess(true);
             toast.success('Password updated successfully');
-            setTimeout(() => navigate('/store-manager/login'), 2500);
+            setTimeout(() => navigate('/staff/login'), 2500);
         } catch (err) {
             toast.error(err.response?.data?.message || 'Invalid or expired reset link');
         } finally {
@@ -139,4 +139,4 @@ const ManagerResetPassword = () => {
     );
 };
 
-export default ManagerResetPassword;
+export default StaffResetPassword;

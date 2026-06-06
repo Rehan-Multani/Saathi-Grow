@@ -2,6 +2,8 @@ import React from 'react';
 import { Routes, Route, Navigate, Outlet, Link } from 'react-router-dom';
 import { StaffAuthProvider, useStaffAuth } from '../context/StaffAuthContext';
 import StaffLogin from '../pages/auth/StaffLogin';
+import StaffForgotPassword from '../pages/auth/StaffForgotPassword';
+import StaffResetPassword from '../pages/auth/StaffResetPassword';
 import StaffLayout from '../StaffLayout';
 import StaffDashboard from '../pages/Dashboard';
 import StaffOrders from '../pages/orders/StaffOrders';
@@ -59,6 +61,8 @@ const StaffRoutes = () => {
             <Routes>
                 {/* Public Staff Routes */}
                 <Route path="login" element={<StaffLogin />} />
+                <Route path="forgot-password" element={<StaffForgotPassword />} />
+                <Route path="reset-password/:token" element={<StaffResetPassword />} />
 
                 {/* Protected Staff Routes */}
                 <Route element={<ProtectedStaffRoute />}>

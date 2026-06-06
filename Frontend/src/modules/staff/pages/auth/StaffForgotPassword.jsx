@@ -5,7 +5,7 @@ import logo from '../../../../assets/logo_fav.png';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 
-const ManagerForgotPassword = () => {
+const StaffForgotPassword = () => {
     const [email, setEmail] = useState('');
     const [loading, setLoading] = useState(false);
     const [submitted, setSubmitted] = useState(false);
@@ -16,7 +16,7 @@ const ManagerForgotPassword = () => {
         setLoading(true);
 
         try {
-            await axios.post(`${import.meta.env.VITE_API_URL}/admin/forgot-password`, { email, portal: 'store-manager' });
+            await axios.post(`${import.meta.env.VITE_API_URL}/admin/forgot-password`, { email, portal: 'staff' });
             setSubmitted(true);
             toast.success('Reset link sent to your email');
         } catch (err) {
@@ -87,7 +87,7 @@ const ManagerForgotPassword = () => {
                                 A secure reset link has been sent to <span className="text-blue-600">{email}</span>. Please check your inbox.
                             </p>
                             <button 
-                                onClick={() => navigate('/store-manager/login')}
+                                onClick={() => navigate('/staff/login')}
                                 className="h-14 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-800 transition-all shadow-xl shadow-slate-200 w-full active:scale-95"
                             >
                                 Return to Login
@@ -96,7 +96,7 @@ const ManagerForgotPassword = () => {
                     )}
 
                     <div className="mt-10 flex justify-center">
-                        <Link to="/store-manager/login" className="inline-flex items-center gap-2 text-[11px] font-black text-blue-600 hover:text-blue-800 transition-colors uppercase tracking-widest">
+                        <Link to="/staff/login" className="inline-flex items-center gap-2 text-[11px] font-black text-blue-600 hover:text-blue-800 transition-colors uppercase tracking-widest">
                             <ArrowLeft size={16} /> Back to Login
                         </Link>
                     </div>
@@ -110,4 +110,4 @@ const ManagerForgotPassword = () => {
     );
 };
 
-export default ManagerForgotPassword;
+export default StaffForgotPassword;

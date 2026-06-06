@@ -55,10 +55,7 @@ const DeliveryDashboard = () => {
         return activeRun.orders[activeRun.currentStopIndex || 0];
     }, [activeRun]);
 
-    console.log('--- MAP DEBUG ---');
-    console.log('Key:', GOOGLE_MAPS_API_KEY);
     const mapUrl = `https://maps.googleapis.com/maps/api/staticmap?center=22.7533,75.8948&zoom=14&size=600x300&maptype=roadmap&markers=color:black%7Clabel:S%7C22.7533,75.8948&markers=color:red%7Clabel:C%7C22.7196,75.8577&key=${GOOGLE_MAPS_API_KEY}`;
-    console.log('URL:', mapUrl);
 
     useEffect(() => {
         const handleFirebaseMessage = (event) => {

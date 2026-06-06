@@ -34,12 +34,6 @@ const DeliveryLayout = ({ children }) => {
     const [isNotificationOpen, setIsNotificationOpen] = useState(false);
     const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
     const notificationPanelRef = useRef(null);
-
-    // Bypass layout elements entirely for tracking pages
-    if (isTrackingPage) {
-        return <>{children}</>;
-    }
-
     useEffect(() => {
         let timeoutId;
         const MIN_KEYBOARD_HEIGHT = 150;
@@ -134,6 +128,10 @@ const DeliveryLayout = ({ children }) => {
         { icon: <Wallet size={20} />, label: 'Cash Hub', path: '/delivery/wallet' },
         { icon: <Activity size={20} />, label: 'History', path: '/delivery/history' }
     ];
+
+    if (isTrackingPage) {
+        return <>{children}</>;
+    }
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 text-slate-900 dark:text-zinc-100 font-sans overflow-x-hidden">
