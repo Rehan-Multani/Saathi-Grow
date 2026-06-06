@@ -184,19 +184,39 @@ const RaiseComplaintPage = () => {
 
                         {images.length < 3 && (
                             <div className="grid grid-cols-2 gap-4">
-                                {/* Standard HTML5 Camera Upload (Works in Web & WebViews) */}
-                                <label className="flex flex-col items-center justify-center py-6 bg-gray-50/50 dark:bg-white/5 border-2 border-dashed border-[#0c831f]/20 dark:border-[#0c831f]/10 rounded-2xl cursor-pointer hover:bg-[#0c831f]/5 transition-all group active:scale-[0.98]">
-                                    <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handleImageChange} />
+                                {/* Camera — label triggers input directly (works on all mobile browsers) */}
+                                <label
+                                    htmlFor="complaint-camera-input"
+                                    className="relative flex flex-col items-center justify-center py-6 bg-gray-50/50 dark:bg-white/5 border-2 border-dashed border-[#0c831f]/20 dark:border-[#0c831f]/10 rounded-2xl cursor-pointer hover:bg-[#0c831f]/5 transition-all active:scale-[0.98]"
+                                >
+                                    <input
+                                        id="complaint-camera-input"
+                                        type="file"
+                                        accept="image/*"
+                                        capture="environment"
+                                        onChange={handleImageChange}
+                                        style={{ position: 'absolute', opacity: 0, width: 0, height: 0, pointerEvents: 'none' }}
+                                    />
                                     <Camera size={24} className="text-[#0c831f] mb-2" />
                                     <span className="text-[10px] md:text-sm font-black text-[#0c831f] uppercase tracking-widest">Take Photo</span>
                                     <p className="text-[8px] text-gray-300 mt-1 uppercase tracking-widest font-bold">Max {3 - images.length}</p>
                                 </label>
-                                
-                                {/* Standard Gallery Upload */}
-                                <label className="flex flex-col items-center justify-center py-6 bg-gray-50/50 dark:bg-white/5 border-2 border-dashed border-gray-200 dark:border-white/10 rounded-2xl cursor-pointer hover:bg-[#0c831f]/5 transition-all group active:scale-[0.98]">
-                                    <input type="file" multiple accept="image/*" className="hidden" onChange={handleImageChange} />
-                                    <ImageIcon size={24} className="text-gray-400 group-hover:text-[#0c831f] mb-2 transition-colors" />
-                                    <span className="text-[10px] md:text-sm font-black text-gray-400 group-hover:text-[#0c831f] uppercase tracking-widest transition-colors">Upload Gallery</span>
+
+                                {/* Gallery — label triggers input directly */}
+                                <label
+                                    htmlFor="complaint-gallery-input"
+                                    className="relative flex flex-col items-center justify-center py-6 bg-gray-50/50 dark:bg-white/5 border-2 border-dashed border-gray-200 dark:border-white/10 rounded-2xl cursor-pointer hover:bg-[#0c831f]/5 transition-all active:scale-[0.98]"
+                                >
+                                    <input
+                                        id="complaint-gallery-input"
+                                        type="file"
+                                        multiple
+                                        accept="image/*"
+                                        onChange={handleImageChange}
+                                        style={{ position: 'absolute', opacity: 0, width: 0, height: 0, pointerEvents: 'none' }}
+                                    />
+                                    <ImageIcon size={24} className="text-gray-400 mb-2" />
+                                    <span className="text-[10px] md:text-sm font-black text-gray-400 uppercase tracking-widest">Upload Gallery</span>
                                     <p className="text-[8px] text-gray-300 mt-1 uppercase tracking-widest font-bold">Max {3 - images.length}</p>
                                 </label>
                             </div>

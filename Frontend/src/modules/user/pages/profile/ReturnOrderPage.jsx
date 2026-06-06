@@ -274,18 +274,38 @@ const ReturnOrderPage = () => {
                         ))}
                         {images.length < 5 && (
                             <div className="contents">
-                                {/* Standard HTML5 Camera Upload (Works in Web & WebViews) */}
-                                <label className="w-28 h-28 rounded-2xl border-2 border-dashed border-[#0c831f]/20 dark:border-[#0c831f]/10 bg-gray-50/50 dark:bg-white/5 flex flex-col items-center justify-center gap-2 cursor-pointer group transition-all active:scale-95">
-                                    <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handleImageChange} />
+                                {/* Camera — label triggers input directly (works on all mobile browsers) */}
+                                <label
+                                    htmlFor="return-camera-input"
+                                    className="relative w-28 h-28 rounded-2xl border-2 border-dashed border-[#0c831f]/20 dark:border-[#0c831f]/10 bg-gray-50/50 dark:bg-white/5 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all active:scale-95"
+                                >
+                                    <input
+                                        id="return-camera-input"
+                                        type="file"
+                                        accept="image/*"
+                                        capture="environment"
+                                        onChange={handleImageChange}
+                                        style={{ position: 'absolute', opacity: 0, width: 0, height: 0, pointerEvents: 'none' }}
+                                    />
                                     <Camera size={24} className="text-[#0c831f]" />
                                     <span className="text-[9px] font-black text-[#0c831f] uppercase tracking-widest text-center px-2">Camera</span>
                                 </label>
-                                
-                                {/* Standard Gallery Upload */}
-                                <label className="w-28 h-28 rounded-2xl border-2 border-dashed border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-white/5 flex flex-col items-center justify-center gap-2 cursor-pointer group transition-all active:scale-95">
-                                    <input type="file" accept="image/*" multiple className="hidden" onChange={handleImageChange} />
-                                    <ImageIcon size={24} className="text-gray-400 group-hover:text-[#0c831f] transition-colors" />
-                                    <span className="text-[9px] font-black text-gray-400 group-hover:text-[#0c831f] uppercase tracking-widest transition-colors">Gallery</span>
+
+                                {/* Gallery — label triggers input directly */}
+                                <label
+                                    htmlFor="return-gallery-input"
+                                    className="relative w-28 h-28 rounded-2xl border-2 border-dashed border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-white/5 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all active:scale-95"
+                                >
+                                    <input
+                                        id="return-gallery-input"
+                                        type="file"
+                                        accept="image/*"
+                                        multiple
+                                        onChange={handleImageChange}
+                                        style={{ position: 'absolute', opacity: 0, width: 0, height: 0, pointerEvents: 'none' }}
+                                    />
+                                    <ImageIcon size={24} className="text-gray-400" />
+                                    <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Gallery</span>
                                 </label>
                             </div>
                         )}
