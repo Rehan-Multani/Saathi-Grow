@@ -83,9 +83,17 @@ const ProfilePage = () => {
             const formData = new FormData();
             formData.append('image', file);
 
-            const result = await updateUser(formData);
-            if (result.success) {
-                toast.success('Profile picture updated');
+            try {
+                const result = await updateUser(formData);
+                if (result.success) {
+                    toast.success('Profile picture updated');
+                } else {
+                    toast.error(result.message || 'Upload failed');
+                }
+            } catch (error) {
+                const msg = error?.response?.data?.message || error?.message || 'Upload failed';
+                console.error('Profile image upload error:', error?.response?.data || error);
+                toast.error(msg);
             }
         }
     };

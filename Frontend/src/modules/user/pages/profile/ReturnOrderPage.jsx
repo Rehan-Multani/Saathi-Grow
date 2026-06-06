@@ -63,24 +63,21 @@ const ReturnOrderPage = () => {
             return;
         }
 
-        // Normalize file name and mime type (especially for camera captures)
-        const normalizedFiles = files.map(file => {
-            let name = file.name || 'image.jpg';
-            if (name.toLowerCase() === 'blob' || !name.includes('.')) {
-                const extension = file.type ? file.type.split('/')[1] : 'jpg';
-                name = `camera_${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${extension === 'jpeg' ? 'jpg' : extension}`;
+        // Pass files directly — do NOT use new File([file], ...) which causes
+        // zero-byte uploads on Android camera captures.
+        const validFiles = files.filter(f => {
+            if (f.size === 0) {
+                console.warn('Skipping zero-byte file:', f.name);
+                return false;
             }
-            const type = file.type || 'image/jpeg';
-            try {
-                return new File([file], name, { type });
-            } catch (err) {
-                console.warn('File normalization fallback:', err);
-                return file;
-            }
+            console.log('Image selected:', f.name, f.type, f.size, 'bytes');
+            return true;
         });
 
-        setImages(prev => [...prev, ...normalizedFiles]);
-        const newPreviews = normalizedFiles.map(file => URL.createObjectURL(file));
+        if (validFiles.length === 0) return;
+
+        setImages(prev => [...prev, ...validFiles]);
+        const newPreviews = validFiles.map(file => URL.createObjectURL(file));
         setImagePreviews(prev => [...prev, ...newPreviews]);
     };
 

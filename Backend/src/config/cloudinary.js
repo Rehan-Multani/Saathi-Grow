@@ -12,23 +12,23 @@ cloudinary.config({
 });
 
 /**
- * Helper: Detect the best output format from a file object.
- * Falls back to 'jpg' for camera captures / blobs with no extension.
+ * Helper: Detect the best web-safe OUTPUT format from a file object.
+ * HEIC/HEIF are input-only formats from iPhone cameras — always convert to jpg.
+ * Falls back to 'jpg' for camera blobs with no extension.
  */
 const detectFormat = (file) => {
+  const allowedOutput = ['jpg', 'png', 'webp', 'avif'];
   if (file.originalname && file.originalname.includes('.')) {
     const ext = file.originalname.split('.').pop().toLowerCase();
-    if (['jpg', 'jpeg', 'png', 'webp', 'avif', 'heic', 'heif'].includes(ext)) {
-      return ext === 'jpeg' ? 'jpg' : ext;
-    }
+    if (allowedOutput.includes(ext)) return ext;
+    if (ext === 'jpeg') return 'jpg';
   }
   if (file.mimetype) {
     const mimeExt = file.mimetype.split('/')[1];
-    if (['jpg', 'jpeg', 'png', 'webp', 'avif', 'heic', 'heif'].includes(mimeExt)) {
-      return mimeExt === 'jpeg' ? 'jpg' : mimeExt;
-    }
+    if (allowedOutput.includes(mimeExt)) return mimeExt;
+    if (mimeExt === 'jpeg') return 'jpg';
   }
-  return 'jpg';
+  return 'jpg'; // safe default for camera captures
 };
 
 /**
@@ -39,7 +39,7 @@ const makeCloudinaryStorage = (folder) => new CloudinaryStorage({
   params: async (req, file) => ({
     folder: folder,
     format: detectFormat(file),
-    transformation: [{ width: 800, height: 800, crop: 'limit', quality: 'auto' }],
+    transformation: [{ width: 800, height: 800, crop: 'limit' }],
   }),
 });
 
@@ -60,13 +60,15 @@ const allowedMimeTypes = new Set([
 ]);
 
 const makeFileFilter = () => (req, file, cb) => {
-  // Accept anything that looks like an image — camera blobs sometimes arrive
-  // as application/octet-stream on certain Android WebViews.
-  const isImage = allowedMimeTypes.has(file.mimetype) ||
-                  file.mimetype.startsWith('image/') ||
-                  file.mimetype === 'application/octet-stream';
+  // Accept anything that looks like an image:
+  // - standard image/* mimetypes
+  // - application/octet-stream: camera blobs from some Android WebViews
+  // - image/heic / image/heif: iPhone camera photos
+  const isImage =
+    file.mimetype.startsWith('image/') ||
+    file.mimetype === 'application/octet-stream';
   if (!isImage) {
-    return cb(new Error('Only image files are allowed'));
+    return cb(new Error(`File type not allowed: ${file.mimetype}`));
   }
   cb(null, true);
 };

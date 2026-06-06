@@ -24,22 +24,21 @@ const ImageSourceModal = ({ isOpen, onClose, onSelect }) => {
 
     const normalizeAndSelect = (file) => {
         if (!file) return;
-        let name = file.name || '';
-        // Camera blobs arrive as "blob", "", or without extension on Android/iOS
-        if (!name || name.toLowerCase() === 'blob' || !name.includes('.')) {
-            const mimeExt = file.type ? file.type.split('/')[1] : 'jpg';
-            const ext = mimeExt === 'jpeg' ? 'jpg' : (mimeExt || 'jpg');
-            name = `photo_${Date.now()}.${ext}`;
+
+        // IMPORTANT: Do NOT use new File([file], ...) — on Android WebViews,
+        // re-wrapping a camera-captured File/Blob produces a zero-byte file.
+        // Instead, pass the original file directly. The filename is fixed
+        // server-side by Cloudinary and is not critical for upload.
+        
+        console.log('File selected:', file.name, file.type, file.size, 'bytes');
+        
+        if (file.size === 0) {
+            console.error('Camera returned empty file. Please try again.');
+            alert('Image capture failed. Please try again or select from gallery.');
+            return;
         }
-        const type = file.type || 'image/jpeg';
-        let normalized = file;
-        try {
-            normalized = new File([file], name, { type });
-        } catch (e) {
-            // File constructor not supported (old WebView) — use original
-            console.warn('File normalization skipped:', e);
-        }
-        onSelect(normalized);
+
+        onSelect(file);
         onClose();
     };
 

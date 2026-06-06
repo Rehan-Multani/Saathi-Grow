@@ -140,7 +140,9 @@ const ProfileSettings = () => {
             await fetchProfile();
             toast.success('Profile picture updated!');
         } catch (error) {
-            toast.error('Upload failed');
+            const msg = error?.response?.data?.message || error?.message || 'Upload failed';
+            console.error('Profile image upload error:', error?.response?.data || error);
+            toast.error(msg);
         } finally {
             setUploading(false);
         }
