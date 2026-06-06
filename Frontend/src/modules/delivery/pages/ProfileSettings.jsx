@@ -23,14 +23,18 @@ import {
     Globe,
     CheckCircle2,
     MessageCircle,
-    Loader2
+    Loader2,
+    Sun,
+    Moon
 } from 'lucide-react';
 import useDeliveryStore from '../store/deliveryStore';
 import { toast } from 'react-toastify';
 import { updateDeliveryProfile, changeDeliveryPassword } from '../api/deliveryAuthApi';
+import { useTheme } from '../../user/context/ThemeContext';
 
 const ProfileSettings = () => {
     const { profile, logout, token, fetchProfile } = useDeliveryStore();
+    const { isDarkMode, toggleTheme } = useTheme();
     const [notifications, setNotifications] = useState(true);
     const [uploading, setUploading] = useState(false);
     const [selectedView, setSelectedView] = useState('menu');
@@ -148,6 +152,7 @@ const ProfileSettings = () => {
         { id: 'history', icon: <History size={18} />, label: 'Order history', sub: 'View completed missions', color: 'text-blue-500', isLink: true, path: '/delivery/history' },
         { id: 'legal', icon: <Shield size={18} />, label: 'Legal & Compliance', sub: 'T&C, Privacy Policy', color: 'text-zinc-500', isLink: true, path: '/delivery/legal' },
         { id: 'notifications', icon: <Bell size={18} />, label: 'Notifications', sub: 'Manage alerts & sounds', color: 'text-purple-500', toggle: true },
+        { id: 'theme', icon: isDarkMode ? <Moon size={18} /> : <Sun size={18} />, label: 'Dark Mode', sub: isDarkMode ? 'Switch to light appearance' : 'Switch to dark appearance', color: 'text-amber-500', themeToggle: true },
         { id: 'security', icon: <Shield size={18} />, label: 'Security & privacy', sub: 'Authentication & access', color: 'text-red-500' },
         { id: 'help', icon: <HelpCircle size={18} />, label: 'Help & support', sub: 'FAQs, Contact us', color: 'text-slate-500' },
     ];
@@ -506,6 +511,10 @@ const ProfileSettings = () => {
                         key={index}
                         onClick={() => {
                             if (item.toggle) return;
+                            if (item.themeToggle) {
+                                toggleTheme();
+                                return;
+                            }
                             if (item.isLink) {
                                 navigate(item.path);
                             } else {
@@ -528,6 +537,16 @@ const ProfileSettings = () => {
                             >
                                 <motion.div
                                     animate={{ x: notifications ? 14 : 2 }}
+                                    className="absolute top-0.5 w-3.5 h-3.5 bg-white rounded-full shadow-sm"
+                                />
+                            </button>
+                        ) : item.themeToggle ? (
+                            <button
+                                onClick={(e) => { e.stopPropagation(); toggleTheme(); }}
+                                className={`w-8 h-4.5 rounded-full relative transition-colors duration-300 ${isDarkMode ? 'bg-[#028A0F]' : 'bg-slate-200 dark:bg-zinc-800'}`}
+                            >
+                                <motion.div
+                                    animate={{ x: isDarkMode ? 14 : 2 }}
                                     className="absolute top-0.5 w-3.5 h-3.5 bg-white rounded-full shadow-sm"
                                 />
                             </button>
