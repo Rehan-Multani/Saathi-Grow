@@ -1,9 +1,26 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { Camera, Image, X } from 'lucide-react';
 
 const ImageSourceModal = ({ isOpen, onClose, onSelect }) => {
     const cameraInputRef = useRef(null);
     const galleryInputRef = useRef(null);
+
+    useEffect(() => {
+        if (isOpen) {
+            document.documentElement.style.overflow = 'hidden';
+            document.body.style.overflow = 'hidden';
+            document.body.style.height = '100vh';
+        } else {
+            document.documentElement.style.overflow = '';
+            document.body.style.overflow = '';
+            document.body.style.height = '';
+        }
+        return () => {
+            document.documentElement.style.overflow = '';
+            document.body.style.overflow = '';
+            document.body.style.height = '';
+        };
+    }, [isOpen]);
 
     if (!isOpen) return null;
 

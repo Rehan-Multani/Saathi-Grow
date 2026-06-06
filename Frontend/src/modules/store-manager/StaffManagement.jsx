@@ -9,7 +9,7 @@ const StaffManagement = () => {
     const { managerUser } = useStoreManagerAuth();
     const currentUser = managerUser;
 
-    const isBranchManager = currentUser?.role === 'Branch Manager';
+    const isBranchManager = currentUser?.role === 'Store Manager';
     const hasPermission = isBranchManager;
     const canPerformActions = isBranchManager;
 
@@ -177,7 +177,7 @@ const StaffManagement = () => {
                     <Shield size={40} />
                 </div>
                 <h1 className="text-2xl font-bold text-slate-800">Access Restricted</h1>
-                <p className="text-slate-500 mt-2 max-w-sm">Only branch managers are permitted to access staff management records.</p>
+                <p className="text-slate-500 mt-2 max-w-sm">Only store managers are permitted to access staff management records.</p>
             </div>
         );
     }

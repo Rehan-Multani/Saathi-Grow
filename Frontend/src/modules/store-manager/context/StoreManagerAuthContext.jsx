@@ -41,7 +41,7 @@ export const StoreManagerAuthProvider = ({ children }) => {
   const managerLogin = useCallback(async (email, password) => {
     try {
       const data = await loginAdmin(email, password);
-      if (data.role !== 'Store Manager' && data.role !== 'Branch Manager') {
+      if (data.role !== 'Store Manager') {
         throw new Error('Access denied. This portal is only for Store Managers.');
       }
       setManagerUser(data);

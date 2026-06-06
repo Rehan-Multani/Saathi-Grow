@@ -287,7 +287,7 @@ export const pageInfoData = {
         description: 'Create a new staff account and assign them a role and set of permissions that control what they can see and do inside the admin panel.',
         keyPoints: [
             'Set the staff member\'s name, email, and contact',
-            'Assign a role: Branch Manager or Sub-Admin',
+            'Assign a role: Store Manager or Sub-Admin',
             'Select specific module permissions (e.g., VIEW_ORDERS, MANAGE_INVENTORY)',
             'Assign them to a specific branch if applicable',
         ],
@@ -370,7 +370,7 @@ export const pageInfoData = {
 
     inventoryRequests: {
         title: 'Inventory Requests',
-        description: 'View and manage inter-branch stock transfer requests. Branch Managers can request stock from the main warehouse or other branches.',
+        description: 'View and manage inter-branch stock transfer requests. Store Managers can request stock from the main warehouse or other branches.',
         keyPoints: [
             'Review pending, approved, and rejected inventory requests',
             'Approve or reject stock transfer requests from branches',
@@ -552,7 +552,7 @@ export const pageInfoData = {
         ],
         workflow: [
             'Create a new hub or store location with full address details.',
-            'Assign a Branch Manager to handle local operations.',
+            'Assign a Store Manager to handle local operations.',
             'Update coordinates or status to reflect real-world site changes.',
             'Use "View Info" to see deep details about a branch\'s performance.',
         ],

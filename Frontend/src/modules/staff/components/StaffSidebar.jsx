@@ -17,7 +17,7 @@ const StaffSidebar = ({ showMobile, onClose }) => {
 
         const permissions = Array.isArray(staffUser.permissions) ? staffUser.permissions : [];
         if (item.title === 'Manage Staff') {
-            return staffUser.role === 'Branch Manager' || permissions.includes('MANAGE_STAFF');
+            return staffUser.role === 'Store Manager' || permissions.includes('MANAGE_STAFF');
         }
 
         const permissionCode = item.permission;

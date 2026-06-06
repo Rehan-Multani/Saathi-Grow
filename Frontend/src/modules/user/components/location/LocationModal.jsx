@@ -11,12 +11,18 @@ const LocationModal = () => {
 
     useEffect(() => {
         if (showLocationModal) {
+            document.documentElement.style.overflow = 'hidden';
             document.body.style.overflow = 'hidden';
+            document.body.style.height = '100vh';
         } else {
-            document.body.style.overflow = 'unset';
+            document.documentElement.style.overflow = '';
+            document.body.style.overflow = '';
+            document.body.style.height = '';
         }
         return () => {
-            document.body.style.overflow = 'unset';
+            document.documentElement.style.overflow = '';
+            document.body.style.overflow = '';
+            document.body.style.height = '';
         };
     }, [showLocationModal]);
 

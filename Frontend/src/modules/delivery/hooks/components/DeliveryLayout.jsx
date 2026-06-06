@@ -136,7 +136,7 @@ const DeliveryLayout = ({ children }) => {
     ];
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 text-slate-900 dark:text-zinc-100 font-sans">
+        <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 text-slate-900 dark:text-zinc-100 font-sans overflow-x-hidden">
             {/* Mobile Header */}
             <header className="fixed top-0 left-0 right-0 h-14 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl border-b border-slate-100 dark:border-zinc-800 flex items-center justify-between px-4 z-40 md:hidden shadow-sm">
                 <div className="flex items-center gap-2">

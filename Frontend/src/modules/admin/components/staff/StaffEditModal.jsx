@@ -120,12 +120,12 @@ const StaffEditModal = ({ show, onHide, staff, onSave }) => {
                                     name="role"
                                     value={formData.role}
                                     onChange={handleChange}
-                                    disabled={adminUser.role === 'Branch Manager'}
+                                    disabled={adminUser.role === 'Store Manager'}
                                     className="w-full pl-10 pr-3 py-2.5 bg-slate-50/50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 focus:bg-white transition-all text-sm font-bold text-slate-700 appearance-none cursor-pointer"
                                     required
                                 >
                                     <option value="Staff">Staff Member</option>
-                                    <option value="Branch Manager">Store Manager</option>
+                                    <option value="Store Manager">Store Manager</option>
                                 </select>
                             </div>
                         </div>
@@ -137,7 +137,7 @@ const StaffEditModal = ({ show, onHide, staff, onSave }) => {
                                     name="branchId"
                                     value={formData.branchId}
                                     onChange={handleChange}
-                                    disabled={adminUser.role === 'Branch Manager'}
+                                    disabled={adminUser.role === 'Store Manager'}
                                     className="w-full pl-10 pr-3 py-2.5 bg-slate-50/50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 focus:bg-white transition-all text-sm font-bold text-slate-700 appearance-none cursor-pointer"
                                     required
                                 >

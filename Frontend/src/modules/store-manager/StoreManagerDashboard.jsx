@@ -13,7 +13,7 @@ const StoreManagerDashboard = () => {
 
     const hasPermission = (permission) => {
         if (!managerUser) return false;
-        if (managerUser.role === 'Admin' || managerUser.role === 'Branch Manager') return true;
+        if (managerUser.role === 'Admin' || managerUser.role === 'Store Manager') return true;
         return managerUser.permissions?.includes(permission);
     };
 

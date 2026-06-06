@@ -124,12 +124,12 @@ export const getAllAdmins = async (req, res) => {
 
     // Hierarchy Logic:
     if (req.admin.role === 'Admin') {
-      // Admins can see all 'Store Manager', 'Branch Manager' and 'Staff' across all branches
-      query.role = { $in: ['Store Manager', 'Branch Manager', 'Staff'] };
+      // Admins can see all 'Store Manager' and 'Staff' across all branches
+      query.role = { $in: ['Store Manager', 'Staff'] };
     } else {
       // Store Managers and allowed Staff can see all team members in THEIR branch
       // (Excluding Super Admins)
-      query.role = { $in: ['Store Manager', 'Branch Manager', 'Staff'] };
+      query.role = { $in: ['Store Manager', 'Staff'] };
       query.branchId = req.admin.branchId;
 
       if (!req.admin.branchId) {

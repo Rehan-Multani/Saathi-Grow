@@ -281,7 +281,7 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
                                             {displayOrder.deliveryOTP && <span className="text-xs font-black bg-white px-2 py-1 rounded border border-blue-200">OTP: {displayOrder.deliveryOTP}</span>}
                                         </div>
                                     ) : (
-                                        ['Admin', 'Branch Manager', 'Staff'].includes(userRole) && ['confirmed', 'preparing', 'ready_for_pickup'].includes(displayOrder.status) && (
+                                        ['Admin', 'Store Manager', 'Staff'].includes(userRole) && ['confirmed', 'preparing', 'ready_for_pickup'].includes(displayOrder.status) && (
                                             <div className="flex flex-col sm:flex-row gap-2">
                                                 <select 
                                                     className="flex-1 bg-white border border-blue-200 rounded-lg px-2 py-1.5 text-xs outline-none"

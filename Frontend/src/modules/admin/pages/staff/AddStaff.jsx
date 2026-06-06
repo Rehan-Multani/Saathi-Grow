@@ -30,7 +30,7 @@ const AddStaff = () => {
 
     const [errors, setErrors] = useState({});
 
-    const isBranchManager = adminUser.role === 'Store Manager' || adminUser.role === 'Branch Manager';
+    const isBranchManager = adminUser.role === 'Store Manager';
     const ROLES = isBranchManager ? ['Staff'] : ['Store Manager', 'Staff'];
 
     const PERMISSIONS_LIST = [
@@ -277,7 +277,7 @@ const AddStaff = () => {
                                     className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 px-3 text-sm font-bold text-slate-700 outline-none focus:border-blue-500 cursor-pointer transition-all"
                                 >
                                     {ROLES.map(role => (
-                                        <option key={role} value={role}>{role === 'Branch Manager' || role === 'Store Manager' ? 'Store Manager' : role}</option>
+                                        <option key={role} value={role}>{role}</option>
                                     ))}
                                 </select>
                             </div>

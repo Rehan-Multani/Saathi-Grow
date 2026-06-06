@@ -196,7 +196,7 @@ const PushNotifications = () => {
                                             <option value="vendors">{t('push.vendor_network')}</option>
                                             <option value="delivery_partners">{t('push.logistics_partners')}</option>
                                             <option value="staff">{t('push.internal_staff')}</option>
-                                            <option value="branch_managers">{t('push.regional_managers')}</option>
+                                            <option value="store_managers">{t('push.regional_managers', { defaultValue: 'Store Managers' })}</option>
                                         </select>
                                     </div>
                                 ) : (
@@ -216,7 +216,7 @@ const PushNotifications = () => {
                                                 <option value="Vendor">{t('push.vendor_network', { defaultValue: 'Vendors' })}</option>
                                                 <option value="DeliveryPartner">{t('push.logistics_partners', { defaultValue: 'Delivery Partners' })}</option>
                                                 <option value="Staff">{t('push.internal_staff', { defaultValue: 'Staff Members' })}</option>
-                                                <option value="Branch Manager">{t('push.regional_managers', { defaultValue: 'Branch Managers' })}</option>
+                                                <option value="Store Manager">{t('push.regional_managers', { defaultValue: 'Store Managers' })}</option>
                                             </select>
                                         </div>
 

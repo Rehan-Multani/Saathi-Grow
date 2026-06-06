@@ -33,7 +33,7 @@ const StaffDashboard = () => {
 
     const hasAccess = (permissionCode) => {
         if (!staffUser) return false;
-        if (staffUser.role === 'Branch Manager') return true;
+        if (staffUser.role === 'Store Manager') return true;
         return Array.isArray(staffUser.permissions) && staffUser.permissions.includes(permissionCode);
     };
 
@@ -280,7 +280,7 @@ const StaffDashboard = () => {
                 <div className={`${hasAccess('VIEW_ORDERS') ? 'lg:col-span-4' : 'lg:col-span-full'} space-y-8 animate-in fade-in slide-in-from-right-6 duration-700`}>
 
                     {/* Target Widget */}
-                    {staffUser?.role === 'Branch Manager' && (
+                    {staffUser?.role === 'Store Manager' && (
                         <div className="bg-blue-600 text-white p-10 rounded-[3.2rem] shadow-3xl relative overflow-hidden group border border-blue-500">
                              <div className="absolute -right-16 -top-16 w-64 h-64 bg-white/10 rounded-full group-hover:scale-150 transition-all duration-1000 blur-3xl pointer-events-none" />
                              <div className="relative z-10 space-y-8 text-left font-black">

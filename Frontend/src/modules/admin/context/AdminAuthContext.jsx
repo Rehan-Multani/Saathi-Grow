@@ -80,7 +80,7 @@ export const AdminAuthProvider = ({ children }) => {
         setLoading(true);
         try {
             const data = await loginAdmin(email, password);
-            const allowedRoles = ['Admin', 'Branch Manager', 'Staff'];
+            const allowedRoles = ['Admin', 'Store Manager', 'Staff'];
             if (!allowedRoles.includes(data.role)) {
                 throw new Error('Access denied. You do not have an administrative role.');
             }

@@ -108,7 +108,7 @@ const DeliveryHistory = () => {
     };
 
     return (
-        <div className="space-y-4 md:space-y-6 pb-28 md:pb-8">
+        <div className="space-y-4 md:space-y-6 pb-28 md:pb-8 overflow-x-hidden">
             <div className="flex items-center justify-between gap-3">
                 <div>
                     <h1 className="text-lg font-black tracking-tight text-slate-900 leading-none">History</h1>

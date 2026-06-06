@@ -60,6 +60,24 @@ const ProfilePage = () => {
     const [showEditModal, setShowEditModal] = useState(false);
     const [editName, setEditName] = useState('');
     const [editEmail, setEditEmail] = useState('');
+
+    useEffect(() => {
+        if (showEditModal) {
+            document.documentElement.style.overflow = 'hidden';
+            document.body.style.overflow = 'hidden';
+            document.body.style.height = '100vh';
+        } else {
+            document.documentElement.style.overflow = '';
+            document.body.style.overflow = '';
+            document.body.style.height = '';
+        }
+        return () => {
+            document.documentElement.style.overflow = '';
+            document.body.style.overflow = '';
+            document.body.style.height = '';
+        };
+    }, [showEditModal]);
+
     const handleImageSelect = async (file) => {
         if (file) {
             const formData = new FormData();
