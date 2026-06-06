@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Send, ShieldCheck, CheckCircle, Camera, Loader2, X } from 'lucide-react';
+import { ArrowLeft, Send, ShieldCheck, CheckCircle, Camera, Loader2, X, Image as ImageIcon } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import * as complaintApi from '../../api/complaintApi';
 import { toast } from 'react-toastify';
@@ -148,12 +148,23 @@ const RaiseComplaintPage = () => {
                         )}
 
                         {images.length < 3 && (
-                            <label className="flex flex-col items-center justify-center py-6 bg-gray-50/50 dark:bg-white/5 border-2 border-dashed border-gray-200 dark:border-white/10 rounded-2xl cursor-pointer hover:bg-[#0c831f]/5 transition-all group">
-                                <input type="file" multiple accept="image/*" className="hidden" onChange={handleImageChange} />
-                                <Camera size={24} className="text-gray-400 group-hover:text-[#0c831f] transition-all mb-2" />
-                                <span className="text-[10px] md:text-sm font-black text-gray-400 group-hover:text-[#0c831f] transition-all uppercase tracking-widest">Click to upload photos</span>
-                                <p className="text-[8px] text-gray-300 mt-1 uppercase tracking-widest font-bold">MAX {3 - images.length} MORE {3 - images.length === 1 ? 'IMAGE' : 'IMAGES'}</p>
-                            </label>
+                            <div className="grid grid-cols-2 gap-4">
+                                {/* Standard HTML5 Camera Upload (Works in Web & WebViews) */}
+                                <label className="flex flex-col items-center justify-center py-6 bg-gray-50/50 dark:bg-white/5 border-2 border-dashed border-[#0c831f]/20 dark:border-[#0c831f]/10 rounded-2xl cursor-pointer hover:bg-[#0c831f]/5 transition-all group active:scale-[0.98]">
+                                    <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handleImageChange} />
+                                    <Camera size={24} className="text-[#0c831f] mb-2" />
+                                    <span className="text-[10px] md:text-sm font-black text-[#0c831f] uppercase tracking-widest">Take Photo</span>
+                                    <p className="text-[8px] text-gray-300 mt-1 uppercase tracking-widest font-bold">Max {3 - images.length}</p>
+                                </label>
+                                
+                                {/* Standard Gallery Upload */}
+                                <label className="flex flex-col items-center justify-center py-6 bg-gray-50/50 dark:bg-white/5 border-2 border-dashed border-gray-200 dark:border-white/10 rounded-2xl cursor-pointer hover:bg-[#0c831f]/5 transition-all group active:scale-[0.98]">
+                                    <input type="file" multiple accept="image/*" className="hidden" onChange={handleImageChange} />
+                                    <ImageIcon size={24} className="text-gray-400 group-hover:text-[#0c831f] mb-2 transition-colors" />
+                                    <span className="text-[10px] md:text-sm font-black text-gray-400 group-hover:text-[#0c831f] uppercase tracking-widest transition-colors">Upload Gallery</span>
+                                    <p className="text-[8px] text-gray-300 mt-1 uppercase tracking-widest font-bold">Max {3 - images.length}</p>
+                                </label>
+                            </div>
                         )}
                     </div>
 

@@ -31,12 +31,14 @@ import useDeliveryStore from '../store/deliveryStore';
 import { toast } from 'react-toastify';
 import { updateDeliveryProfile, changeDeliveryPassword } from '../api/deliveryAuthApi';
 import { useTheme } from '../../user/context/ThemeContext';
+import ImageSourceModal from '../../../common/components/modals/ImageSourceModal';
 
 const ProfileSettings = () => {
     const { profile, logout, token, fetchProfile } = useDeliveryStore();
     const { isDarkMode, toggleTheme } = useTheme();
     const [notifications, setNotifications] = useState(true);
     const [uploading, setUploading] = useState(false);
+    const [isImageModalOpen, setIsImageModalOpen] = useState(false);
     const [selectedView, setSelectedView] = useState('menu');
     const [isEditing, setIsEditing] = useState(false);
     const [saving, setSaving] = useState(false);
@@ -126,8 +128,7 @@ const ProfileSettings = () => {
         }
     };
 
-    const handleImageUpload = async (e) => {
-        const file = e.target.files[0];
+    const handleImageSelect = async (file) => {
         if (!file) return;
 
         const formData = new FormData();
@@ -473,10 +474,13 @@ const ProfileSettings = () => {
                             </div>
                         )}
                     </div>
-                    <label className="absolute -bottom-1 -right-1 w-6 h-6 bg-[#028A0F] text-white rounded-lg shadow-lg flex items-center justify-center cursor-pointer border-2 border-white dark:border-zinc-900 transition-transform active:scale-90">
+                    <button 
+                        onClick={() => setIsImageModalOpen(true)}
+                        disabled={uploading}
+                        className="absolute -bottom-1 -right-1 w-6 h-6 bg-[#028A0F] text-white rounded-lg shadow-lg flex items-center justify-center cursor-pointer border-2 border-white dark:border-zinc-900 transition-transform active:scale-90"
+                    >
                         <Camera size={12} />
-                        <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} disabled={uploading} />
-                    </label>
+                    </button>
                 </div>
                 <div>
                     <h2 className="text-xl font-black text-slate-900 dark:text-white leading-tight">{profile?.name || 'Partner'}</h2>
@@ -576,6 +580,12 @@ const ProfileSettings = () => {
             <div className="py-6 text-center">
                 <p className="text-[8px] text-slate-300 font-bold uppercase tracking-[0.3em] dark:text-zinc-700">Sathigro ops • v1.2.4</p>
             </div>
+
+            <ImageSourceModal 
+                isOpen={isImageModalOpen}
+                onClose={() => setIsImageModalOpen(false)}
+                onSelect={handleImageSelect}
+            />
         </div>
     );
 };

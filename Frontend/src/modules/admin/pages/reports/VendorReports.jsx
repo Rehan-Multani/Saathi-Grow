@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
 import { pageInfoData } from '../../../../common/data/pageInfoData';
 import VendorPerformanceModal from './VendorPerformanceModal';
+import { downloadCSV } from '../../../../common/utils/formatUtils';
 
 const VendorReports = () => {
     const { t } = useTranslation('admin_reports');
@@ -56,14 +57,8 @@ const VendorReports = () => {
         try {
             const params = { search: searchTerm };
             const blob = await exportVendorCSV(adminUser.token, params);
-            const url = window.URL.createObjectURL(new Blob([blob]));
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', `Vendor_Report_${new Date().toISOString().split('T')[0]}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-            window.URL.revokeObjectURL(url);
+            const fileName = `Vendor_Report_${new Date().toISOString().split('T')[0]}.csv`;
+            downloadCSV(blob, fileName);
             toast.success('Report exported successfully');
         } catch (error) {
             toast.error('Export failed');

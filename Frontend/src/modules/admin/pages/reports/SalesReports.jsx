@@ -6,6 +6,7 @@ import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
 import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
 import { pageInfoData } from '../../../../common/data/pageInfoData';
+import { downloadCSV } from '../../../../common/utils/formatUtils';
 
 const SalesReports = () => {
     const { t } = useTranslation('admin_reports');
@@ -64,14 +65,8 @@ const SalesReports = () => {
         setExporting(true);
         try {
             const blob = await exportSalesCSV(adminUser.token, { period });
-            const url = window.URL.createObjectURL(new Blob([blob]));
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', `Sales_Report_${period}_${new Date().toISOString().split('T')[0]}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-            window.URL.revokeObjectURL(url);
+            const fileName = `Sales_Report_${period}_${new Date().toISOString().split('T')[0]}.csv`;
+            downloadCSV(blob, fileName);
             toast.success(t('sales.download_success', { defaultValue: 'Report downloaded' }));
         } catch (error) {
             toast.error(t('common.error', { ns: 'common' }));

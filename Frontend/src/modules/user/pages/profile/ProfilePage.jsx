@@ -5,6 +5,9 @@ import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { toast } from 'react-toastify';
 import { getUserTags } from '../../api/orderApi';
+import axios from 'axios';
+import { API_BASE_URL } from '../../../../config/apiConfig';
+import ImageSourceModal from '../../../../common/components/modals/ImageSourceModal';
 
 const ProfilePage = () => {
     const navigate = useNavigate();
@@ -14,6 +17,7 @@ const ProfilePage = () => {
 
     const { isDarkMode, toggleTheme } = useTheme();
     const [notificationsEnabled, setNotificationsEnabled] = React.useState(true);
+    const [isImageModalOpen, setIsImageModalOpen] = useState(false);
     const fileInputRef = React.useRef(null);
     const [userTags, setUserTags] = useState([]);
     const { token } = auth;
@@ -30,12 +34,33 @@ const ProfilePage = () => {
         }
     }, [token]);
 
+    const [unreadCount, setUnreadCount] = useState(0);
+
+    React.useEffect(() => {
+        const fetchUnreadCount = async () => {
+            if (!token) return;
+            try {
+                const res = await axios.get(`${API_BASE_URL}/notifications/unread-count`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                if (res.data.success) {
+                    setUnreadCount(res.data.count);
+                }
+            } catch (err) {
+                console.error('Error fetching unread notifications in profile:', err);
+            }
+        };
+
+        fetchUnreadCount();
+        const interval = setInterval(fetchUnreadCount, 30000);
+        return () => clearInterval(interval);
+    }, [token]);
+
     // Edit Profile State
     const [showEditModal, setShowEditModal] = useState(false);
     const [editName, setEditName] = useState('');
     const [editEmail, setEditEmail] = useState('');
-    const handleImageUpload = async (e) => {
-        const file = e.target.files[0];
+    const handleImageSelect = async (file) => {
         if (file) {
             const formData = new FormData();
             formData.append('image', file);
@@ -69,6 +94,7 @@ const ProfilePage = () => {
     const sections = [
         { icon: ShoppingBag, label: "My Orders", subtitle: "Track and manage your orders", path: "/orders" },
         { icon: MessageCircle, label: "My Complaints", subtitle: "Check status of your grievances", path: "/my-complaints" },
+        { icon: Bell, label: "Notifications", subtitle: "View your alerts and updates", path: "/notifications" },
         ...userTags.map(t => ({
             icon: Tag,
             label: `${t.tagName.charAt(0).toUpperCase() + t.tagName.slice(1)} (${t.orderCount})`,
@@ -142,15 +168,8 @@ const ProfilePage = () => {
                                         )
                                     )}
                                 </div>
-                                <input
-                                    type="file"
-                                    ref={fileInputRef}
-                                    onChange={handleImageUpload}
-                                    className="hidden"
-                                    accept="image/*"
-                                />
                                 <button
-                                    onClick={() => fileInputRef.current.click()}
+                                    onClick={() => setIsImageModalOpen(true)}
                                     disabled={loading}
                                     className="absolute -bottom-1 -right-1 p-2 md:p-2.5 bg-[#556b2f] text-white rounded-full md:rounded-lg shadow-lg border-2 border-white dark:border-[#141414] active:scale-95 transition-transform hover:bg-[#0a6b19] disabled:opacity-50"
                                 >
@@ -193,7 +212,12 @@ const ProfilePage = () => {
                                                 <item.icon size={18} className="md:w-4.5 md:h-4.5" />
                                             </div>
                                             <div className="text-left leading-tight">
-                                                <h4 className="!text-[14px] font-semibold text-gray-800 dark:text-gray-100 leading-none mb-1 md:mb-1.5">{item.label}</h4>
+                                                <div className="flex items-center gap-2 mb-1 md:mb-1.5">
+                                                    <h4 className="!text-[14px] font-semibold text-gray-800 dark:text-gray-100 leading-none">{item.label}</h4>
+                                                    {item.label === "Notifications" && unreadCount > 0 && (
+                                                        <span className="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse" />
+                                                    )}
+                                                </div>
                                                 <p className="!text-[10px] md:!text-[11px] text-gray-400 font-medium">{item.subtitle}</p>
                                             </div>
                                         </div>
@@ -245,8 +269,8 @@ const ProfilePage = () => {
                         </div>
 
                         {/* Support Info */}
-                        <div className="bg-gray-50 md:bg-[#eefaf1] md:rounded-2xl p-4 md:p-2 md:border border-[#0c831f]/10 text-center max-w-none mx-auto md:max-w-none md:mx-0 mt-3 md:mt-2">
-                            <p className="text-[10px] md:text-sm text-gray-400 md:text-[#0c831f] font-bold">sathiGro App v1.0.0</p>
+                        <div className="bg-gray-50 dark:bg-zinc-900/50 md:bg-[#eefaf1] md:dark:bg-zinc-900/30 md:rounded-2xl p-4 md:p-2 border-none md:border border-[#0c831f]/10 dark:border-white/5 text-center max-w-none mx-auto md:max-w-none md:mx-0 mt-3 md:mt-2">
+                            <p className="text-[10px] md:text-sm text-gray-400 dark:text-zinc-500 md:text-[#0c831f] dark:md:text-[#0c831f] font-bold">sathiGro App v1.0.0</p>
                         </div>
                     </div>
                 </div>
@@ -314,9 +338,15 @@ const ProfilePage = () => {
                     </div>
                 </div>
             )}
+            {isImageModalOpen && (
+                <ImageSourceModal 
+                    isOpen={isImageModalOpen}
+                    onClose={() => setIsImageModalOpen(false)}
+                    onSelect={handleImageSelect}
+                />
+            )}
         </div>
     );
 };
 
 export default ProfilePage;
-

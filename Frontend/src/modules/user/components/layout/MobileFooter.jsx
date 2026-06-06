@@ -2,11 +2,43 @@ import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { Home, ShoppingBag, LayoutGrid, User, Menu } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import axios from 'axios';
+import { API_BASE_URL } from '../../../../config/apiConfig';
 
 const MobileFooter = ({ setIsMenuOpen, isBottomSheetOpen }) => {
     const { user } = useAuth();
     const location = useLocation();
     const [isKeyboardOpen, setIsKeyboardOpen] = React.useState(false);
+    const [unreadCount, setUnreadCount] = React.useState(0);
+
+    React.useEffect(() => {
+        const fetchUnreadCount = async () => {
+            if (!user?.token) return;
+            try {
+                const res = await axios.get(`${API_BASE_URL}/notifications/unread-count`, {
+                    headers: { Authorization: `Bearer ${user.token}` }
+                });
+                if (res.data.success) {
+                    setUnreadCount(res.data.count);
+                }
+            } catch (err) {
+                console.error('Error fetching unread notifications in footer:', err);
+            }
+        };
+
+        fetchUnreadCount();
+        const interval = setInterval(fetchUnreadCount, 30000);
+
+        const handleFirebaseMessage = (e) => {
+            setUnreadCount(prev => prev + 1);
+        };
+
+        window.addEventListener('onFirebaseMessage', handleFirebaseMessage);
+        return () => {
+            clearInterval(interval);
+            window.removeEventListener('onFirebaseMessage', handleFirebaseMessage);
+        };
+    }, [user?.token]);
 
     React.useEffect(() => {
         let timeoutId;
@@ -96,16 +128,21 @@ const MobileFooter = ({ setIsMenuOpen, isBottomSheetOpen }) => {
                         <NavLink
                             key={item.path}
                             to={item.path}
-                            className={({ isActive }) => `flex flex-col items-center gap-1.5 transition-all duration-300 ${isActive ? 'text-[#556b2f]' : 'text-[#556b2f] opacity-70 dark:text-[#556b2f]/80'}`}
+                            className={({ isActive }) => `flex flex-col items-center gap-1.5 transition-all duration-300 ${isActive ? 'text-[#556b2f] dark:text-[#a3c26b]' : 'text-gray-400 dark:text-zinc-500'}`}
                         >
                             {({ isActive }) => (
                                 <>
-                                    <item.icon
-                                        size={22}
-                                        strokeWidth={isActive ? 2.5 : 2}
-                                        className={`transition-transform duration-300 ${isActive ? 'scale-110' : ''}`}
-                                        fill={isActive && item.label !== 'Categories' && item.label !== 'Order' ? "currentColor" : "none"}
-                                    />
+                                    <div className="relative">
+                                        <item.icon
+                                            size={22}
+                                            strokeWidth={isActive ? 2.5 : 2}
+                                            className={`transition-transform duration-300 ${isActive ? 'scale-110' : ''}`}
+                                            fill={isActive && item.label !== 'Categories' && item.label !== 'Order' ? "currentColor" : "none"}
+                                        />
+                                        {item.label === 'Profile' && unreadCount > 0 && (
+                                            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border border-white dark:border-black animate-pulse" />
+                                        )}
+                                    </div>
                                     <span className={`text-[9px] font-bold tracking-tight ${isActive ? 'font-black' : 'font-medium'}`}>
                                         {item.label}
                                     </span>

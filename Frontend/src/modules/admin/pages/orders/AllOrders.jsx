@@ -10,6 +10,7 @@ import Swal from 'sweetalert2';
 import { toast } from 'react-toastify';
 import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
 import { pageInfoData } from '../../../../common/data/pageInfoData';
+import { downloadCSV } from '../../../../common/utils/formatUtils';
 
 const OrderStatusBadge = ({ status, t }) => {
     const variants = {
@@ -188,14 +189,10 @@ const AllOrders = () => {
 
         // Create Blob and download trigger with UTF-8 BOM
         const csvString = csvRows.join('\n');
-        const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csvString], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.setAttribute("href", url);
-        link.setAttribute("download", `orders_export_${new Date().toISOString().split('T')[0]}.csv`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        // Prepend UTF-8 BOM (0xEF, 0xBB, 0xBF) to the CSV content for proper Excel rendering of special characters
+        const bomCsvString = '\uFEFF' + csvString;
+        const fileName = `orders_export_${new Date().toISOString().split('T')[0]}.csv`;
+        downloadCSV(bomCsvString, fileName);
         toast.success('Orders exported successfully in CSV format!');
     };
 

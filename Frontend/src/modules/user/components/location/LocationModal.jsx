@@ -9,6 +9,17 @@ const LocationModal = () => {
     const searchRef = useRef(null);
     const autocompleteRef = useRef(null);
 
+    useEffect(() => {
+        if (showLocationModal) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, [showLocationModal]);
+
     // Google Maps Autocomplete init
     useEffect(() => {
         if (mapLoaded && showLocationModal && searchRef.current && !autocompleteRef.current) {

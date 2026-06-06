@@ -25,16 +25,22 @@ export const createPromoCode = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Code, Valid From and Valid Until dates are required' });
         }
 
-        if (new Date(validFrom) >= new Date(validUntil)) {
+        const fromDate = new Date(validFrom);
+        fromDate.setHours(0, 0, 0, 0);
+
+        const untilDate = new Date(validUntil);
+        untilDate.setHours(23, 59, 59, 999);
+
+        if (fromDate >= untilDate) {
             return res.status(400).json({ success: false, message: 'Start date must be before expiry date' });
         }
 
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        if (new Date(validFrom) < today) {
+        if (fromDate < today) {
             return res.status(400).json({ success: false, message: 'Start date cannot be in the past' });
         }
-        if (new Date(validUntil) <= today) {
+        if (untilDate <= today) {
             return res.status(400).json({ success: false, message: 'Expiry date must be in the future' });
         }
 
@@ -57,6 +63,8 @@ export const createPromoCode = async (req, res) => {
             ...req.body,
             freeGift,
             code: code.toUpperCase(),
+            validFrom: fromDate,
+            validUntil: untilDate,
             isAutoApply: isAutoApply === 'true' || isAutoApply === true
         });
         await promoCode.save();
@@ -205,6 +213,18 @@ export const updatePromoCode = async (req, res) => {
             updateData.isAutoApply = updateData.isAutoApply === 'true' || updateData.isAutoApply === true;
         }
 
+        if (updateData.validFrom) {
+            const fromDate = new Date(updateData.validFrom);
+            fromDate.setHours(0, 0, 0, 0);
+            updateData.validFrom = fromDate;
+        }
+
+        if (updateData.validUntil) {
+            const untilDate = new Date(updateData.validUntil);
+            untilDate.setHours(23, 59, 59, 999);
+            updateData.validUntil = untilDate;
+        }
+
         const promoCode = await PromoCode.findByIdAndUpdate(req.params.id, updateData, {
             new: true,
             runValidators: true
@@ -250,7 +270,12 @@ export const validatePromoCode = async (req, res) => {
 
         // Validity Period check
         const now = new Date();
-        if (now < promo.validFrom || now > promo.validUntil) {
+        const fromDate = new Date(promo.validFrom);
+        const untilDate = new Date(promo.validUntil);
+        if (untilDate.getHours() === 0 && untilDate.getMinutes() === 0 && untilDate.getSeconds() === 0) {
+            untilDate.setHours(23, 59, 59, 999);
+        }
+        if (now < fromDate || now > untilDate) {
             return res.status(400).json({ success: false, message: 'Promo code is expired or not yet active' });
         }
 

@@ -30,3 +30,46 @@ export const formatCompactNumber = (number) => {
         compactDisplay: 'short'
     }).format(number);
 };
+
+export const downloadCSV = (content, fileName) => {
+    if (content instanceof Blob) {
+        try {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const url = reader.result;
+                const link = document.createElement("a");
+                link.setAttribute("href", url);
+                link.setAttribute("download", fileName);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            };
+            reader.readAsDataURL(content);
+        } catch (e) {
+            console.error("Blob FileReader read failed, trying URL fallback:", e);
+            const url = URL.createObjectURL(content);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", fileName);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+    } else {
+        try {
+            const base64Content = btoa(unescape(encodeURIComponent(content)));
+            const url = `data:text/csv;base64,${base64Content}`;
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", fileName);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } catch (e) {
+            console.error("Base64 CSV download failed, trying fallback:", e);
+            const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+            downloadCSV(blob, fileName);
+        }
+    }
+};

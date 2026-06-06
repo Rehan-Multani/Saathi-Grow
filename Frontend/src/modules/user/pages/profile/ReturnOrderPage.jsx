@@ -259,17 +259,17 @@ const ReturnOrderPage = () => {
                         {images.length < 5 && (
                             <div className="contents">
                                 {/* Standard HTML5 Camera Upload (Works in Web & WebViews) */}
-                                <label className="w-28 h-28 rounded-2xl border-2 border-dashed border-blue-200 dark:border-blue-500/30 bg-blue-50/30 dark:bg-blue-500/5 flex flex-col items-center justify-center gap-2 cursor-pointer group transition-all active:scale-95">
+                                <label className="w-28 h-28 rounded-2xl border-2 border-dashed border-[#0c831f]/20 dark:border-[#0c831f]/10 bg-gray-50/50 dark:bg-white/5 flex flex-col items-center justify-center gap-2 cursor-pointer group transition-all active:scale-95">
                                     <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handleImageChange} />
-                                    <Camera size={24} className="text-blue-600" />
-                                    <span className="text-[9px] font-black text-blue-600 uppercase tracking-widest text-center px-2">Camera</span>
+                                    <Camera size={24} className="text-[#0c831f]" />
+                                    <span className="text-[9px] font-black text-[#0c831f] uppercase tracking-widest text-center px-2">Camera</span>
                                 </label>
                                 
                                 {/* Standard Gallery Upload */}
-                                <label className="w-28 h-28 rounded-2xl border-2 border-dashed border-gray-200 dark:border-white/10 bg-gray-50/30 dark:bg-white/5 flex flex-col items-center justify-center gap-2 cursor-pointer group transition-all active:scale-95">
+                                <label className="w-28 h-28 rounded-2xl border-2 border-dashed border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-white/5 flex flex-col items-center justify-center gap-2 cursor-pointer group transition-all active:scale-95">
                                     <input type="file" accept="image/*" multiple className="hidden" onChange={handleImageChange} />
-                                    <ImageIcon size={24} className="text-gray-400 group-hover:text-blue-600 transition-colors" />
-                                    <span className="text-[9px] font-black text-gray-400 group-hover:text-blue-600 uppercase tracking-widest">Gallery</span>
+                                    <ImageIcon size={24} className="text-gray-400 group-hover:text-[#0c831f] transition-colors" />
+                                    <span className="text-[9px] font-black text-gray-400 group-hover:text-[#0c831f] uppercase tracking-widest transition-colors">Gallery</span>
                                 </label>
                             </div>
                         )}

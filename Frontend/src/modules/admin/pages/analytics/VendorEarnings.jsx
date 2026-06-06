@@ -9,6 +9,7 @@ import { getVendors } from '../../api/vendorApi';
 import { toast } from 'react-toastify';
 import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
 import { pageInfoData } from '../../../../common/data/pageInfoData';
+import { downloadCSV } from '../../../../common/utils/formatUtils';
 
 const VendorEarnings = () => {
     const { t } = useTranslation('admin_analytics');
@@ -100,13 +101,8 @@ const VendorEarnings = () => {
                 view
             });
 
-            const url = window.URL.createObjectURL(new Blob([blob]));
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', `vendor_${view}_${new Date().toISOString().split('T')[0]}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
+            const fileName = `vendor_${view}_${new Date().toISOString().split('T')[0]}.csv`;
+            downloadCSV(blob, fileName);
             
             Swal.close();
             toast.success('Report downloaded');

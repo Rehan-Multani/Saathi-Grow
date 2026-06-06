@@ -7,6 +7,7 @@ import { useStaffAuth } from '../../context/StaffAuthContext';
 import * as productApi from '../../../../common/api/productApi';
 import { createInventoryRequest } from '../../../store-manager/api/inventoryRequestApi';
 import { toast } from 'react-toastify';
+import { downloadCSV } from '../../../../common/utils/formatUtils';
 
 const StaffInventory = () => {
     const { staffUser } = useStaffAuth();
@@ -115,14 +116,8 @@ const StaffInventory = () => {
             });
 
             const csvContent = [headers.join(','), ...csvRows].join('\n');
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', `staff_inventory_${new Date().toISOString().split('T')[0]}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            const fileName = `staff_inventory_${new Date().toISOString().split('T')[0]}.csv`;
+            downloadCSV(csvContent, fileName);
             toast.success("Inventory exported successfully!");
         } catch (error) {
             toast.error("Failed to export inventory");

@@ -17,28 +17,31 @@ import { toast } from 'react-toastify';
 import useDelivery from '../hooks/useDelivery';
 import useDeliveryStore from '../store/deliveryStore';
 import { formatCurrency } from '../../vendor/utils/formatDate';
+import { downloadCSV } from '../../../common/utils/formatUtils';
 
 const WalletPage = () => {
     const token = useDeliveryStore(state => state.token);
     const { wallet, transactions = [], stats, profile, walletPagination, refreshWallet } = useDelivery();
 
     const handleExport = async () => {
+        if (!transactions || transactions.length === 0) {
+            toast.warn("No data available to download");
+            return;
+        }
         const toastId = toast.loading("Processing tactical audit...");
         try {
             const csvContent = "Date,Order ID,Type,Amount,Status\n" +
-                transactions.map(tx => `"${new Date(tx.createdAt).toLocaleDateString()}","${tx.order?.orderId || 'N/A'}","${tx.type}","${tx.amount}","${tx.status}"`).join("\n");
+                transactions.map(tx => {
+                    const dateStr = tx.createdAt ? new Date(tx.createdAt).toLocaleDateString() : 'N/A';
+                    const orderId = tx.order?.orderId || 'N/A';
+                    const type = tx.type || 'N/A';
+                    const amount = tx.amount || 0;
+                    const status = tx.status || 'N/A';
+                    return `"${dateStr}","${orderId}","${type}","${amount}","${status}"`;
+                }).join("\n");
 
             const fileName = `cash_audit_${new Date().toISOString().split('T')[0]}.csv`;
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.setAttribute("href", url);
-            link.setAttribute("download", fileName);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
+            downloadCSV(csvContent, fileName);
             toast.update(toastId, { render: "Audit Log Downloaded", type: "success", isLoading: false, autoClose: 2000 });
         } catch (error) {
             console.error("Export failed:", error);

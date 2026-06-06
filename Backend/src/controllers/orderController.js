@@ -223,7 +223,12 @@ export const computeBillDetails = async (items, options = {}) => {
     const promo = await PromoCode.findById(targetPromoId);
     if (promo && promo.isActive) {
       const now = new Date();
-      if (now >= promo.validFrom && now <= promo.validUntil) {
+      const fromDate = new Date(promo.validFrom);
+      const untilDate = new Date(promo.validUntil);
+      if (untilDate.getHours() === 0 && untilDate.getMinutes() === 0 && untilDate.getSeconds() === 0) {
+        untilDate.setHours(23, 59, 59, 999);
+      }
+      if (now >= fromDate && now <= untilDate) {
         // Double check per-user limit if userId is provided
         let canApply = true;
         if (userId) {

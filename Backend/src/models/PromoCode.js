@@ -73,8 +73,15 @@ const promoCodeSchema = new mongoose.Schema({
 promoCodeSchema.virtual('status').get(function() {
     const now = new Date();
     if (!this.isActive) return 'Inactive';
-    if (now < this.validFrom) return 'Upcoming';
-    if (now > this.validUntil) return 'Expired';
+    
+    const fromDate = new Date(this.validFrom);
+    const untilDate = new Date(this.validUntil);
+    if (untilDate.getHours() === 0 && untilDate.getMinutes() === 0 && untilDate.getSeconds() === 0) {
+        untilDate.setHours(23, 59, 59, 999);
+    }
+    
+    if (now < fromDate) return 'Upcoming';
+    if (now > untilDate) return 'Expired';
     if (this.usageLimitTotal > 0 && this.usedCount >= this.usageLimitTotal) return 'Limit Reached';
     return 'Active';
 });

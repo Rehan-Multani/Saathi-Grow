@@ -17,6 +17,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import useDelivery from '../hooks/useDelivery';
 import { formatCurrency } from '../../vendor/utils/formatDate';
+import { downloadCSV } from '../../../common/utils/formatUtils';
 
 
 const DeliveryHistory = () => {
@@ -66,22 +67,21 @@ const DeliveryHistory = () => {
     }, [history, searchQuery]);
 
     const handleDownloadReport = async () => {
+        if (!historicalOrders || historicalOrders.length === 0) {
+            toast.warn("No data available to download");
+            return;
+        }
         const id = toast.loading("Generating delivery history report...");
         try {
             const csvContent = "Order ID,Date,Customer,Location,Status,Amount\n" +
-                historicalOrders.map(o => `"${o.id}","${o.date}","${o.customer.replace(/"/g, '""')}","${o.location.replace(/"/g, '""')}","${o.status}","${o.amount}"`).join("\n");
+                historicalOrders.map(o => {
+                    const cust = String(o.customer || '').replace(/"/g, '""');
+                    const loc = String(o.location || '').replace(/"/g, '""');
+                    return `"${o.id}","${o.date}","${cust}","${loc}","${o.status}","${o.amount}"`;
+                }).join("\n");
 
             const fileName = `delivery_history_${new Date().toISOString().split('T')[0]}.csv`;
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.setAttribute("href", url);
-            link.setAttribute("download", fileName);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
+            downloadCSV(csvContent, fileName);
 
             toast.update(id, { render: "Report downloaded successfully", type: "success", isLoading: false, autoClose: 2000 });
         } catch (error) {
