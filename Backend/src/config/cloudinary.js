@@ -64,11 +64,20 @@ const makeFileFilter = () => (req, file, cb) => {
   // - standard image/* mimetypes
   // - application/octet-stream: camera blobs from some Android WebViews
   // - image/heic / image/heif: iPhone camera photos
+  const mimetype = (file.mimetype || '').toLowerCase();
+  const filename = (file.originalname || '').toLowerCase();
+  const ext = filename.split('.').pop();
+  
+  const allowedExtensions = ['jpg', 'jpeg', 'png', 'webp', 'avif', 'heic', 'heif'];
+
   const isImage =
-    file.mimetype.startsWith('image/') ||
-    file.mimetype === 'application/octet-stream';
+    mimetype.startsWith('image/') ||
+    mimetype === 'application/octet-stream' ||
+    mimetype === 'blob' ||
+    allowedExtensions.includes(ext);
+
   if (!isImage) {
-    return cb(new Error(`File type not allowed: ${file.mimetype}`));
+    return cb(new Error(`File type not allowed: ${file.mimetype || 'unknown'}`));
   }
   cb(null, true);
 };

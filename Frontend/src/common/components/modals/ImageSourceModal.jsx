@@ -22,15 +22,72 @@ const ImageSourceModal = ({ isOpen, onClose, onSelect }) => {
 
     if (!isOpen) return null;
 
-    const normalizeAndSelect = (file) => {
+    const compressImage = (file, maxWidth = 1000, maxHeight = 1000, quality = 0.8) => {
+        return new Promise((resolve) => {
+            if (!window.URL || !window.URL.createObjectURL || !document.createElement('canvas')) {
+                resolve(file);
+                return;
+            }
+
+            const objectUrl = URL.createObjectURL(file);
+            const img = new window.Image();
+            img.src = objectUrl;
+            img.onload = () => {
+                URL.revokeObjectURL(objectUrl);
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+
+                if (width > height) {
+                    if (width > maxWidth) {
+                        height = Math.round((height * maxWidth) / width);
+                        width = maxWidth;
+                    }
+                } else {
+                    if (height > maxHeight) {
+                        width = Math.round((width * maxHeight) / height);
+                        height = maxHeight;
+                    }
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                canvas.toBlob(
+                    (blob) => {
+                        if (blob) {
+                            const name = (file.name || 'image.jpg').replace(/\.[^/.]+$/, "") + '.jpg';
+                            try {
+                                const compressedFile = new File([blob], name, {
+                                    type: 'image/jpeg',
+                                    lastModified: Date.now()
+                                });
+                                resolve(compressedFile);
+                            } catch (e) {
+                                blob.name = name;
+                                resolve(blob);
+                            }
+                        } else {
+                            resolve(file);
+                        }
+                    },
+                    'image/jpeg',
+                    quality
+                );
+            };
+            img.onerror = () => {
+                URL.revokeObjectURL(objectUrl);
+                resolve(file);
+            };
+        });
+    };
+
+    const normalizeAndSelect = async (file) => {
         if (!file) return;
 
-        // IMPORTANT: Do NOT use new File([file], ...) — on Android WebViews,
-        // re-wrapping a camera-captured File/Blob produces a zero-byte file.
-        // Instead, pass the original file directly. The filename is fixed
-        // server-side by Cloudinary and is not critical for upload.
-        
-        console.log('File selected:', file.name, file.type, file.size, 'bytes');
+        console.log('Original file:', file.name, file.type, file.size, 'bytes');
         
         if (file.size === 0) {
             console.error('Camera returned empty file. Please try again.');
@@ -38,14 +95,21 @@ const ImageSourceModal = ({ isOpen, onClose, onSelect }) => {
             return;
         }
 
-        onSelect(file);
+        let processedFile = file;
+        try {
+            processedFile = await compressImage(file);
+            console.log('Processed file:', processedFile.name, processedFile.type, processedFile.size, 'bytes');
+        } catch (err) {
+            console.warn('Image compression failed, using original file:', err);
+        }
+
+        onSelect(processedFile);
         onClose();
     };
 
     const handleChange = (e) => {
         const file = e.target.files && e.target.files[0];
         if (file) normalizeAndSelect(file);
-        // Reset so the same file can be picked again
         e.target.value = '';
     };
 
