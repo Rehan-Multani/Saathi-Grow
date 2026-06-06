@@ -370,7 +370,7 @@ export const pageInfoData = {
 
     inventoryRequests: {
         title: 'Inventory Requests',
-        description: 'View and manage inter-branch stock transfer requests. Store Managers can request stock from the main warehouse or other branches.',
+        description: 'View and manage inter-branch stock transfer requests. Branch Managers can request stock from the main warehouse or other branches.',
         keyPoints: [
             'Review pending, approved, and rejected inventory requests',
             'Approve or reject stock transfer requests from branches',

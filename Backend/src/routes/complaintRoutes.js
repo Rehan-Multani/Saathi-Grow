@@ -17,7 +17,7 @@ router.get('/admin/all', protectAdmin, getAllComplaints);
 router.put('/admin/escalate', protectAdmin, escalateToStore);
 router.put('/admin/close', protectAdmin, closeTicket);
 
-// Store (Vendor / Branch Manager) Routes
+// Store (Vendor / Store Manager) Routes
 router.get('/store/all', protectStoreManager, getStoreComplaints);
 router.put('/store/resolve', protectStoreManager, resolveComplaintByStore);
 

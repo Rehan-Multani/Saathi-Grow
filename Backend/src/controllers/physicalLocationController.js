@@ -5,12 +5,12 @@ import Product from '../models/Product.js';
 
 // @desc    Get all locations for a specific branch (or all branches for admin)
 // @route   GET /api/admin/locations
-// @access  Private (Admin/Branch Manager)
+// @access  Private (Admin/Store Manager)
 export const getAdminLocations = async (req, res) => {
   try {
     const { branchId, available } = req.query;
 
-    // If requester is Branch Manager, scope to their branch
+    // If requester is Store Manager, scope to their branch
     const effectiveBranchId = (req.admin?.role !== 'Admin' && req.admin?.branchId)
       ? req.admin.branchId
       : branchId;
@@ -34,7 +34,7 @@ export const getAdminLocations = async (req, res) => {
 // @desc    Get available locations for a specific branch (for dropdown in product forms)
 //          If currentProductId is provided, include its currently-assigned location even if occupied
 // @route   GET /api/admin/locations/available
-// @access  Private (Admin/Branch Manager/Staff)
+// @access  Private (Admin/Store Manager/Staff)
 export const getAvailableAdminLocations = async (req, res) => {
   try {
     const { branchId, currentProductId } = req.query;
@@ -67,7 +67,7 @@ export const getAvailableAdminLocations = async (req, res) => {
 
 // @desc    Create a location for a branch
 // @route   POST /api/admin/locations
-// @access  Private (Admin/Branch Manager)
+// @access  Private (Admin/Store Manager)
 export const createAdminLocation = async (req, res) => {
   try {
     const { label, branchId, description } = req.body;
@@ -102,15 +102,15 @@ export const createAdminLocation = async (req, res) => {
 
 // @desc    Update a location
 // @route   PUT /api/admin/locations/:id
-// @access  Private (Admin/Branch Manager)
+// @access  Private (Admin/Store Manager)
 export const updateAdminLocation = async (req, res) => {
   try {
     const location = await PhysicalLocation.findById(req.params.id);
     if (!location) return res.status(404).json({ message: 'Location not found' });
 
-    // Branch Manager can only edit their own branch's locations
+    // Store Manager can only edit their own branch's locations
     if (req.admin?.role !== 'Admin' && req.admin?.branchId &&
-        location.branchId?.toString() !== req.admin.branchId.toString()) {
+      location.branchId?.toString() !== req.admin.branchId.toString()) {
       return res.status(403).json({ message: 'Not authorized to edit this location' });
     }
 
@@ -128,7 +128,7 @@ export const updateAdminLocation = async (req, res) => {
 
 // @desc    Delete (or deactivate) a location
 // @route   DELETE /api/admin/locations/:id
-// @access  Private (Admin/Branch Manager)
+// @access  Private (Admin/Store Manager)
 export const deleteAdminLocation = async (req, res) => {
   try {
     const location = await PhysicalLocation.findById(req.params.id);

@@ -141,7 +141,7 @@ export const createProduct = async (req, res) => {
 
     let image = '';
     let gallery = [];
-    
+
 
     if (req.files) {
       if (req.files.image && req.files.image[0]) {
@@ -214,7 +214,7 @@ export const createProduct = async (req, res) => {
       isSaathigro: isSaathigro === 'true' || isSaathigro === true,
       stock: vendor ? normalizedVendorStock : 0,
       lowStockThreshold: vendor ? normalizedVendorThreshold : 10,
-      
+
       // --- New Fields ---
       reorderThreshold: Number(reorderThreshold) || 10,
       maxCapacityPerSku: Number(maxCapacityPerSku) || 0,
@@ -574,7 +574,7 @@ export const getProducts = async (req, res) => {
       });
     }
 
-    // If Branch Manager/Staff, transform products to only show their branch details and local status
+    // If Store Manager/Staff, transform products to only show their branch details and local status
     if (req.admin && req.admin.role !== 'Admin' && req.admin.branchId) {
       products = products.map(p => {
         const pObj = p.toObject ? p.toObject() : p;
@@ -772,7 +772,7 @@ export const searchProductsWithAI = async (req, res) => {
       });
     }
 
-    // ─── Step 7: Branch Manager role — filter to own branch only ───────────────
+    // ─── Step 7: Store Manager role — filter to own branch only ───────────────
     if (req.admin && req.admin.role !== 'Admin' && req.admin.branchId) {
       products = products.map(p => {
         const pObj = p.toObject ? p.toObject() : p;
@@ -1547,7 +1547,7 @@ export const getInventoryStats = async (req, res) => {
     const { branchId, role } = req.admin;
     const targetBranchId = (role !== 'Admin') ? branchId : req.query.branchId;
 
-    const isBranchProductMatch = { 
+    const isBranchProductMatch = {
       status: { $ne: 'Draft' },
       $or: [
         { vendor: null },
@@ -1707,41 +1707,41 @@ export const getInventoryStats = async (req, res) => {
 
     // 4. Critical Items Unified
     const criticalItems = await Product.aggregate([
-        { $match: isBranchProductMatch },
-        { $unwind: "$branchStocks" },
-        { $addFields: { bId: { $toObjectId: "$branchStocks.branchId" } } },
-        { $match: (targetBranchId && targetBranchId !== 'all') ? { bId: new mongoose.Types.ObjectId(targetBranchId) } : {} },
-        { $match: { $expr: { $lte: ["$branchStocks.stock", { $ifNull: ["$branchStocks.lowStockThreshold", 10] }] } } },
-        { $sort: { "branchStocks.stock": 1 } },
-        { $limit: 10 },
-        {
-          $lookup: {
-            from: 'branches',
-            localField: 'bId',
-            foreignField: '_id',
-            as: 'bInfo'
-          }
-        },
-        {
-          $project: {
-            _id: "$_id",
-            name: 1, image: 1, stock: "$branchStocks.stock", threshold: "$branchStocks.lowStockThreshold",
-            branchName: { $arrayElemAt: ["$bInfo.name", 0] }
-          }
+      { $match: isBranchProductMatch },
+      { $unwind: "$branchStocks" },
+      { $addFields: { bId: { $toObjectId: "$branchStocks.branchId" } } },
+      { $match: (targetBranchId && targetBranchId !== 'all') ? { bId: new mongoose.Types.ObjectId(targetBranchId) } : {} },
+      { $match: { $expr: { $lte: ["$branchStocks.stock", { $ifNull: ["$branchStocks.lowStockThreshold", 10] }] } } },
+      { $sort: { "branchStocks.stock": 1 } },
+      { $limit: 10 },
+      {
+        $lookup: {
+          from: 'branches',
+          localField: 'bId',
+          foreignField: '_id',
+          as: 'bInfo'
         }
+      },
+      {
+        $project: {
+          _id: "$_id",
+          name: 1, image: 1, stock: "$branchStocks.stock", threshold: "$branchStocks.lowStockThreshold",
+          branchName: { $arrayElemAt: ["$bInfo.name", 0] }
+        }
+      }
     ]);
 
-res.json({
-  success: true,
-  stats,
-  categoryDistribution: categoryDistribution.map(c => ({ name: c._id, stock: c.stock })),
-  branchHealth,
-  criticalItems
-});
+    res.json({
+      success: true,
+      stats,
+      categoryDistribution: categoryDistribution.map(c => ({ name: c._id, stock: c.stock })),
+      branchHealth,
+      criticalItems
+    });
 
   } catch (error) {
-  res.status(500).json({ success: false, message: error.message });
-}
+    res.status(500).json({ success: false, message: error.message });
+  }
 };
 
 // @desc    Get branch-wise stock with filtering and pagination

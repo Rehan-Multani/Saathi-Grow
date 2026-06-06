@@ -30,7 +30,7 @@ const AddStaff = () => {
 
     const [errors, setErrors] = useState({});
 
-    const isBranchManager = adminUser.role === 'Store Manager';
+    const isBranchManager = adminUser.role === 'Store Manager' || adminUser.role === 'Store Manager';
     const ROLES = isBranchManager ? ['Staff'] : ['Store Manager', 'Staff'];
 
     const PERMISSIONS_LIST = [
@@ -277,7 +277,7 @@ const AddStaff = () => {
                                     className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 px-3 text-sm font-bold text-slate-700 outline-none focus:border-blue-500 cursor-pointer transition-all"
                                 >
                                     {ROLES.map(role => (
-                                        <option key={role} value={role}>{role}</option>
+                                        <option key={role} value={role}>{role === 'Store Manager' || role === 'Store Manager' ? 'Store Manager' : role}</option>
                                     ))}
                                 </select>
                             </div>
@@ -304,7 +304,7 @@ const AddStaff = () => {
                         </div>
 
                         <div className="space-y-3 pt-4">
-                             <div className="flex items-center justify-between ml-1">
+                            <div className="flex items-center justify-between ml-1">
                                 <label className="text-[11px] font-bold text-slate-500">{t('add.form.label_permissions')}</label>
                                 <Shield size={14} className="text-blue-500" />
                             </div>
@@ -345,7 +345,8 @@ const AddStaff = () => {
                 </div>
             </form>
 
-            <style dangerouslySetInnerHTML={{ __html: `
+            <style dangerouslySetInnerHTML={{
+                __html: `
                 .custom-scrollbar::-webkit-scrollbar { width: 4px; }
                 .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
             `}} />

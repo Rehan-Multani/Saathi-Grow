@@ -23,7 +23,7 @@ export const protect = async (req, res, next) => {
       
       // Strict Block Check
       if (req.user.isActive === false) {
-        return res.status(403).json({ message: 'Account is deactivated', isBlocked: true });
+        return res.status(403).json({ message: 'Account is deactivated. Please contact support at support@saathigro.in.', isBlocked: true });
       }
       
       next();
@@ -153,7 +153,7 @@ export const protectDeliveryPartner = async (req, res, next) => {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       req.partner = await DeliveryPartner.findById(decoded.id);
       if (!req.partner) return res.status(401).json({ message: 'Delivery Partner access denied' });
-      if (req.partner.authStatus !== 'Active') return res.status(403).json({ message: 'Account is suspended or inactive' });
+      if (req.partner.authStatus !== 'Active') return res.status(403).json({ message: 'Account is suspended or inactive. Please contact support at support@saathigro.in.' });
       next();
     } catch (error) {
       res.status(401).json({ message: 'Session expired, please login again' });

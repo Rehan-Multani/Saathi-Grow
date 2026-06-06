@@ -7,7 +7,7 @@ import { sendSystemNotificationEmail } from '../services/emailService.js';
 
 // @desc    Store Manager requests inventory change
 // @route   POST /api/inventory-requests
-// @access  Private (Branch Manager)
+// @access  Private (Store Manager)
 export const createRequest = async (req, res) => {
   try {
     const { productId, currentStock, adjustment, type, notes } = req.body;
@@ -53,7 +53,7 @@ export const createRequest = async (req, res) => {
 
 // @desc    Get all inventory requests
 // @route   GET /api/inventory-requests
-// @access  Private (Admin, Branch Manager)
+// @access  Private (Admin, Store Manager)
 export const getRequests = async (req, res) => {
   try {
     let query = {};

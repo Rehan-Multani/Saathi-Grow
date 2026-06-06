@@ -275,12 +275,16 @@ export const sendEmailToUser = async (req, res) => {
     if (!user) return res.status(404).json({ message: 'User not found' });
     if (!user.email) return res.status(400).json({ message: 'User does not have an email address' });
 
-    await sendSystemNotificationEmail(
+    const emailSent = await sendSystemNotificationEmail(
       user.email,
       subject,
       'Admin Message 🏮',
       message
     );
+
+    if (!emailSent) {
+      return res.status(500).json({ message: 'Email sending failed. Please check backend logs / SMTP credentials.' });
+    }
 
     res.json({ success: true, message: 'Email sent successfully' });
   } catch (error) {

@@ -5,7 +5,7 @@
 - **Endpoint**: `/api/admin/fcm-token`
 - **Method**: `PUT`
 - **Authentication**: `Bearer <Manager_JWT_Token>`
-- **Access Level**: Private (Role: `Branch Manager`)
+- **Access Level**: Private (Role: `Store Manager`)
 
 ### Request Body
 ```json

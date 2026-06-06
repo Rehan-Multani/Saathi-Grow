@@ -94,7 +94,7 @@ export const getDeliveryPartners = async (req, res) => {
     const search = (req.query.search || '').trim();
     let query = {};
 
-    // If Branch Manager, we show all partners (fleet is usually shared)
+    // If Store Manager, we show all partners (fleet is usually shared)
     // but we could filter by proximity in the future if branch has its own geo-fence
     if (search) {
       query.$or = [
@@ -241,7 +241,7 @@ export const deleteDeliveryPartner = async (req, res) => {
         { deliveryPartnerId: partner._id, status: { $in: ['preparing', 'ready_for_pickup', 'out_for_delivery'] } },
         { $set: { deliveryPartnerId: null, status: 'confirmed', deliveryOTP: null } }
       );
-      
+
       await partner.deleteOne();
       res.json({ message: 'Delivery Partner forcefully removed' });
     } else {
@@ -410,7 +410,7 @@ const performAssignment = async (orderId, partnerId, session) => {
   if (!order) throw new Error('Order not found');
   if (order.orderSource === 'pos') throw new Error('Assignment failed: POS orders do not require delivery partners');
   if (order.deliveryPartnerId) throw new Error('Order is already assigned to a driver');
-  
+
   const finalizedStatuses = ['delivered', 'cancelled', 'returned', 'return_picked_up'];
   if (finalizedStatuses.includes(order.status)) {
     throw new Error(`Cannot assign a partner to an order that is already ${order.status.replace(/_/g, ' ')}`);
@@ -832,7 +832,7 @@ export const getCashSettlementList = async (req, res) => {
       res.set('X-Page', String(pageNumber));
       res.set('X-Limit', String(limitNumber));
       res.set('X-Total-Pages', String(Math.ceil(total / limitNumber) || 1));
-      
+
       return res.json({
         partners,
         stats,
@@ -859,7 +859,7 @@ export const settleRiderCash = async (req, res) => {
   const session = await mongoose.startSession();
   try {
     const { pin } = req.body;
-    
+
     if (!pin) {
       return res.status(400).json({ message: 'Settlement PIN is required' });
     }

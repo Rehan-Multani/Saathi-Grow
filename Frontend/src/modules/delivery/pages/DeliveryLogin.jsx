@@ -142,7 +142,7 @@ const DeliveryLogin = () => {
                   <p className="text-sm text-gray-500 dark:text-gray-400">OTP sent to <span className="font-bold text-gray-900 dark:text-white">+91 {phone}</span></p>
                   <button
                     type="button"
-                    onClick={() => setStep(1)}
+                    onClick={() => { setStep(1); setOtp(''); }}
                     className="text-xs font-bold text-[#028A0F] hover:text-[#035a0a] underline mt-1"
                   >
                     Change Number

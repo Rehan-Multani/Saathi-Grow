@@ -199,7 +199,7 @@ const AllStaff = () => {
                                     <td className="px-4 py-4">
                                         <div className="flex flex-col gap-1">
                                             <span className="px-2.5 py-1 bg-blue-50 text-blue-600 text-[10px] font-bold rounded-lg border border-blue-100 w-fit">
-                                                {s.role}
+                                                {s.role === 'Store Manager' || s.role === 'Store Manager' ? 'Store Manager' : s.role}
                                             </span>
                                             {s.permissions?.length > 0 && (
                                                 <span className="text-[9px] text-slate-400 font-semibold uppercase">{s.permissions.length} Permissions</span>
@@ -354,7 +354,8 @@ const AllStaff = () => {
                 onSave={handleSaveStaff}
             />
 
-            <style dangerouslySetInnerHTML={{ __html: `
+            <style dangerouslySetInnerHTML={{
+                __html: `
                 .custom-scrollbar::-webkit-scrollbar { width: 4px; }
                 .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
             `}} />

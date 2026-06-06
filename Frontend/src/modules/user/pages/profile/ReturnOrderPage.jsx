@@ -63,8 +63,24 @@ const ReturnOrderPage = () => {
             return;
         }
 
-        setImages(prev => [...prev, ...files]);
-        const newPreviews = files.map(file => URL.createObjectURL(file));
+        // Normalize file name and mime type (especially for camera captures)
+        const normalizedFiles = files.map(file => {
+            let name = file.name || 'image.jpg';
+            if (name.toLowerCase() === 'blob' || !name.includes('.')) {
+                const extension = file.type ? file.type.split('/')[1] : 'jpg';
+                name = `camera_${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${extension === 'jpeg' ? 'jpg' : extension}`;
+            }
+            const type = file.type || 'image/jpeg';
+            try {
+                return new File([file], name, { type });
+            } catch (err) {
+                console.warn('File normalization fallback:', err);
+                return file;
+            }
+        });
+
+        setImages(prev => [...prev, ...normalizedFiles]);
+        const newPreviews = normalizedFiles.map(file => URL.createObjectURL(file));
         setImagePreviews(prev => [...prev, ...newPreviews]);
     };
 

@@ -144,7 +144,7 @@ const StaffDashboard = () => {
             <div className="bg-slate-950 text-white p-8 lg:p-12 rounded-[3.5rem] shadow-3xl relative overflow-hidden group">
                 <div className="absolute right-0 top-0 w-full h-full bg-blue-600/10 blur-[120px] pointer-events-none group-hover:bg-blue-600/15 transition-all duration-1000" />
                 <div className="absolute top-0 left-0 w-32 h-32 bg-indigo-600/10 blur-[60px]" />
-                
+
                 <div className="relative flex flex-col lg:flex-row lg:items-center justify-between gap-10 text-left">
                     <div className="space-y-5">
                         <div className="flex items-center gap-3">
@@ -252,8 +252,8 @@ const StaffDashboard = () => {
                                             </td>
                                             <td className="px-10 py-5 text-right">
                                                 <span className={`inline-flex px-4 py-2 rounded-[1.1rem] text-[9px] font-black uppercase tracking-[0.2em] border shadow-sm italic font-black ${order.status === 'delivered' ? 'bg-emerald-50 text-emerald-700 border-emerald-100 shadow-emerald-500/5 px-5' :
-                                                        order.status === 'pending' ? 'bg-amber-50 text-amber-700 border-amber-100 shadow-amber-500/5' :
-                                                            'bg-blue-50 text-blue-700 border-blue-100 shadow-blue-500/5'
+                                                    order.status === 'pending' ? 'bg-amber-50 text-amber-700 border-amber-100 shadow-amber-500/5' :
+                                                        'bg-blue-50 text-blue-700 border-blue-100 shadow-blue-500/5'
                                                     }`}>
                                                     {order.status}
                                                 </span>
@@ -282,31 +282,31 @@ const StaffDashboard = () => {
                     {/* Target Widget */}
                     {staffUser?.role === 'Store Manager' && (
                         <div className="bg-blue-600 text-white p-10 rounded-[3.2rem] shadow-3xl relative overflow-hidden group border border-blue-500">
-                             <div className="absolute -right-16 -top-16 w-64 h-64 bg-white/10 rounded-full group-hover:scale-150 transition-all duration-1000 blur-3xl pointer-events-none" />
-                             <div className="relative z-10 space-y-8 text-left font-black">
+                            <div className="absolute -right-16 -top-16 w-64 h-64 bg-white/10 rounded-full group-hover:scale-150 transition-all duration-1000 blur-3xl pointer-events-none" />
+                            <div className="relative z-10 space-y-8 text-left font-black">
                                 <div className="flex items-center justify-between">
                                     <div className="w-1.5 h-6 bg-white/30 rounded-full" />
                                     <Target size={22} className="text-white group-hover:rotate-45 transition-transform italic" />
                                 </div>
                                 <div className="space-y-4 text-left font-black">
-                                     <h4 className="text-[11px] font-black uppercase tracking-[0.4em] text-blue-100 italic leading-none font-black text-left">Goal Metric</h4>
-                                     <div className="flex items-baseline gap-2 text-left font-black">
+                                    <h4 className="text-[11px] font-black uppercase tracking-[0.4em] text-blue-100 italic leading-none font-black text-left">Goal Metric</h4>
+                                    <div className="flex items-baseline gap-2 text-left font-black">
                                         <h2 className="text-5xl font-black tracking-tighter italic leading-none font-black text-left">98.4%</h2>
                                         <span className="text-[10px] font-black uppercase tracking-widest text-emerald-300 italic">Peak</span>
-                                     </div>
+                                    </div>
                                 </div>
                                 <div className="h-2.5 w-full bg-blue-900/30 rounded-full overflow-hidden border border-white/5 relative shadow-inner">
                                     <div className="absolute inset-0 bg-blue-400/20 blur-sm w-[98.4%]" />
                                     <div className="h-full bg-white w-[98.4%] rounded-full shadow-[0_0_20px_white] relative z-10" />
                                 </div>
-                             </div>
+                            </div>
                         </div>
                     )}
 
                     {/* Triage Center */}
                     <div className="bg-white p-8 lg:p-10 rounded-[3rem] border border-slate-100 shadow-sm flex flex-col group hover:shadow-2xl transition-all duration-700 text-left relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-slate-50/50 blur-3xl pointer-events-none" />
-                        
+
                         <div className="flex items-center justify-between mb-10 text-left">
                             <div className="flex items-center gap-4 text-left">
                                 <div className="w-12 h-12 bg-slate-950 text-white rounded-2xl shadow-xl flex items-center justify-center rotate-3 group-hover:rotate-0 transition-all duration-500 italic">
@@ -339,8 +339,8 @@ const StaffDashboard = () => {
 
                         <div className="space-y-4 mb-10 px-4 text-center">
                             <div className="bg-blue-50/20 px-6 py-4 rounded-2xl flex items-center justify-center gap-3 border border-blue-100/30">
-                               <div className="w-2 h-2 bg-blue-500 rounded-full" />
-                               <span className="text-[10px] font-black text-blue-600 uppercase tracking-[0.2em] italic font-black">Assigned Status</span>
+                                <div className="w-2 h-2 bg-blue-500 rounded-full" />
+                                <span className="text-[10px] font-black text-blue-600 uppercase tracking-[0.2em] italic font-black">Assigned Status</span>
                             </div>
                         </div>
 
@@ -353,8 +353,9 @@ const StaffDashboard = () => {
                     </div>
                 </div>
             </div>
-            
-            <style dangerouslySetInnerHTML={{ __html: `
+
+            <style dangerouslySetInnerHTML={{
+                __html: `
                 .custom-scrollbar::-webkit-scrollbar { width: 4px; }
                 .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
             `}} />

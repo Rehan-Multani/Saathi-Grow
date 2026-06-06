@@ -206,7 +206,7 @@ const LoginModal = () => {
                                     <button type="button" onClick={handleResendOTP} disabled={resendTimer > 0 || loading} className="text-xs text-[var(--saathi-green)] font-bold hover:underline disabled:opacity-50">
                                         {resendTimer > 0 ? `Resend in ${resendTimer}s` : 'Resend OTP'}
                                     </button>
-                                    <button type="button" onClick={() => setShowOTP(false)} className="text-xs text-gray-400 font-medium hover:underline">Change Number?</button>
+                                    <button type="button" onClick={() => { setShowOTP(false); setOtp(''); }} className="text-xs text-gray-400 font-medium hover:underline">Change Number?</button>
                                 </div>
                             </div>
                             <button
@@ -227,6 +227,7 @@ const LoginModal = () => {
                             onClick={() => {
                                 setLoginView(loginView === 'login' ? 'register' : 'login');
                                 setShowOTP(false);
+                                setOtp('');
                             }}
                             className="font-bold text-[var(--saathi-green)] hover:text-green-700 underline"
                         >

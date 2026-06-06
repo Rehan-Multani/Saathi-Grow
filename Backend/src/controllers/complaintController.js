@@ -122,7 +122,7 @@ export const escalateToStore = async (req, res) => {
     await complaint.save();
 
 
-    // Notify the relevant Store (Vendor or Branch Manager/Staff)
+    // Notify the relevant Store (Vendor or Store Manager/Staff)
     if (complaint.storeModel === 'Branch') {
       await notifyByBranchAndPermission('MANAGE_SUPPORT', complaint.store._id, {
         title: 'New Complaint Escalated',
@@ -248,7 +248,7 @@ export const closeTicket = async (req, res) => {
 
       const amountToRefund = Number(customAmount) || complaint.order.totalAmount;
       const user = await User.findById(complaint.user._id || complaint.user);
-      
+
       if (user) {
         user.walletBalance = (user.walletBalance || 0) + amountToRefund;
         await user.save();
@@ -292,8 +292,8 @@ export const closeTicket = async (req, res) => {
     const { sendPushNotification } = await import('../services/notificationService.js');
     await sendPushNotification(complaint.user._id || complaint.user, 'User', {
       title: 'Support Ticket Closed',
-      body: complaint.refundProcessed 
-        ? `Ticket ${ticketId} has been closed. A refund of ₹${complaint.refundAmount} was processed.` 
+      body: complaint.refundProcessed
+        ? `Ticket ${ticketId} has been closed. A refund of ₹${complaint.refundAmount} was processed.`
         : `Your support ticket ${ticketId} has been resolved and closed.`
     }, {
       ticketId: ticketId,

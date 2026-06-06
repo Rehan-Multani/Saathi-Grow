@@ -25,8 +25,20 @@ const ImageSourceModal = ({ isOpen, onClose, onSelect }) => {
     if (!isOpen) return null;
 
     const handleFileChange = (e) => {
-        const file = e.target.files[0];
+        let file = e.target.files[0];
         if (file) {
+            // Normalize file name and mime type (especially for camera captures)
+            let name = file.name || 'image.jpg';
+            if (name.toLowerCase() === 'blob' || !name.includes('.')) {
+                const extension = file.type ? file.type.split('/')[1] : 'jpg';
+                name = `camera_${Date.now()}.${extension === 'jpeg' ? 'jpg' : extension}`;
+            }
+            const type = file.type || 'image/jpeg';
+            try {
+                file = new File([file], name, { type });
+            } catch (err) {
+                console.warn('File normalization fallback:', err);
+            }
             onSelect(file);
         }
         onClose();

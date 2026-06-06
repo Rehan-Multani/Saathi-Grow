@@ -196,7 +196,7 @@ const PushNotifications = () => {
                                             <option value="vendors">{t('push.vendor_network')}</option>
                                             <option value="delivery_partners">{t('push.logistics_partners')}</option>
                                             <option value="staff">{t('push.internal_staff')}</option>
-                                            <option value="store_managers">{t('push.regional_managers', { defaultValue: 'Store Managers' })}</option>
+                                            <option value="branch_managers">{t('push.regional_managers')}</option>
                                         </select>
                                     </div>
                                 ) : (
@@ -216,7 +216,7 @@ const PushNotifications = () => {
                                                 <option value="Vendor">{t('push.vendor_network', { defaultValue: 'Vendors' })}</option>
                                                 <option value="DeliveryPartner">{t('push.logistics_partners', { defaultValue: 'Delivery Partners' })}</option>
                                                 <option value="Staff">{t('push.internal_staff', { defaultValue: 'Staff Members' })}</option>
-                                                <option value="Store Manager">{t('push.regional_managers', { defaultValue: 'Store Managers' })}</option>
+                                                <option value="Store Manager">{t('push.regional_managers', { defaultValue: 'Branch Managers' })}</option>
                                             </select>
                                         </div>
 
@@ -290,7 +290,7 @@ const PushNotifications = () => {
                 <div className="xl:col-span-4 space-y-6">
                     <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 h-full flex flex-col items-center justify-center min-h-[300px]">
                         <div className="bg-white rounded-2xl p-4 shadow-xl border border-slate-100 w-full max-w-[240px] animate-in slide-in-from-bottom duration-300">
-                             <div className="flex justify-between items-center mb-3">
+                            <div className="flex justify-between items-center mb-3">
                                 <div className="flex items-center gap-1.5">
                                     <div className="w-5 h-5 bg-blue-600 rounded flex items-center justify-center">
                                         <Bell size={10} className="text-white" />
@@ -313,7 +313,7 @@ const PushNotifications = () => {
 
             {/* Metrics Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                 <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
                     <div>
                         <span className="text-slate-400 font-bold text-[10px] uppercase tracking-tight">{t('push.total_dispatched')}</span>
                         <p className="text-2xl font-bold text-slate-900">{totalItems.toLocaleString()}</p>
@@ -408,7 +408,7 @@ const PushNotifications = () => {
 
                 {totalPages > 1 && (
                     <div className="p-6 border-t border-slate-100 flex items-center justify-between">
-                         <div className="flex items-center gap-2 mx-auto">
+                        <div className="flex items-center gap-2 mx-auto">
                             <button onClick={() => fetchHistory(currentPage - 1)} disabled={currentPage === 1} className="p-2 border rounded-xl disabled:opacity-30"><ChevronLeft size={16} /></button>
                             <span className="text-xs font-bold text-slate-500">{currentPage} of {totalPages}</span>
                             <button onClick={() => fetchHistory(currentPage + 1)} disabled={currentPage === totalPages} className="p-2 border rounded-xl disabled:opacity-30"><ChevronRight size={16} /></button>

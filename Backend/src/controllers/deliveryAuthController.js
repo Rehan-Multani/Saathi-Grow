@@ -69,7 +69,7 @@ export const requestOTP = async (req, res) => {
     }
 
     if (partner.authStatus !== 'Active') {
-      return res.status(403).json({ message: `Your account is ${partner.authStatus}. Contact admin.` });
+      return res.status(403).json({ message: `Your account is ${partner.authStatus}. Please contact support at support@saathigro.in.` });
     }
 
     // TEST NUMBERS - Bypass OTP with default 123456

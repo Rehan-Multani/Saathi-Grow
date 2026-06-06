@@ -798,19 +798,19 @@ export const getAdminVendorEarnings = async (req, res) => {
         ])
       ]),
       // 2. Paginated Data (Toggle between Earnings vs Withdrawals)
-      view === 'earnings' 
+      view === 'earnings'
         ? Order.find({ ...listQuery, status: 'delivered' })
-            .populate('vendor', 'storeName')
-            .sort({ createdAt: -1 })
-            .skip(skip)
-            .limit(limitNum)
-            .lean()
+          .populate('vendor', 'storeName')
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(limitNum)
+          .lean()
         : VendorPayout.find({ ...listQuery, ...(status && status !== 'All Vendors' ? { status: status === 'Pending Payouts' ? 'Pending' : 'Paid' } : {}) })
-            .populate('vendor', 'storeName')
-            .sort({ createdAt: -1 })
-            .skip(skip)
-            .limit(limitNum)
-            .lean(),
+          .populate('vendor', 'storeName')
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(limitNum)
+          .lean(),
       // 3. Count
       view === 'earnings'
         ? Order.countDocuments({ ...listQuery, status: 'delivered' })
@@ -916,20 +916,22 @@ export const getAdminVendorPayoutDetail = async (req, res) => {
       vendor: payout.vendor._id,
       status: 'delivered'
     })
-    .sort({ createdAt: -1 })
-    .limit(10)
-    .select('orderId createdAt totalAmount platformCommission vendorPayoutAmount items orderType')
-    .lean();
+      .sort({ createdAt: -1 })
+      .limit(10)
+      .select('orderId createdAt totalAmount platformCommission vendorPayoutAmount items orderType')
+      .lean();
 
     // Aggregates for the vendor (context)
     const vendorStats = await Order.aggregate([
       { $match: { vendor: payout.vendor?._id, status: 'delivered' } },
-      { $group: {
-        _id: null,
-        totalSales: { $sum: '$totalAmount' },
-        totalComm: { $sum: '$platformCommission' },
-        totalItems: { $sum: { $size: '$items' } }
-      }}
+      {
+        $group: {
+          _id: null,
+          totalSales: { $sum: '$totalAmount' },
+          totalComm: { $sum: '$platformCommission' },
+          totalItems: { $sum: { $size: '$items' } }
+        }
+      }
     ]);
 
     res.json({
@@ -948,22 +950,22 @@ export const getAdminVendorPayoutDetail = async (req, res) => {
   }
 };
 
-// @desc    Get strategic analytics for a specific branch (Branch Manager)
+// @desc    Get strategic analytics for a specific branch (Store Manager)
 // @route   GET /api/admin/reports/strategic-analytics
-// @access  Private (Branch Manager/Admin)
+// @access  Private (Store Manager/Admin)
 export const getBranchStrategicAnalytics = async (req, res) => {
   try {
     const { role, branchId } = req.admin;
-    
+
     let targetedBranchId = branchId;
 
     // If super admin and branchId provided in query, use that
     if (role === 'Admin' && req.query.branchId) {
-       targetedBranchId = req.query.branchId;
+      targetedBranchId = req.query.branchId;
     }
 
     if (!targetedBranchId) {
-       return res.status(400).json({ success: false, message: 'Branch ID is required' });
+      return res.status(400).json({ success: false, message: 'Branch ID is required' });
     }
 
     const branchObjectId = new mongoose.Types.ObjectId(targetedBranchId);
@@ -984,8 +986,8 @@ export const getBranchStrategicAnalytics = async (req, res) => {
             _id: null,
             totalValue: { $sum: { $multiply: ["$branchStocks.stock", "$basePrice"] } },
             skuCount: { $sum: 1 },
-            lowStockAlerts: { 
-              $sum: { $cond: [{ $lte: ["$branchStocks.stock", { $ifNull: ["$branchStocks.lowStockThreshold", 10] }] }, 1, 0] } 
+            lowStockAlerts: {
+              $sum: { $cond: [{ $lte: ["$branchStocks.stock", { $ifNull: ["$branchStocks.lowStockThreshold", 10] }] }, 1, 0] }
             }
           }
         }
@@ -994,11 +996,13 @@ export const getBranchStrategicAnalytics = async (req, res) => {
       Order.aggregate([
         { $match: { branchId: branchObjectId, status: 'delivered', createdAt: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) } } },
         { $unwind: "$items" },
-        { $group: {
+        {
+          $group: {
             _id: "$items.product",
             salesCount: { $sum: "$items.quantity" },
             revenue: { $sum: { $multiply: ["$items.quantity", "$items.price"] } }
-        }},
+          }
+        },
         { $sort: { salesCount: -1 } },
         { $limit: 10 },
         {
@@ -1052,15 +1056,15 @@ export const getBranchStrategicAnalytics = async (req, res) => {
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const now = new Date();
     const formattedWastage = [];
-    
+
     for (let i = 11; i >= 0; i--) {
-        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-        const monthKey = d.toISOString().split('T')[0].substring(0, 7); // YYYY-MM
-        const match = wastageData.find(w => w._id === monthKey);
-        formattedWastage.push({
-            month: monthNames[d.getMonth()],
-            value: match ? Math.round(match.lossAmount) : 0
-        });
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const monthKey = d.toISOString().split('T')[0].substring(0, 7); // YYYY-MM
+      const match = wastageData.find(w => w._id === monthKey);
+      formattedWastage.push({
+        month: monthNames[d.getMonth()],
+        value: match ? Math.round(match.lossAmount) : 0
+      });
     }
 
     res.json({
@@ -1079,9 +1083,9 @@ export const getBranchStrategicAnalytics = async (req, res) => {
         growth: Math.floor(Math.random() * 20) + 1 // Mock growth since we don't track history in this query
       })),
       assetDistribution: categoryDistribution.map(cat => ({
-         name: cat._id,
-         value: totalInvValue > 0 ? Math.round((cat.value / totalInvValue) * 100) : 0,
-         actualValue: cat.value
+        name: cat._id,
+        value: totalInvValue > 0 ? Math.round((cat.value / totalInvValue) * 100) : 0,
+        actualValue: cat.value
       })),
       wastageData: formattedWastage
     });

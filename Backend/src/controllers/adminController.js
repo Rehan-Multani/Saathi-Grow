@@ -112,7 +112,7 @@ export const resetPassword = async (req, res) => {
 
 // @desc    Get all staff/managers (excluding other Admins)
 // @route   GET /api/admin/staff
-// @access  Private (Admin/Branch Manager)
+// @access  Private (Admin/Store Manager)
 export const getAllAdmins = async (req, res) => {
   try {
     const hasPagination = req.query.page !== undefined || req.query.limit !== undefined;
@@ -124,12 +124,12 @@ export const getAllAdmins = async (req, res) => {
 
     // Hierarchy Logic:
     if (req.admin.role === 'Admin') {
-      // Admins can see all 'Store Manager' and 'Staff' across all branches
-      query.role = { $in: ['Store Manager', 'Staff'] };
+      // Admins can see all 'Store Manager', 'Store Manager' and 'Staff' across all branches
+      query.role = { $in: ['Store Manager', 'Store Manager', 'Staff'] };
     } else {
       // Store Managers and allowed Staff can see all team members in THEIR branch
       // (Excluding Super Admins)
-      query.role = { $in: ['Store Manager', 'Staff'] };
+      query.role = { $in: ['Store Manager', 'Store Manager', 'Staff'] };
       query.branchId = req.admin.branchId;
 
       if (!req.admin.branchId) {
@@ -193,7 +193,7 @@ export const getAllAdmins = async (req, res) => {
 
 // @desc    Create new Staff/Manager
 // @route   POST /api/admin/staff
-// @access  Private (Admin/Branch Manager)
+// @access  Private (Admin/Store Manager)
 export const createAdmin = async (req, res) => {
   try {
     const { name, email, phone, password, role, permissions, branchId } = req.body;
@@ -205,7 +205,7 @@ export const createAdmin = async (req, res) => {
     }
 
     let finalRole = role;
-    if (role === 'Branch Manager') finalRole = 'Store Manager';
+    if (role === 'Store Manager') finalRole = 'Store Manager';
     let finalBranchId = branchId;
 
     // Allowed permissions for non-Super Admin roles
@@ -271,7 +271,7 @@ export const createAdmin = async (req, res) => {
 
 // @desc    Update Staff/Manager
 // @route   PUT /api/admin/staff/:id
-// @access  Private (Admin/Branch Manager)
+// @access  Private (Admin/Store Manager)
 export const updateAdmin = async (req, res) => {
   try {
     const admin = await Admin.findById(req.params.id);
@@ -311,15 +311,30 @@ export const updateAdmin = async (req, res) => {
       delete req.body.branchId;
     }
 
+    // Check if new email/phone is already taken
+    if (req.body.email && req.body.email !== admin.email) {
+      const emailExists = await Admin.findOne({ email: req.body.email, _id: { $ne: admin._id } });
+      if (emailExists) {
+        return res.status(400).json({ message: 'Email is already registered with another staff member' });
+      }
+    }
+
+    if (req.body.phone && req.body.phone !== admin.phone) {
+      const phoneExists = await Admin.findOne({ phone: req.body.phone, _id: { $ne: admin._id } });
+      if (phoneExists) {
+        return res.status(400).json({ message: 'Phone number is already registered with another staff member' });
+      }
+    }
+
     admin.name = req.body.name || admin.name;
     admin.email = req.body.email || admin.email;
     admin.phone = req.body.phone || admin.phone;
-    
+
     // Don't allow changing TO 'Admin' role if not already an Admin
     if (req.body.role === 'Admin' && admin.role !== 'Admin') {
       return res.status(403).json({ message: 'Cannot promote to Admin role via this module' });
     }
-    
+
     admin.role = req.body.role || admin.role;
 
     // Filter and update permissions
@@ -349,6 +364,11 @@ export const updateAdmin = async (req, res) => {
     const updatedAdmin = await admin.save();
     res.json(updatedAdmin);
   } catch (error) {
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern || {})[0] || 'email';
+      const capitalizedField = field.charAt(0).toUpperCase() + field.slice(1);
+      return res.status(400).json({ message: `${capitalizedField === 'Phone' ? 'Phone number' : capitalizedField} is already registered with another staff member` });
+    }
     res.status(500).json({ message: error.message });
   }
 };
@@ -403,6 +423,21 @@ export const updateAdminProfile = async (req, res) => {
     const admin = await Admin.findById(req.admin._id);
 
     if (admin) {
+      // Check if new email/phone is already taken
+      if (req.body.email && req.body.email !== admin.email) {
+        const emailExists = await Admin.findOne({ email: req.body.email, _id: { $ne: admin._id } });
+        if (emailExists) {
+          return res.status(400).json({ message: 'Email is already registered with another staff member' });
+        }
+      }
+
+      if (req.body.phone && req.body.phone !== admin.phone) {
+        const phoneExists = await Admin.findOne({ phone: req.body.phone, _id: { $ne: admin._id } });
+        if (phoneExists) {
+          return res.status(400).json({ message: 'Phone number is already registered with another staff member' });
+        }
+      }
+
       admin.name = req.body.name || admin.name;
       admin.email = req.body.email || admin.email;
       admin.phone = req.body.phone || admin.phone;
@@ -439,6 +474,11 @@ export const updateAdminProfile = async (req, res) => {
     }
   } catch (error) {
     console.error('Error updating admin profile:', error);
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern || {})[0] || 'email';
+      const capitalizedField = field.charAt(0).toUpperCase() + field.slice(1);
+      return res.status(400).json({ message: `${capitalizedField === 'Phone' ? 'Phone number' : capitalizedField} is already registered with another staff member` });
+    }
     res.status(500).json({ message: error.message || 'Internal Server Error' });
   }
 };

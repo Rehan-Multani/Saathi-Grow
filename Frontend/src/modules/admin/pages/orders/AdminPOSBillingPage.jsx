@@ -12,7 +12,7 @@ const AdminPOSBillingPage = () => {
     const [loading, setLoading] = useState(false);
     const [selectedBranchId, setSelectedBranchId] = useState(null);
 
-    // If the logged in user is a Branch Manager or Staff, they already have a branchId assigned.
+    // If the logged in user is a Store Manager or Staff, they already have a branchId assigned.
     const isSuperAdmin = adminUser?.role === 'Admin';
     const assignedBranchId = adminUser?.branchId;
 
@@ -39,9 +39,9 @@ const AdminPOSBillingPage = () => {
     // If branch is selected, render the POSBilling component directly.
     if (selectedBranchId) {
         return (
-            <POSBilling 
-                storeId={selectedBranchId} 
-                storeType="branch" 
+            <POSBilling
+                storeId={selectedBranchId}
+                storeType="branch"
                 onExit={isSuperAdmin ? () => setSelectedBranchId(null) : null}
             />
         );
@@ -60,7 +60,7 @@ const AdminPOSBillingPage = () => {
                             Select a physical branch to launch the point-of-sale checkout register.
                         </p>
                     </div>
-                    <button 
+                    <button
                         onClick={fetchBranches}
                         className="p-2.5 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl text-slate-600 transition-all hover:shadow-sm"
                         title="Refresh Branches List"
@@ -78,7 +78,7 @@ const AdminPOSBillingPage = () => {
                 ) : branches.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {branches.map((branch) => (
-                            <div 
+                            <div
                                 key={branch._id}
                                 onClick={() => setSelectedBranchId(branch._id)}
                                 className="bg-white border-2 border-slate-100 hover:border-blue-500 rounded-2xl p-6 shadow-sm hover:shadow-xl transition-all cursor-pointer group flex flex-col justify-between h-44"

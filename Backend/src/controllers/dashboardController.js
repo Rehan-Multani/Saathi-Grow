@@ -8,7 +8,7 @@ import mongoose from 'mongoose';
 
 // @desc    Get dashboard analytics (Global or Branch-scoped)
 // @route   GET /api/dashboard/stats
-// @access  Private (Admin, Branch Manager, Staff)
+// @access  Private (Admin, Store Manager, Staff)
 export const getDashboardStats = async (req, res) => {
   try {
     const { role, branchId } = req.admin;
@@ -308,7 +308,7 @@ export const getVendorDashboardStats = async (req, res) => {
       const month = String(d.getMonth() + 1).padStart(2, '0');
       const day = String(d.getDate()).padStart(2, '0');
       const dateStr = `${year}-${month}-${day}`;
-      
+
       const match = analyticsData.find(h => h._id === dateStr);
       finalAnalytics.push({
         name: d.toLocaleDateString('en-US', { weekday: 'short' }),

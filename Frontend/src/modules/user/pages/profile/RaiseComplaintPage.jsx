@@ -15,6 +15,7 @@ const RaiseComplaintPage = () => {
     const [submitted, setSubmitted] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [images, setImages] = useState([]);
+    const [imagePreviews, setImagePreviews] = useState([]);
     const [ticketId, setTicketId] = useState('');
 
     const issues = id 
@@ -29,8 +30,42 @@ const RaiseComplaintPage = () => {
             toast.warn('You can upload up to 3 images in total.');
             return;
         }
-        setImages([...images, ...files]);
+
+        // Normalize file name and mime type (especially for camera captures)
+        const normalizedFiles = files.map(file => {
+            let name = file.name || 'image.jpg';
+            if (name.toLowerCase() === 'blob' || !name.includes('.')) {
+                const extension = file.type ? file.type.split('/')[1] : 'jpg';
+                name = `camera_${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${extension === 'jpeg' ? 'jpg' : extension}`;
+            }
+            const type = file.type || 'image/jpeg';
+            try {
+                return new File([file], name, { type });
+            } catch (err) {
+                console.warn('File normalization fallback:', err);
+                return file;
+            }
+        });
+
+        setImages(prev => [...prev, ...normalizedFiles]);
+        const newPreviews = normalizedFiles.map(file => URL.createObjectURL(file));
+        setImagePreviews(prev => [...prev, ...newPreviews]);
     };
+
+    const removeImage = (index) => {
+        setImages(prev => prev.filter((_, i) => i !== index));
+        setImagePreviews(prev => {
+            URL.revokeObjectURL(prev[index]);
+            return prev.filter((_, i) => i !== index);
+        });
+    };
+
+    // Cleanup previews on unmount
+    useEffect(() => {
+        return () => {
+            imagePreviews.forEach(url => URL.revokeObjectURL(url));
+        };
+    }, []);
 
     const submitRequest = async () => {
         if (!selectedIssue) return;
@@ -131,13 +166,13 @@ const RaiseComplaintPage = () => {
                     <div>
                         <p className="!text-[9px] md:!text-sm font-black text-gray-400 tracking-[0.2em] mb-4 px-1 uppercase">Upload Evidence (Optional)</p>
                         
-                        {images.length > 0 && (
+                        {imagePreviews.length > 0 && (
                             <div className="flex flex-wrap gap-3 mb-4">
-                                {images.map((img, index) => (
+                                {imagePreviews.map((previewUrl, index) => (
                                     <div key={index} className="relative w-24 h-24 rounded-xl overflow-hidden border border-gray-200 dark:border-white/10 shadow-sm">
-                                        <img src={URL.createObjectURL(img)} alt={`Preview ${index}`} className="w-full h-full object-cover" />
+                                        <img src={previewUrl} alt={`Preview ${index}`} className="w-full h-full object-cover" />
                                         <button 
-                                            onClick={() => setImages(images.filter((_, i) => i !== index))}
+                                            onClick={() => removeImage(index)}
                                             className="absolute top-1 right-1 bg-black/60 text-white rounded-full p-1 hover:bg-red-500 transition-colors backdrop-blur-sm"
                                         >
                                             <X size={14} strokeWidth={3} />

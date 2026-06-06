@@ -38,7 +38,7 @@ export const AdminAuthProvider = ({ children }) => {
 
     useEffect(() => {
         if (!adminUser?.token) return;
-        
+
         refreshUnreadCount();
         const interval = setInterval(refreshUnreadCount, 60000);
         return () => clearInterval(interval);
@@ -58,7 +58,7 @@ export const AdminAuthProvider = ({ children }) => {
         try {
             const data = await getProfile(user.token);
             const updatedUser = { ...data, token: user.token };
-            
+
             // Only update if data has actually changed to prevent redundant re-renders
             if (JSON.stringify(updatedUser) !== JSON.stringify(user)) {
                 setAdminUser(updatedUser);

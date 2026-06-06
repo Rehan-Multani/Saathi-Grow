@@ -158,7 +158,7 @@ const StaffSidebar = ({ showMobile, onClose }) => {
                             <p className="text-[11px] font-black text-white uppercase truncate">{staffUser?.name || 'Staff User'}</p>
                             <p className="text-[9px] font-bold text-slate-500 uppercase tracking-tighter truncate">{staffUser?.role || 'Associate'}</p>
                         </div>
-                        <button 
+                        <button
                             onClick={handleLogout}
                             className="p-2 text-slate-500 hover:text-red-400 hover:bg-red-400/10 rounded-xl transition-all"
                             title="Logout"
@@ -168,7 +168,8 @@ const StaffSidebar = ({ showMobile, onClose }) => {
                     </div>
                 </div>
             </aside>
-            <style dangerouslySetInnerHTML={{ __html: `
+            <style dangerouslySetInnerHTML={{
+                __html: `
                 .scrollbar-hide::-webkit-scrollbar { display: none; }
                 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
             `}} />

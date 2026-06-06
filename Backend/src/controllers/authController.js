@@ -30,7 +30,7 @@ export const requestOTP = async (req, res) => {
     // SECURITY SHIELD: Prevent blocked users from requesting OTP
     if (user && user.isActive === false) {
       return res.status(403).json({
-        message: 'Your account has been deactivated. Please contact support to re-activate your account.'
+        message: 'Your account has been deactivated. Please contact support at support@saathigro.in to re-activate your account.'
       });
     }
 

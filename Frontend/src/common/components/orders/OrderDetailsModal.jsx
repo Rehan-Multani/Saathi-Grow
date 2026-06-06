@@ -26,7 +26,7 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
         { value: 'delivered', label: 'Delivered' },
         { value: 'cancelled', label: 'Cancelled' }
     ];
-    
+
     const adminAuth = useAdminAuth?.();
     const managerAuth = useStoreManagerAuth?.();
     const staffAuth = useStaffAuth?.();
@@ -112,16 +112,16 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
 
         const currentRank = statusOrderMap[displayOrder.status] || 0;
         const newRank = statusOrderMap[newStatus] || 0;
-        
+
         if (newRank < currentRank) {
             return toast.error('Cannot revert order to a previous status');
         }
-        
+
         setUpdatingStatus(true);
         try {
             await updateOrderStatus(displayOrder._id, newStatus);
             toast.success(t('actions.update_success'));
-            
+
             // Refresh details locally or through parent
             fetchFullOrderDetails();
             if (onOrderUpdate) onOrderUpdate();
@@ -138,7 +138,7 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
     const displayCustomer = displayOrder.user?.name || displayOrder.posCustomer?.name || 'Guest';
     const displayTotal = displayOrder.totalAmount?.toLocaleString() || '0';
     const displayDate = new Date(displayOrder.createdAt).toLocaleString();
-    
+
     const getStatusColor = (status = '') => {
         const s = status.toLowerCase();
         switch (s) {
@@ -157,7 +157,7 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
     const handlePrint = () => {
         const content = document.getElementById('print-receipt').innerHTML;
         const printWindow = window.open('', '', 'width=800,height=600');
-        
+
         // Collect all styles from the current document
         const styles = Array.from(document.querySelectorAll('style, link[rel="stylesheet"]'))
             .map(s => s.outerHTML)
@@ -243,7 +243,7 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
                                 </div>
                                 <div className="p-4 bg-slate-50 rounded-lg border border-slate-100">
                                     <p className="text-[10px] font-bold text-slate-400 uppercase mb-2">Status</p>
-                                    <select 
+                                    <select
                                         className="w-full bg-white border border-slate-200 rounded-lg px-2 py-1 text-[11px] font-bold text-slate-700 outline-none focus:border-blue-500 transition-all cursor-pointer print:hidden"
                                         value={displayOrder.status}
                                         onChange={(e) => handleStatusUpdate(e.target.value)}
@@ -259,7 +259,7 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
                                                 <option key={opt.value} value={opt.value}>
                                                     {opt.label}
                                                 </option>
-                                        ))}
+                                            ))}
                                     </select>
                                     <p className="hidden print:block text-[11px] font-bold text-slate-900 uppercase">
                                         {displayOrder.status?.replace(/_/g, ' ')}
@@ -283,7 +283,7 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
                                     ) : (
                                         ['Admin', 'Store Manager', 'Staff'].includes(userRole) && ['confirmed', 'preparing', 'ready_for_pickup'].includes(displayOrder.status) && (
                                             <div className="flex flex-col sm:flex-row gap-2">
-                                                <select 
+                                                <select
                                                     className="flex-1 bg-white border border-blue-200 rounded-lg px-2 py-1.5 text-xs outline-none"
                                                     value={selectedPartner}
                                                     onChange={e => setSelectedPartner(e.target.value)}
@@ -291,7 +291,7 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
                                                     <option value="">Select Rider</option>
                                                     {availablePartners.map(p => <option key={p._id} value={p._id}>{p.name}</option>)}
                                                 </select>
-                                                <button 
+                                                <button
                                                     onClick={handleManualAssign}
                                                     className="bg-blue-600 text-white px-4 py-1.5 rounded-lg text-xs font-bold"
                                                 >
@@ -420,8 +420,8 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
 
                 <div className="p-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
                     <button onClick={onHide} className="px-4 py-2 text-xs font-bold text-slate-500 hover:text-slate-700 transition-all print:hidden">Close</button>
-                    <button 
-                        onClick={handlePrint} 
+                    <button
+                        onClick={handlePrint}
                         className="px-4 py-2 bg-slate-900 text-white rounded-lg text-xs font-bold flex items-center gap-2 print:hidden"
                     >
                         <Download size={14} /> Print Receipt

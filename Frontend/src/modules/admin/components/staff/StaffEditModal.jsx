@@ -76,7 +76,7 @@ const StaffEditModal = ({ show, onHide, staff, onSave }) => {
 
             {/* Modal Content */}
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg z-10 overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200 relative border border-slate-100 font-sans">
-                
+
                 {/* Header */}
                 <div className="p-6 border-b border-slate-50 flex justify-between items-center bg-slate-50/20">
                     <div className="flex items-center gap-3">

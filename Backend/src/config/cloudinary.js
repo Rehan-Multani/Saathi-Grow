@@ -13,15 +13,30 @@ cloudinary.config({
 
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
-  params: {
-    folder: 'saathigro/admin-profiles',
-    allowed_formats: ['jpg', 'png', 'jpeg', 'webp', 'avif'],
-    transformation: [{ width: 500, height: 500, crop: 'limit' }],
+  params: async (req, file) => {
+    let format = 'jpg';
+    if (file.originalname && file.originalname.includes('.')) {
+      const parts = file.originalname.split('.');
+      const fileExt = parts[parts.length - 1].toLowerCase();
+      if (['jpg', 'png', 'jpeg', 'webp', 'avif', 'heic', 'heif'].includes(fileExt)) {
+        format = fileExt === 'jpeg' ? 'jpg' : fileExt;
+      }
+    } else if (file.mimetype) {
+      const mimeExt = file.mimetype.split('/')[1];
+      if (['jpg', 'png', 'jpeg', 'webp', 'avif', 'heic', 'heif'].includes(mimeExt)) {
+        format = mimeExt === 'jpeg' ? 'jpg' : mimeExt;
+      }
+    }
+    return {
+      folder: 'saathigro/admin-profiles',
+      format: format,
+      transformation: [{ width: 500, height: 500, crop: 'limit' }],
+    };
   },
 });
 
 const upload = multer({ storage: storage });
-const allowedMimeTypes = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/avif']);
+const allowedMimeTypes = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/avif', 'image/heic', 'image/heif']);
 
 const memoryUpload = multer({
   storage: multer.memoryStorage(),

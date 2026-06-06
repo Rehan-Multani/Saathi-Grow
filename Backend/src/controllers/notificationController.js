@@ -8,7 +8,7 @@ import { sendPushNotification, notifyAllUsers, notifyAdmins, notifyUsers } from 
 export const updateFCMToken = async (req, res) => {
   try {
     console.log('FCM update body:', req.body);
-    const { fcmToken, platform = 'app' } = req.body; 
+    const { fcmToken, platform = 'app' } = req.body;
 
     if (!fcmToken) {
       return res.status(400).json({ success: false, message: 'FCM Token is required' });
@@ -33,7 +33,7 @@ export const updateFCMToken = async (req, res) => {
     if (!target.fcmToken) {
       target.fcmToken = { app: '', web: '' };
     }
-    
+
     if (platform === 'app') {
       target.fcmToken.app = fcmToken;
     } else {
@@ -42,9 +42,9 @@ export const updateFCMToken = async (req, res) => {
 
     await target.save();
 
-    res.status(200).json({ 
-      success: true, 
-      message: `FCM ${platform} token updated successfully` 
+    res.status(200).json({
+      success: true,
+      message: `FCM ${platform} token updated successfully`
     });
   } catch (error) {
     console.error('FCM update error:', error);
@@ -68,7 +68,7 @@ export const getMyNotifications = async (req, res) => {
       broadcastGroups.push('users');
     } else if (req.admin) {
       recipientId = req.admin._id;
-      recipientModel = 'Admin'; 
+      recipientModel = 'Admin';
       if (req.admin.role === 'Staff') broadcastGroups.push('staff');
       else if (req.admin.role === 'Store Manager') broadcastGroups.push('store_managers', 'staff');
       else broadcastGroups.push('staff', 'store_managers');
@@ -104,8 +104,8 @@ export const getMyNotifications = async (req, res) => {
       .skip(skip)
       .limit(limit);
 
-    res.status(200).json({ 
-      success: true, 
+    res.status(200).json({
+      success: true,
       notifications,
       pagination: {
         total,
@@ -125,10 +125,10 @@ export const getMyNotifications = async (req, res) => {
 export const markAsRead = async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     // Security: Only the recipient can mark as read
     const recipientId = req.user?._id || req.admin?._id || req.vendor?._id || req.partner?._id;
-    
+
     const notification = await Notification.findOne({ _id: id, recipient: recipientId });
     if (!notification) {
       return res.status(404).json({ success: false, message: 'Notification not found or access denied' });
@@ -149,13 +149,13 @@ export const markAsRead = async (req, res) => {
 export const markAllRead = async (req, res) => {
   try {
     const recipientId = req.user?._id || req.admin?._id || req.vendor?._id || req.partner?._id;
-    
+
     if (!recipientId) {
       return res.status(401).json({ success: false, message: 'Unauthenticated' });
     }
 
     await Notification.updateMany(
-      { recipient: recipientId, isRead: false }, 
+      { recipient: recipientId, isRead: false },
       { isRead: true }
     );
     res.status(200).json({ success: true, message: 'All marked as read' });
@@ -170,7 +170,7 @@ export const markAllRead = async (req, res) => {
 export const getUnreadCount = async (req, res) => {
   try {
     const recipientId = req.user?._id || req.admin?._id || req.vendor?._id || req.partner?._id;
-    
+
     if (!recipientId) {
       return res.status(401).json({ success: false, message: 'Unauthenticated' });
     }
@@ -204,7 +204,7 @@ export const adminSendNotification = async (req, res) => {
 
     // Standardize recipient model for Admin-based roles (Staff, Store Manager)
     let finalRecipientModel = recipientType;
-    if (['Staff', 'Store Manager', 'Admin'].includes(recipientType)) {
+    if (['Staff', 'Store Manager', 'Store Manager', 'Admin'].includes(recipientType)) {
       finalRecipientModel = 'Admin';
     }
 
@@ -223,14 +223,14 @@ export const adminSendNotification = async (req, res) => {
 
     // Trigger FCM Push dispatch (without re-saving since skipSave=true is used internally or passed below)
     if (targetType === 'broadcast') {
-       if (group === 'users' || group === 'all') {
-         notifyAllUsers({ title, body }, { type: 'admin_broadcast' });
-       }
-        if (group === 'staff' || group === 'store_managers' || group === 'all') {
-         notifyAdmins({ title, body }, { type: 'admin_broadcast' });
-       }
+      if (group === 'users' || group === 'all') {
+        notifyAllUsers({ title, body }, { type: 'admin_broadcast' });
+      }
+      if (group === 'staff' || group === 'store_managers' || group === 'branch_managers' || group === 'all') {
+        notifyAdmins({ title, body }, { type: 'admin_broadcast' });
+      }
     } else {
-       sendPushNotification(recipientId, finalRecipientModel, { title, body }, { type: 'individual' }, true);
+      sendPushNotification(recipientId, finalRecipientModel, { title, body }, { type: 'individual' }, true);
     }
 
     res.status(200).json({ success: true, message: 'Notification processed', record });
@@ -261,8 +261,8 @@ export const getAdminNotificationHistory = async (req, res) => {
       .skip(skip)
       .limit(limit);
 
-    res.status(200).json({ 
-      success: true, 
+    res.status(200).json({
+      success: true,
       notifications,
       pagination: {
         total,
@@ -288,7 +288,7 @@ export const deleteNotifications = async (req, res) => {
     }
 
     let query = { _id: { $in: ids } };
-    
+
     // Only superadmins ('Admin' role) can delete ANY notification
     // Everyone else can only delete notifications addressed to them
     if (!req.admin || req.admin.role !== 'Admin') {
@@ -298,10 +298,10 @@ export const deleteNotifications = async (req, res) => {
 
     const result = await Notification.deleteMany(query);
 
-    res.status(200).json({ 
-      success: true, 
+    res.status(200).json({
+      success: true,
       message: 'Notifications deleted successfully',
-      deletedCount: result.deletedCount 
+      deletedCount: result.deletedCount
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -327,7 +327,7 @@ export const searchRecipients = async (req, res) => {
     else if (type === 'Vendor') results = await Vendor.find(filter).limit(20).select('name phone');
     else if (type === 'DeliveryPartner') results = await DeliveryPartner.find(filter).limit(20).select('name phone');
     else if (type === 'Staff') results = await Admin.find({ ...filter, role: 'Staff' }).limit(20).select('name phone');
-    else if (type === 'Store Manager') results = await Admin.find({ ...filter, role: 'Store Manager' }).limit(20).select('name phone');
+    else if (type === 'Store Manager' || type === 'Store Manager') results = await Admin.find({ ...filter, role: { $in: ['Store Manager', 'Store Manager'] } }).limit(20).select('name phone');
 
     res.status(200).json({ success: true, results });
   } catch (error) {

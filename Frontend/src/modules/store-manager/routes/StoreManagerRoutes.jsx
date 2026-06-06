@@ -32,8 +32,8 @@ const ProtectedStoreManagerRoute = () => {
     if (!managerUser) {
         return <Navigate to="/store-manager/login" replace />;
     }
-    // Allow Branch Manager and any staff role that has been authenticated via this portal
-    const allowedRoles = ['Staff', 'Admin', 'Store Manager'];
+    // Allow Store Manager and any staff role that has been authenticated via this portal
+    const allowedRoles = ['Store Manager', 'Staff', 'Admin', 'Store Manager'];
     if (!allowedRoles.includes(managerUser.role)) {
         return <Navigate to="/store-manager/login" replace />;
     }

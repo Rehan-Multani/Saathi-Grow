@@ -294,8 +294,8 @@ const ManageCampaign = () => {
                             <div className="flex items-center gap-3">
                                 <Shield size={18} className="text-blue-400" />
                                 <div>
-                                    <h4 className="text-xs font-bold uppercase tracking-tight">{t('form.isActive')}</h4>
-                                    <p className="text-[9px] text-slate-500 font-medium uppercase">{formData.isActive ? 'Active' : 'Offline'}</p>
+                                    <h4 className="text-xs font-bold uppercase tracking-tight text-white">{t('form.isActive')}</h4>
+                                    <p className="text-[9px] text-slate-300 font-medium uppercase">{formData.isActive ? 'Active' : 'Offline'}</p>
                                 </div>
                             </div>
                             <label className="relative inline-flex items-center cursor-pointer">

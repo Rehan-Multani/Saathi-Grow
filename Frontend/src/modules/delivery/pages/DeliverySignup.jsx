@@ -212,6 +212,11 @@ const DeliverySignup = () => {
                   maxLength={10}
                   value={form.vehicleNumber}
                   onChange={(e) => setForm((p) => ({ ...p, vehicleNumber: e.target.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase() }))}
+                  onFocus={(e) => {
+                    setTimeout(() => {
+                      e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 300);
+                  }}
                   placeholder="MP09AB1234"
                   className="block w-full pl-11 pr-4 py-4 rounded-2xl font-bold transition-all delivery-input outline-none uppercase tracking-widest"
                 />
