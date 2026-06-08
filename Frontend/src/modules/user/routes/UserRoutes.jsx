@@ -205,10 +205,36 @@ const UserLayout = () => {
 
     const content = (
         <div className="user-module-root flex flex-col min-h-screen">
+            {/* Custom WebView Safe Area Styles for User/Customer Side */}
+            <style>{`
+                @media (max-width: 767px) {
+                    /* Main header safe area */
+                    .user-header-safe {
+                        padding-top: env(safe-area-inset-top, 24px) !important;
+                    }
+                    /* Push the spacer down as well */
+                    .user-header-safe + div {
+                        margin-top: env(safe-area-inset-top, 24px) !important;
+                    }
+                    /* Page sticky headers (like My Orders header) */
+                    .user-module-root .sticky.top-0 {
+                        padding-top: calc(env(safe-area-inset-top, 24px) + 12px) !important;
+                        padding-bottom: 12px !important;
+                    }
+                    /* Ensure main content is padded at the bottom for the nav bar */
+                    .user-module-root main {
+                        padding-bottom: calc(72px + env(safe-area-inset-bottom, 16px) + 12px) !important;
+                    }
+                    /* Mobile Footer safe area */
+                    .user-footer-safe {
+                        padding-bottom: calc(env(safe-area-inset-bottom, 16px) + 12px) !important;
+                    }
+                }
+            `}</style>
             <FirebaseNotificationHandler token={token} role="user" isApp={isWebView} showToast={true} />
             <ScrollToTop />
 
-            <div className={`fixed top-0 left-0 right-0 z-[100] ${hideDesktopChrome ? 'hidden md:hidden' : ''} ${hideNavbarMobile && !hideDesktopChrome ? 'hidden md:block' : ''}`}>
+            <div className={`fixed top-0 left-0 right-0 z-[100] ${hideDesktopChrome ? 'hidden md:hidden' : ''} ${hideNavbarMobile && !hideDesktopChrome ? 'hidden md:block' : ''} user-header-safe`}>
                 {showOfferTicker && <OfferTicker />}
                 <Navbar isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} customTheme={customTheme} />
             </div>

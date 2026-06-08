@@ -107,7 +107,7 @@ const MobileFooter = ({ setIsMenuOpen, isBottomSheetOpen }) => {
     ];
 
     return (
-        <div className={`md:hidden fixed bottom-0 left-0 right-0 bg-[#f8f9fa] dark:bg-[#0a0a0a] border-t border-gray-100 dark:border-white/10 z-[999] px-6 py-3 shadow-[0_-5px_20px_rgba(0,0,0,0.03)] pb-safe transition-all duration-500 transform ${isBottomSheetOpen || isActuallyHidden ? 'translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'}`}>
+        <div className={`md:hidden fixed bottom-0 left-0 right-0 bg-[#f8f9fa] dark:bg-[#0a0a0a] border-t border-gray-100 dark:border-white/10 z-[999] px-6 py-3 shadow-[0_-5px_20px_rgba(0,0,0,0.03)] pb-safe user-footer-safe transition-all duration-500 transform ${isBottomSheetOpen || isActuallyHidden ? 'translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'}`}>
             <div className="flex items-center justify-between">
                 {navItems.map((item, index) => (
                     item.action ? (
