@@ -135,8 +135,25 @@ const DeliveryLayout = ({ children }) => {
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 text-slate-900 dark:text-zinc-100 font-sans overflow-x-hidden">
+            {/* Custom WebView Safe Area Styles */}
+            <style>{`
+                @media (max-width: 767px) {
+                    .mobile-header-safe {
+                        height: calc(3.5rem + env(safe-area-inset-top, 24px)) !important;
+                        padding-top: env(safe-area-inset-top, 24px) !important;
+                    }
+                    .mobile-main-safe {
+                        padding-top: calc(3.5rem + env(safe-area-inset-top, 24px)) !important;
+                        padding-bottom: calc(72px + env(safe-area-inset-bottom, 16px) + 16px) !important;
+                    }
+                    .mobile-nav-safe {
+                        height: calc(72px + env(safe-area-inset-bottom, 16px)) !important;
+                        padding-bottom: env(safe-area-inset-bottom, 16px) !important;
+                    }
+                }
+            `}</style>
             {/* Mobile Header */}
-            <header className="fixed top-0 left-0 right-0 h-14 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl border-b border-slate-100 dark:border-zinc-800 flex items-center justify-between px-4 z-40 md:hidden shadow-sm">
+            <header className="fixed top-0 left-0 right-0 h-14 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl border-b border-slate-100 dark:border-zinc-800 flex items-center justify-between px-4 z-40 md:hidden shadow-sm mobile-header-safe">
                 <div className="flex items-center gap-2">
                     <div className="w-8 h-8 rounded-xl bg-slate-900 dark:bg-zinc-100 flex items-center justify-center text-white dark:text-zinc-900 font-black text-xs shadow-lg shadow-slate-200 dark:shadow-none">S</div>
                     <span className="font-black text-[13px] tracking-tighter text-slate-900 dark:text-white uppercase">SAATHI<span className="text-emerald-500">GRO</span></span>
@@ -295,14 +312,14 @@ const DeliveryLayout = ({ children }) => {
             </aside>
 
             {/* Main Content */}
-            <main className="pt-14 md:pt-0 md:pl-72 min-h-screen pb-24">
+            <main className="pt-14 md:pt-0 md:pl-72 min-h-screen pb-24 mobile-main-safe">
                 <div className="py-[10px] px-3 md:px-8 max-w-[1400px] mx-auto">
                     {children}
                 </div>
             </main>
 
             {/* Mobile Bottom Nav */}
-            <nav className={`fixed bottom-0 left-0 right-0 h-[72px] bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl border-t border-slate-50 dark:border-zinc-800 flex items-center justify-around px-2 z-[999] md:hidden shadow-[0_-5px_20px_-5px_rgba(0,0,0,0.05)] transition-all duration-300 transform ${isKeyboardOpen ? 'translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'}`}>
+            <nav className={`fixed bottom-0 left-0 right-0 h-[72px] bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl border-t border-slate-50 dark:border-zinc-800 flex items-center justify-around px-2 z-[999] md:hidden shadow-[0_-5px_20px_-5px_rgba(0,0,0,0.05)] transition-all duration-300 transform ${isKeyboardOpen ? 'translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'} mobile-nav-safe`}>
                 {navItems.map((item) => (
                     <NavLink
                         key={item.path}
