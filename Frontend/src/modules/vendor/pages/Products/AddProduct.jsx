@@ -207,25 +207,34 @@ const AddProduct = () => {
     const validateForm = () => {
         const newErrors = {};
         
-        if (!formData.name) newErrors.name = 'Product name is required';
+        if (!formData.name?.trim()) newErrors.name = 'Product name is required';
         if (!formData.category) newErrors.category = 'Category is required';
-        if (!formData.description) newErrors.description = 'Description is required';
+        if (!formData.description?.trim()) newErrors.description = 'Description is required';
         
         const isBrandRequired = formData.category && filteredBrands.length > 0;
         if (isBrandRequired && !formData.brandName) newErrors.brandName = 'Brand is required';
-        if (!formData.basePrice) newErrors.basePrice = 'Price is required';
+
+        if (formData.basePrice === '' || formData.basePrice === null || formData.basePrice === undefined) {
+            newErrors.basePrice = 'Price is required';
+        }
+        if (formData.mrp === '' || formData.mrp === null || formData.mrp === undefined) {
+            newErrors.mrp = 'MRP is required';
+        }
         if (!formData.sku) newErrors.sku = 'SKU is required';
 
         const price = parseFloat(formData.basePrice);
-        const mrp = formData.mrp ? parseFloat(formData.mrp) : price;
+        const mrp = parseFloat(formData.mrp);
         const stock = parseInt(formData.stock, 10);
         const lowStock = parseInt(formData.lowStockThreshold, 10);
 
-        if (formData.basePrice && (isNaN(price) || price < 0)) {
+        if (formData.basePrice !== '' && (isNaN(price) || price < 0)) {
             newErrors.basePrice = 'Price cannot be less than 0';
         }
-        if (formData.mrp && (isNaN(mrp) || mrp < 0)) {
+        if (formData.mrp !== '' && (isNaN(mrp) || mrp < 0)) {
             newErrors.mrp = 'MRP cannot be less than 0';
+        }
+        if (formData.basePrice !== '' && formData.mrp !== '' && !isNaN(price) && !isNaN(mrp) && price > mrp) {
+            newErrors.mrp = 'MRP cannot be less than the selling price';
         }
         if (isNaN(stock) || stock < 0) {
             newErrors.stock = 'Stock must be 0 or more';
@@ -246,7 +255,7 @@ const AddProduct = () => {
         }
 
         if (!validateForm()) {
-            return;
+            return toast.error('Please fill in all required fields correctly.');
         }
 
         setLoading(true);
@@ -303,14 +312,14 @@ const AddProduct = () => {
                             
                             <div className="space-y-4">
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-700 mb-1.5">Product Name</label>
+                                    <label className="block text-xs font-bold text-gray-700 mb-1.5">Product Name<span className="text-red-500 ml-1">*</span></label>
                                     <input type="text" name="name" value={formData.name} onChange={handleChange} required className={`w-full px-4 py-2 border ${errors.name ? 'border-red-500 focus:ring-red-500' : 'border-gray-200 focus:border-[#0c831f] focus:ring-[#0c831f]'} rounded-lg text-sm focus:ring-1 outline-none transition-all`} />
                                     {errors.name && <p className="text-red-500 text-[10px] mt-1 font-bold">{errors.name}</p>}
                                 </div>
                                 
                                 <div>
                                     <div className="flex justify-between items-center mb-1.5">
-                                        <label className="text-xs font-bold text-gray-700">Description</label>
+                                        <label className="text-xs font-bold text-gray-700">Description<span className="text-red-500 ml-1">*</span></label>
                                         <button type="button" onClick={() => handleAISuggestion('description')} disabled={aiLoading.description} className="text-xs font-bold text-[#0c831f] flex items-center gap-1 hover:underline">
                                             {aiLoading.description ? <div className="w-3 h-3 border-2 border-[#0c831f] border-t-transparent rounded-full animate-spin" /> : <Sparkles size={12} />}
                                             AI Write
@@ -327,12 +336,12 @@ const AddProduct = () => {
                             
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-700 mb-1.5">Price (₹)</label>
+                                    <label className="block text-xs font-bold text-gray-700 mb-1.5">Price (₹)<span className="text-red-500 ml-1">*</span></label>
                                     <input type="number" name="basePrice" min="0.01" step="any" value={formData.basePrice} onChange={handleChange} required className={`w-full px-4 py-2 border ${errors.basePrice ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-[#0c831f]'} rounded-lg text-sm font-bold outline-none transition-all`} />
                                     {errors.basePrice && <p className="text-red-500 text-[10px] mt-1 font-bold">{errors.basePrice}</p>}
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-700 mb-1.5">MRP (₹)</label>
+                                    <label className="block text-xs font-bold text-gray-700 mb-1.5">MRP (₹)<span className="text-red-500 ml-1">*</span></label>
                                     <input type="number" name="mrp" min="0.01" step="any" value={formData.mrp} onChange={handleChange} className={`w-full px-4 py-2 border ${errors.mrp ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-[#0c831f]'} rounded-lg text-sm font-medium outline-none transition-all`} />
                                     {errors.mrp && <p className="text-red-500 text-[10px] mt-1 font-bold">{errors.mrp}</p>}
                                 </div>
@@ -382,7 +391,7 @@ const AddProduct = () => {
                             
                             <div className="space-y-4">
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-700 mb-1.5">Category</label>
+                                    <label className="block text-xs font-bold text-gray-700 mb-1.5">Category<span className="text-red-500 ml-1">*</span></label>
                                     <select name="category" value={formData.category} onChange={handleChange} required className={`w-full px-4 py-2 border ${errors.category ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-[#0c831f]'} rounded-lg text-sm font-medium outline-none transition-all bg-white`}>
                                         <option value="">Select Category...</option>
                                         {categories.map(c => <option key={c._id} value={c.name}>{c.name}</option>)}

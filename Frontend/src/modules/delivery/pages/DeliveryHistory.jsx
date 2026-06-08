@@ -112,7 +112,7 @@ const DeliveryHistory = () => {
         <div className="space-y-4 md:space-y-6 pb-28 md:pb-8 overflow-x-hidden">
             <div className="flex items-center justify-between gap-3">
                 <div>
-                    <h1 className="text-lg font-black tracking-tight text-slate-900 leading-none">History</h1>
+                    <h1 className="text-lg font-black tracking-tight text-slate-900 dark:text-white leading-none">History</h1>
                     <p className="text-[8px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Logistics & Archival</p>
                 </div>
                 
@@ -127,7 +127,7 @@ const DeliveryHistory = () => {
 
             {/* Filters Row */}
             <div className="flex items-stretch gap-2">
-                <div className="flex items-center gap-2 flex-1 bg-white border border-slate-100 rounded-2xl px-3 py-2.5 shadow-sm focus-within:border-[#028A0F]/30">
+                <div className="flex items-center gap-2 flex-1 bg-white dark:bg-zinc-900 border border-slate-100 dark:border-zinc-800/60 rounded-2xl px-3 py-2.5 shadow-sm focus-within:border-[#028A0F]/30">
                     <Search className="text-slate-400 shrink-0" size={14} />
                     <input
                         type="text"
@@ -137,17 +137,18 @@ const DeliveryHistory = () => {
                             setCurrentPage(1);
                         }}
                         placeholder="Search order id..."
-                        className="flex-1 plain-input bg-transparent text-[11px] !text-slate-900 font-bold outline-none"
+                        className="flex-1 plain-input bg-transparent text-[11px] !text-slate-900 dark:!text-white font-bold outline-none"
                     />
                 </div>
                 <div className="relative shrink-0 flex items-center gap-1">
                     {dateFilter && (
                         <button
                             onClick={() => {
+                                // Clear filter
                                 setDateFilter('');
                                 setCurrentPage(1);
                             }}
-                            className="h-full px-2.5 flex items-center justify-center bg-rose-50 border border-rose-100 rounded-2xl text-rose-600 hover:bg-rose-100 transition-all active:scale-95 shadow-sm text-[10px] font-black uppercase tracking-wider"
+                            className="h-full px-2.5 flex items-center justify-center bg-rose-50 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-900/30 rounded-2xl text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-950/40 transition-all active:scale-95 shadow-sm text-[10px] font-black uppercase tracking-wider"
                             title="Clear Date Filter"
                         >
                             Clear ({dateFilter})
@@ -155,8 +156,8 @@ const DeliveryHistory = () => {
                     )}
                     <button
                         onClick={() => document.getElementById('hist-date').showPicker()}
-                        className={`h-full px-3 flex items-center justify-center bg-white border rounded-2xl transition-all active:scale-95 shadow-sm ${
-                            dateFilter ? 'border-[#028A0F] text-[#028A0F] bg-[#028A0F]/5' : 'border-slate-100 text-slate-600 hover:border-[#028A0F]'
+                        className={`h-full px-3 flex items-center justify-center bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl transition-all active:scale-95 shadow-sm ${
+                            dateFilter ? 'border-[#028A0F] text-[#028A0F] bg-[#028A0F]/5 dark:bg-[#028A0F]/10' : 'border-slate-100 text-slate-600 dark:text-zinc-400 hover:border-[#028A0F]'
                         }`}
                     >
                         <Calendar size={18} className={dateFilter ? 'text-[#028A0F]' : 'text-slate-400'} />
@@ -183,14 +184,14 @@ const DeliveryHistory = () => {
                             initial={{ opacity: 0, x: -10 }}
                             animate={{ opacity: 1, x: 0 }}
                             key={order.id} 
-                            className="bg-white p-3 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between group hover:border-slate-200"
+                            className="bg-white dark:bg-zinc-900 p-3 rounded-2xl border border-slate-100 dark:border-zinc-800/60 shadow-sm flex items-center justify-between group hover:border-slate-200 dark:hover:border-zinc-700 transition-all"
                         >
                             <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400">
+                                <div className="w-8 h-8 rounded-xl bg-slate-50 dark:bg-zinc-800 flex items-center justify-center text-slate-400 dark:text-zinc-500">
                                     <Package size={16} />
                                 </div>
                                 <div>
-                                    <h4 className="font-black text-xs text-slate-900 leading-tight">#{order.orderId || order.id || order._id}</h4>
+                                    <h4 className="font-black text-xs text-slate-900 dark:text-white leading-tight">#{order.orderId || order.id || order._id}</h4>
                                     <div className="flex items-center gap-1.5 mt-1">
                                         <span className={`px-1.5 py-0.5 rounded-md text-[7px] font-black uppercase tracking-widest ${
                                             order.status === 'Delivered' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'
@@ -200,20 +201,20 @@ const DeliveryHistory = () => {
                                         <span className="text-[8px] text-slate-400 font-bold uppercase tracking-tighter">
                                             {order.date}
                                         </span>
-                                        <span className="text-[7px] font-black text-slate-500 bg-slate-100 px-1 py-0.5 rounded ml-1 uppercase">
+                                        <span className="text-[7px] font-black text-slate-500 dark:text-zinc-400 bg-slate-100 dark:bg-zinc-800 px-1 py-0.5 rounded ml-1 uppercase">
                                             {order.paymentMethod === 'cod' ? 'COD' : 'ONLINE'}
                                         </span>
                                     </div>
                                 </div>
                             </div>
                             <div className="text-right">
-                                <p className="font-black text-xs text-slate-900 leading-none">{formatCurrency(order.amount)}</p>
+                                <p className="font-black text-xs text-slate-900 dark:text-white leading-none">{formatCurrency(order.amount)}</p>
                                 <p className="text-[8px] text-slate-400 font-bold uppercase mt-1 leading-none">{order.time}</p>
                             </div>
                         </motion.div>
                     ))
                 ) : (
-                    <div className="py-20 text-center bg-white rounded-3xl border border-slate-50">
+                    <div className="py-20 text-center bg-white dark:bg-zinc-900 rounded-3xl border border-slate-50 dark:border-zinc-800/60">
                         <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.4em] italic mb-2">No historical records found</p>
                     </div>
                 )}
@@ -225,7 +226,7 @@ const DeliveryHistory = () => {
                     <button
                         disabled={currentPage === 1}
                         onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                        className="p-2 px-4 bg-white border border-slate-100 rounded-xl text-[10px] font-black uppercase text-slate-400 disabled:opacity-30 transition-all active:scale-95"
+                        className="p-2 px-4 bg-white dark:bg-zinc-900 border border-slate-100 dark:border-zinc-800 rounded-xl text-[10px] font-black uppercase text-slate-400 dark:text-zinc-500 disabled:opacity-30 transition-all active:scale-95"
                     >
                         Prev
                     </button>
@@ -235,7 +236,7 @@ const DeliveryHistory = () => {
                     <button
                         disabled={currentPage === historyPagination.totalPages}
                         onClick={() => setCurrentPage(prev => Math.min(historyPagination.totalPages, prev + 1))}
-                        className="p-2 px-3 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase disabled:opacity-30 transition-all active:scale-95"
+                        className="p-2 px-3 bg-slate-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl text-[10px] font-black uppercase disabled:opacity-30 transition-all active:scale-95"
                     >
                         Next
                     </button>

@@ -55,7 +55,7 @@ const OrderManagement = () => {
                             className={`
                                 flex-1 flex items-center justify-center gap-2 py-1.5 rounded-lg whitespace-nowrap transition-all duration-300 font-black text-[9px] uppercase tracking-wider relative z-10
                                 ${activeTab === tab.id
-                                    ? 'text-white'
+                                    ? 'text-white dark:text-slate-900'
                                     : 'text-slate-400 dark:text-zinc-500 hover:text-slate-600'}
                             `}
                         >
@@ -67,7 +67,7 @@ const OrderManagement = () => {
                             )}
                             {tab.label}
                             {tab.count !== '?' && (
-                                <span className={`px-1.5 py-0.5 rounded-full text-[8px] ${activeTab === tab.id ? 'bg-white/20' : 'bg-slate-100 dark:bg-zinc-800'}`}>
+                                <span className={`px-1.5 py-0.5 rounded-full text-[8px] ${activeTab === tab.id ? 'bg-white/20 dark:bg-slate-900/10' : 'bg-slate-100 dark:bg-zinc-800'}`}>
                                     {tab.count}
                                 </span>
                             )}

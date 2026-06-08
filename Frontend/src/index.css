@@ -50,6 +50,10 @@
   --border-subtle: #1e293b;
 }
 
+html, body {
+  overscroll-behavior-y: contain;
+}
+
 body {
   margin: 0;
   padding: 0;
@@ -403,4 +407,14 @@ body.modal-open #root > div {
 @keyframes shine-sweep-fast {
     0% { left: -100%; }
     100% { left: 200%; }
+}
+
+/* Lenis nested scroll prevent */
+[data-lenis-prevent] {
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+  touch-action: pan-y;
 }

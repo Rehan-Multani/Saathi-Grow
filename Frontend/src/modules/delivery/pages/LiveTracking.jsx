@@ -12,7 +12,7 @@ import {
     Check
 } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, useDragControls } from 'framer-motion';
 import useDeliveryStore from '../store/deliveryStore';
 import { getDeliveryDetail, updateDeliveryStatus, getRouteDirections } from '../services/deliveryService';
 import { useLocation } from '../../user/context/LocationContext';
@@ -118,6 +118,18 @@ const LiveTracking = () => {
     const [codCollected, setCodCollected] = useState({});
     const [map, setMap] = useState(null);
     const { mapLoaded } = useLocation();
+
+    const [sheetHeight, setSheetHeight] = useState(window.innerHeight * 0.65);
+    useEffect(() => {
+        const handleResize = () => {
+            setSheetHeight(window.innerHeight * 0.65);
+        };
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    const dragRange = sheetHeight - 100;
+    const dragControls = useDragControls();
 
     const onLoad = useCallback(m => setMap(m), []);
     const onUnmount = useCallback(() => setMap(null), []);
@@ -303,9 +315,34 @@ const LiveTracking = () => {
             </div>
 
             {/* Bottom Sheet */}
-            <div className={`absolute bottom-0 left-0 right-0 z-[100] transition-all duration-500 ease-in-out ${isExpanded ? 'h-[65vh]' : 'h-[100px]'}`}>
+            <motion.div
+                className="absolute bottom-0 left-0 right-0 z-[100]"
+                drag="y"
+                dragControls={dragControls}
+                dragListener={false}
+                dragConstraints={{ top: 0, bottom: dragRange }}
+                dragElastic={0.15}
+                dragMomentum={false}
+                animate={{
+                    y: isExpanded ? 0 : dragRange
+                }}
+                transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+                onDragEnd={(event, info) => {
+                    if (info.offset.y > 100 || info.velocity.y > 100) {
+                        setIsExpanded(false);
+                    } else if (info.offset.y < -100 || info.velocity.y < -100) {
+                        setIsExpanded(true);
+                    }
+                }}
+                style={{ height: '65vh' }}
+            >
                 <div className="bg-white rounded-t-[2.5rem] shadow-2xl border-t border-slate-200 w-full h-full flex flex-col relative overflow-hidden">
-                    <div className="w-full h-10 flex items-center justify-center cursor-pointer flex-shrink-0" onClick={() => setIsExpanded(!isExpanded)}>
+                    <div 
+                        className="w-full h-10 flex items-center justify-center cursor-pointer flex-shrink-0" 
+                        onPointerDown={(e) => dragControls.start(e)}
+                        onClick={() => setIsExpanded(!isExpanded)}
+                        style={{ touchAction: 'none' }}
+                    >
                         <div className="w-12 h-1 bg-slate-200 rounded-full" />
                     </div>
 
@@ -391,7 +428,7 @@ const LiveTracking = () => {
                         </div>
                     </div>
                 </div>
-            </div>
+            </motion.div>
         </div>
     );
 };

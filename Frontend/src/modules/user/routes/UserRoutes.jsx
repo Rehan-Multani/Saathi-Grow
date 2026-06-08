@@ -102,6 +102,8 @@ const UserLayout = () => {
     const { isBottomSheetOpen } = useShopUI();
     const authNoChromePaths = ['/logout-confirmation', '/login', '/register', '/order-success'];
     const hideDesktopChrome = authNoChromePaths.includes(location.pathname);
+    const isTrackingPath = !!matchPath("/orders/:id/tracking", location.pathname);
+    const disablePullToRefresh = isTrackingPath || hideDesktopChrome;
     
     // Hide navbar on mobile for focused browsing/management pages
     const focusedPaths = [
@@ -222,7 +224,7 @@ const UserLayout = () => {
             <SearchOverlay />
 
             <main className={`flex-grow bg-white dark:!bg-black transition-colors duration-300 ${hideDesktopChrome ? '' : 'pb-20 md:pb-0'}`}>
-                {hideDesktopChrome ? (
+                {disablePullToRefresh ? (
                      <Suspense fallback={<LoadingFallback />}>
                         <AnimatePresence mode="wait">
                             <motion.div

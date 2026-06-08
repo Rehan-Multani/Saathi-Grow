@@ -376,8 +376,10 @@ export const updateDeliveryStatus = async (req, res) => {
                 }
             }
 
-            const trackingRef = db.ref(`active_trackings/${run._id}`);
-            await trackingRef.remove();
+            if (db) {
+                const trackingRef = db.ref(`active_trackings/${run._id}`);
+                trackingRef.remove().catch(err => console.error('[FIREBASE] Error removing tracking ref:', err));
+            }
 
             partner.assignmentStatus = 'Free';
             partner.activeRun = null;

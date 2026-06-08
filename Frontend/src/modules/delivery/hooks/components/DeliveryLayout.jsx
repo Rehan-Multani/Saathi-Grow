@@ -296,7 +296,7 @@ const DeliveryLayout = ({ children }) => {
 
             {/* Main Content */}
             <main className="pt-14 md:pt-0 md:pl-72 min-h-screen pb-24">
-                <div className="p-3 md:p-8 max-w-[1400px] mx-auto">
+                <div className="py-[10px] px-3 md:px-8 max-w-[1400px] mx-auto">
                     {children}
                 </div>
             </main>
@@ -317,7 +317,7 @@ const DeliveryLayout = ({ children }) => {
                                 <div className={`p-2 rounded-xl transition-all ${isActive ? 'bg-slate-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-lg shadow-slate-200 dark:shadow-none' : ''}`}>
                                     {React.cloneElement(item.icon, { size: 18 })}
                                 </div>
-                                <span className={`text-[7px] font-black uppercase tracking-widest transition-opacity ${isActive ? 'opacity-100' : 'opacity-0'}`}>
+                                <span className="text-[8px] font-black uppercase tracking-widest transition-all mt-1">
                                     {item.label.split(' ')[0]}
                                 </span>
                             </>

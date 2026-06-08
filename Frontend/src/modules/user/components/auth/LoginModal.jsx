@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { X, User, Lock, ArrowRight, Loader2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import * as authApi from '../../api/userAuthApi';
@@ -7,8 +8,16 @@ import PolicyViewerModal from '../../../../common/components/legal/PolicyViewerM
 import { useLocation } from '../../context/LocationContext';
 
 const LoginModal = () => {
+    const navigate = useNavigate();
     const { showLoginModal, closeLoginModal, login, register, loginView, setLoginView } = useAuth();
     const { openLocationModal } = useLocation();
+
+    const handleClose = () => {
+        closeLoginModal();
+        if (window.location.pathname === '/login' || window.location.pathname === '/register') {
+            navigate('/');
+        }
+    };
     const [phoneNumber, setPhoneNumber] = useState('');
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
@@ -107,10 +116,10 @@ const LoginModal = () => {
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-white/60 backdrop-blur-xl transition-opacity" onClick={closeLoginModal}></div>
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm relative z-10 overflow-hidden animate-in zoom-in-95 duration-200">
-                <button onClick={closeLoginModal} className="absolute top-4 right-4 p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors z-20">
-                    <X size={20} className="text-gray-600" />
+            <div className="absolute inset-0 bg-white/30 dark:bg-black/50 backdrop-blur-sm transition-opacity" onClick={handleClose}></div>
+            <div className="bg-white dark:bg-[#121212] border dark:border-white/5 rounded-2xl shadow-2xl w-full max-w-sm relative z-10 overflow-hidden animate-in zoom-in-95 duration-200">
+                <button onClick={handleClose} className="absolute top-4 right-4 p-2 bg-gray-100 dark:bg-white/5 rounded-full hover:bg-gray-200 dark:hover:bg-white/10 transition-colors z-20">
+                    <X size={20} className="text-gray-600 dark:text-gray-400" />
                 </button>
 
                 <div className="p-8">
@@ -118,8 +127,8 @@ const LoginModal = () => {
                         <div className="bg-[var(--saathi-green)]/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-[var(--saathi-green)]">
                             <User size={30} />
                         </div>
-                        <h2 className="text-2xl font-bold text-gray-900">{loginView === 'login' ? 'Welcome Back' : 'Create Account'}</h2>
-                        <p className="text-sm text-gray-500 mt-1">{loginView === 'login' ? 'Login to access your orders' : 'Sign up to start shopping'}</p>
+                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{loginView === 'login' ? 'Welcome Back' : 'Create Account'}</h2>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{loginView === 'login' ? 'Login to access your orders' : 'Sign up to start shopping'}</p>
                     </div>
 
                     {!showOTP ? (
@@ -127,31 +136,31 @@ const LoginModal = () => {
                             {loginView === 'register' && (
                                 <>
                                     <div>
-                                        <label className="block text-[10px] font-bold text-gray-700 mb-1 uppercase tracking-wider">Full Name</label>
+                                        <label className="block text-[10px] font-bold text-gray-700 dark:text-gray-300 mb-1 uppercase tracking-wider">Full Name</label>
                                         <input
                                             type="text" value={name} onChange={(e) => setName(e.target.value.replace(/[^a-zA-Z\s]/g, ''))}
-                                            className="block w-full px-3 py-3 border border-gray-200 rounded-xl focus:ring-1 focus:ring-[var(--saathi-green)] focus:border-[var(--saathi-green)] outline-none bg-gray-50 text-sm font-bold"
+                                            className="block w-full px-3 py-3 border border-gray-200 dark:border-white/10 rounded-xl focus:ring-1 focus:ring-[var(--saathi-green)] focus:border-[var(--saathi-green)] outline-none bg-gray-50 dark:bg-white/5 text-sm font-bold text-gray-900 dark:text-white"
                                             placeholder="Your Name" required />
                                     </div>
                                     <div>
-                                        <label className="block text-[10px] font-bold text-gray-700 mb-1 uppercase tracking-wider">Email (Optional)</label>
+                                        <label className="block text-[10px] font-bold text-gray-700 dark:text-gray-300 mb-1 uppercase tracking-wider">Email (Optional)</label>
                                         <input
                                             type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-                                            className="block w-full px-3 py-3 border border-gray-200 rounded-xl focus:ring-1 focus:ring-[var(--saathi-green)] focus:border-[var(--saathi-green)] outline-none bg-gray-50 text-sm font-bold"
+                                            className="block w-full px-3 py-3 border border-gray-200 dark:border-white/10 rounded-xl focus:ring-1 focus:ring-[var(--saathi-green)] focus:border-[var(--saathi-green)] outline-none bg-gray-50 dark:bg-white/5 text-sm font-bold text-gray-900 dark:text-white"
                                             placeholder="email@example.com" />
                                     </div>
                                 </>
                             )}
                             <div>
-                                <label className="block text-[10px] font-bold text-gray-700 mb-1 uppercase tracking-wider">Phone Number</label>
+                                <label className="block text-[10px] font-bold text-gray-700 dark:text-gray-300 mb-1 uppercase tracking-wider">Phone Number</label>
                                 <div className="relative">
-                                    <span className="absolute left-3 top-3.5 text-gray-500 font-bold text-sm">+91</span>
+                                    <span className="absolute left-3 top-3.5 text-gray-500 dark:text-gray-400 font-bold text-sm">+91</span>
                                     <input
                                         type="tel" maxLength="10"
                                         inputMode="numeric"
                                         pattern="[0-9]*"
                                         value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ''))}
-                                        className="block w-full pl-12 pr-3 py-3 border border-gray-200 rounded-xl focus:ring-1 focus:ring-[var(--saathi-green)] focus:border-[var(--saathi-green)] outline-none bg-gray-50 text-sm font-bold"
+                                        className="block w-full pl-12 pr-3 py-3 border border-gray-200 dark:border-white/10 rounded-xl focus:ring-1 focus:ring-[var(--saathi-green)] focus:border-[var(--saathi-green)] outline-none bg-gray-50 dark:bg-white/5 text-sm font-bold text-gray-900 dark:text-white"
                                         placeholder="98765 43210" required />
                                 </div>
                             </div>
@@ -163,9 +172,9 @@ const LoginModal = () => {
                                         id="terms" 
                                         checked={agreedToTerms}
                                         onChange={(e) => setAgreedToTerms(e.target.checked)}
-                                        className="mt-1 w-4 h-4 text-[var(--saathi-green)] border-gray-300 rounded focus:ring-[var(--saathi-green)] cursor-pointer"
+                                        className="mt-1 w-4 h-4 text-[var(--saathi-green)] border-gray-300 dark:border-white/10 rounded focus:ring-[var(--saathi-green)] cursor-pointer"
                                     />
-                                    <label htmlFor="terms" className="text-xs text-gray-500 font-medium leading-tight">
+                                    <label htmlFor="terms" className="text-xs text-gray-500 dark:text-gray-400 font-medium leading-tight">
                                         I agree to the{' '}
                                         <button 
                                             type="button" 
@@ -197,16 +206,16 @@ const LoginModal = () => {
                     ) : (
                         <form onSubmit={handleVerifyOTP} className="space-y-4">
                             <div>
-                                <label className="block text-[10px] font-bold text-gray-700 mb-1 uppercase tracking-wider">Enter OTP</label>
+                                <label className="block text-[10px] font-bold text-gray-700 dark:text-gray-300 mb-1 uppercase tracking-wider">Enter OTP</label>
                                 <input
                                     type="text" maxLength="6" value={otp} onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                                    className="block w-full px-3 py-3 border border-gray-200 rounded-xl text-center text-2xl tracking-[0.2em] font-black focus:ring-1 focus:ring-[var(--saathi-green)] focus:border-[var(--saathi-green)] outline-none bg-gray-50"
+                                    className="block w-full px-3 py-3 border border-gray-200 dark:border-white/10 rounded-xl text-center text-2xl tracking-[0.2em] font-black focus:ring-1 focus:ring-[var(--saathi-green)] focus:border-[var(--saathi-green)] outline-none bg-gray-50 dark:bg-white/5 text-gray-900 dark:text-white"
                                     placeholder="••••••" required />
                                 <div className="flex justify-between mt-2">
                                     <button type="button" onClick={handleResendOTP} disabled={resendTimer > 0 || loading} className="text-xs text-[var(--saathi-green)] font-bold hover:underline disabled:opacity-50">
                                         {resendTimer > 0 ? `Resend in ${resendTimer}s` : 'Resend OTP'}
                                     </button>
-                                    <button type="button" onClick={() => { setShowOTP(false); setOtp(''); }} className="text-xs text-gray-400 font-medium hover:underline">Change Number?</button>
+                                    <button type="button" onClick={() => { setShowOTP(false); setOtp(''); }} className="text-xs text-gray-400 dark:text-gray-500 font-medium hover:underline">Change Number?</button>
                                 </div>
                             </div>
                             <button
@@ -220,8 +229,8 @@ const LoginModal = () => {
                     )}
                 </div>
 
-                <div className="bg-gray-50 px-8 py-4 text-center border-t border-gray-100">
-                    <p className="text-xs text-gray-500 font-medium">
+                <div className="bg-gray-50 dark:bg-white/5 px-8 py-4 text-center border-t border-gray-100 dark:border-white/5">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">
                         {loginView === 'login' ? "Don't have an account? " : "Already have an account? "}
                         <button
                             onClick={() => {

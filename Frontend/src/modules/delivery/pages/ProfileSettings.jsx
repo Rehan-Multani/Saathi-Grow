@@ -196,7 +196,7 @@ const ProfileSettings = () => {
                                         type={field.type || 'text'}
                                         value={editData[field.key]}
                                         onChange={e => setEditData(prev => ({ ...prev, [field.key]: e.target.value }))}
-                                        className="w-full text-sm font-medium text-slate-800 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 outline-none focus:border-[#028A0F] transition-colors"
+                                        className="w-full text-sm font-medium text-slate-800 dark:text-white bg-slate-50 dark:bg-zinc-850 border border-slate-200 dark:border-zinc-700 rounded-lg px-2 py-1 outline-none focus:border-[#028A0F] transition-colors"
                                     />
                                 ) : (
                                     <p className="text-sm font-medium text-slate-800 dark:text-zinc-100">{profile?.[field.key] || 'N/A'}</p>
@@ -251,7 +251,7 @@ const ProfileSettings = () => {
                                         value={vehicleData.vehicleType}
                                         onChange={e => setVehicleData(p => ({ ...p, vehicleType: e.target.value }))}
                                         placeholder="e.g. Bike, Scooter"
-                                        className="w-full text-sm font-medium text-slate-800 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 outline-none focus:border-[#028A0F] transition-colors"
+                                        className="w-full text-sm font-medium text-slate-800 dark:text-white bg-slate-50 dark:bg-zinc-850 border border-slate-200 dark:border-zinc-700 rounded-lg px-2 py-1 outline-none focus:border-[#028A0F] transition-colors"
                                     />
                                 </div>
                                 <div>
@@ -261,7 +261,7 @@ const ProfileSettings = () => {
                                         value={vehicleData.vehicleNumber}
                                         onChange={e => setVehicleData(p => ({ ...p, vehicleNumber: e.target.value }))}
                                         placeholder="e.g. MP09AB1234"
-                                        className="w-full text-sm font-medium text-slate-800 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 outline-none focus:border-[#028A0F] transition-colors uppercase"
+                                        className="w-full text-sm font-medium text-slate-800 dark:text-white bg-slate-50 dark:bg-zinc-850 border border-slate-200 dark:border-zinc-700 rounded-lg px-2 py-1 outline-none focus:border-[#028A0F] transition-colors uppercase"
                                     />
                                 </div>
                             </div>

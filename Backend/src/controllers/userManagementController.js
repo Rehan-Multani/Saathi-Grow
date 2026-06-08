@@ -118,12 +118,16 @@ export const getUserById = async (req, res) => {
     const [stats] = await Order.aggregate([
       {
         $match: {
-          ...orderMatchCondition,
-          $or: [
-            { paymentMethod: 'cod', status: 'delivered' },
+          $and: [
+            orderMatchCondition,
             {
-              paymentMethod: { $ne: 'cod' },
-              status: { $nin: ['cancelled', 'returned', 'return_picked_up'] }
+              $or: [
+                { paymentMethod: 'cod', status: 'delivered' },
+                {
+                  paymentMethod: { $ne: 'cod' },
+                  status: { $nin: ['cancelled', 'returned', 'return_picked_up'] }
+                }
+              ]
             }
           ]
         }

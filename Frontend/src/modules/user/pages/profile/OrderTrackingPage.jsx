@@ -4,8 +4,8 @@ import { GoogleMap, MarkerF, Polyline, useJsApiLoader } from '@react-google-maps
 import { db } from '../../../../config/firebase';
 import { ref, onValue, off } from 'firebase/database';
 import polylineUtil from '@mapbox/polyline';
-import { Navigation as NavIcon, Phone, ChevronLeft, Star, Clock, AlertCircle, Loader2, CheckCircle, XCircle } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Phone, ChevronLeft, Star, Clock, AlertCircle, Loader2, CheckCircle, XCircle } from 'lucide-react';
+import { motion, useDragControls } from 'framer-motion';
 import * as orderApi from '../../api/orderApi';
 import { useAuth } from '../../context/AuthContext';
 import { ASSET_URLS } from '../../../../constants/assetUrls';
@@ -50,10 +50,54 @@ function getDistanceInMeters(a, b) {
 
 const NON_TRACKABLE = ['delivered', 'cancelled', 'returned', 'return_requested', 'return_pickup_scheduled', 'return_picked_up'];
 
+const LastUpdatedBadge = ({ lastUpdated, waitingForRider }) => {
+  const [secondsAgo, setSecondsAgo] = useState(null);
+
+  useEffect(() => {
+    if (!lastUpdated) return;
+    setSecondsAgo(Math.round((Date.now() - lastUpdated.getTime()) / 1000));
+    const interval = setInterval(() => {
+      setSecondsAgo(Math.round((Date.now() - lastUpdated.getTime()) / 1000));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [lastUpdated]);
+
+  if (waitingForRider) {
+    return (
+      <div className="mt-1 bg-white/90 dark:bg-[#2d2d2d]/90 backdrop-blur-sm text-gray-900 dark:text-white px-3 py-1 rounded-full flex items-center gap-1.5 text-[9px] font-bold whitespace-nowrap shadow-sm border border-gray-100 dark:border-transparent">
+        <div className="w-1.5 h-1.5 rounded-full bg-yellow-400 animate-pulse" />
+        Waiting for rider...
+      </div>
+    );
+  }
+
+  if (secondsAgo === null) return null;
+
+  return (
+    <div className="mt-1 bg-white/80 dark:bg-[#2d2d2d]/80 backdrop-blur-sm text-gray-600 dark:text-gray-300 px-3 py-1 rounded-full flex items-center gap-1 text-[9px] font-bold whitespace-nowrap shadow-sm border border-gray-100 dark:border-transparent">
+      <Clock size={9} />
+      {secondsAgo < 5 ? 'Live' : `Updated ${secondsAgo}s ago`}
+    </div>
+  );
+};
+
 const OrderTrackingPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { token } = useAuth();
+
+  const [isExpanded, setIsExpanded] = useState(true);
+  const [sheetHeight, setSheetHeight] = useState(window.innerHeight * 0.75);
+  useEffect(() => {
+    const handleResize = () => {
+      setSheetHeight(window.innerHeight * 0.75);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const dragRange = sheetHeight - 110;
+  const dragControls = useDragControls();
 
   // ── Load Google Maps via useJsApiLoader (same as delivery LiveTracking.jsx) ──
   const { isLoaded: mapLoaded } = useJsApiLoader({
@@ -62,9 +106,76 @@ const OrderTrackingPage = () => {
     libraries: GOOGLE_MAPS_LIBRARIES,
   });
 
+  const mapCenterRef = useRef(null);
+  const mapZoomRef = useRef(15);
+
   const [map, setMap] = useState(null);
-  const onMapLoad = useCallback((m) => setMap(m), []);
+  const onMapLoad = useCallback((m) => {
+    setMap(m);
+    if (m) {
+      mapCenterRef.current = { lat: m.getCenter().lat(), lng: m.getCenter().lng() };
+      mapZoomRef.current = m.getZoom();
+    }
+  }, []);
   const onMapUnmount = useCallback(() => setMap(null), []);
+
+  const handleCenterChanged = useCallback(() => {
+    if (map) {
+      const c = map.getCenter();
+      mapCenterRef.current = { lat: c.lat(), lng: c.lng() };
+    }
+  }, [map]);
+
+  const handleZoomChanged = useCallback(() => {
+    if (map) {
+      mapZoomRef.current = map.getZoom();
+      setIsFOLLOWING(false);
+    }
+  }, [map]);
+
+  const sheetRef = useRef(null);
+
+  useEffect(() => {
+    const sheetEl = sheetRef.current;
+    if (!sheetEl) return;
+
+    let touchStartY = 0;
+
+    const handleTouchStart = (e) => {
+      touchStartY = e.touches[0].clientY;
+    };
+
+    const handleTouchMove = (e) => {
+      const scrollableEl = sheetEl.querySelector('.overflow-y-auto');
+      const currentY = e.touches[0].clientY;
+      const diffY = currentY - touchStartY;
+
+      // If touch target is inside the scrollable container
+      if (scrollableEl && (e.target === scrollableEl || scrollableEl.contains(e.target))) {
+        // If at the top and pulling down, prevent browser default (pull-to-refresh)
+        if (scrollableEl.scrollTop <= 0 && diffY > 0) {
+          if (e.cancelable) {
+            e.preventDefault();
+          }
+        }
+        return; // Allow standard native scrolling in other directions
+      }
+
+      // For any touchmove on non-scrollable parts of the bottom sheet (drag handle, header, collapsed card):
+      // Prevent browser default pull-to-refresh reload gesture
+      if (e.cancelable) {
+        e.preventDefault();
+      }
+    };
+
+    sheetEl.addEventListener('touchstart', handleTouchStart, { passive: true });
+    sheetEl.addEventListener('touchmove', handleTouchMove, { passive: false });
+
+    return () => {
+      sheetEl.removeEventListener('touchstart', handleTouchStart);
+      sheetEl.removeEventListener('touchmove', handleTouchMove);
+    };
+  }, []);
 
   const [order, setOrder] = useState(null);
   const [riderLocation, setRiderLocation] = useState(null);
@@ -77,7 +188,6 @@ const OrderTrackingPage = () => {
   const [lastUpdated, setLastUpdated] = useState(null);
   const [etaMins, setEtaMins] = useState(null);
   const [distanceText, setDistanceText] = useState(null);
-  const [secondsAgo, setSecondsAgo] = useState(null);
 
   const storeMarkerIcon = useMemo(() => {
     if (!mapLoaded || !window.google) return null;
@@ -243,14 +353,7 @@ const OrderTrackingPage = () => {
     }
   }, [riderLocation, map, isFOLLOWING, trimmedRoute.length]);
 
-  // ── Last updated ticker ────────────────────────────────────────────────────
-  useEffect(() => {
-    if (!lastUpdated) return;
-    const interval = setInterval(() => {
-      setSecondsAgo(Math.round((Date.now() - lastUpdated.getTime()) / 1000));
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [lastUpdated]);
+
 
   // ── Derived map center ─────────────────────────────────────────────────────
   const destCoords = order?.shippingAddress?.location?.coordinates;
@@ -332,12 +435,14 @@ const OrderTrackingPage = () => {
       >
         <GoogleMap
           mapContainerStyle={mapContainerStyle}
-          center={mapCenter}
-          zoom={15}
+          center={isFOLLOWING ? mapCenter : (mapCenterRef.current || mapCenter)}
+          zoom={isFOLLOWING ? 15 : mapZoomRef.current}
           onLoad={onMapLoad}
           onUnmount={onMapUnmount}
           options={mapOptions}
           onDragStart={() => setIsFOLLOWING(false)}
+          onCenterChanged={handleCenterChanged}
+          onZoomChanged={handleZoomChanged}
         >
           {/* Store marker */}
           {storePos && order.status !== 'out_for_delivery' && storeMarkerIcon && (
@@ -399,41 +504,49 @@ const OrderTrackingPage = () => {
               </span>
             </div>
           </div>
-          {/* Last updated / waiting badge */}
-          {waitingForRider ? (
-            <div className="mt-1 bg-white/90 dark:bg-[#2d2d2d]/90 backdrop-blur-sm text-gray-900 dark:text-white px-3 py-1 rounded-full flex items-center gap-1.5 text-[9px] font-bold whitespace-nowrap shadow-sm border border-gray-100 dark:border-transparent">
-              <div className="w-1.5 h-1.5 rounded-full bg-yellow-400 animate-pulse" />
-              Waiting for rider...
-            </div>
-          ) : secondsAgo !== null && (
-            <div className="mt-1 bg-white/80 dark:bg-[#2d2d2d]/80 backdrop-blur-sm text-gray-600 dark:text-gray-300 px-3 py-1 rounded-full flex items-center gap-1 text-[9px] font-bold whitespace-nowrap shadow-sm border border-gray-100 dark:border-transparent">
-              <Clock size={9} />
-              {secondsAgo < 5 ? 'Live' : `Updated ${secondsAgo}s ago`}
-            </div>
-          )}
+          <LastUpdatedBadge lastUpdated={lastUpdated} waitingForRider={waitingForRider} />
         </div>
 
-        <button
-          onClick={handleRecenter}
-          className={`w-10 h-10 flex items-center justify-center shadow-2xl transition-all rounded-none ${isFOLLOWING ? 'bg-[#00965e] text-white font-bold' : 'bg-white dark:bg-[#2d2d2d] text-gray-400 dark:text-gray-400'}`}
-        >
-          <NavIcon size={20} className={isFOLLOWING ? 'fill-white' : ''} />
-        </button>
+        <div className="w-10 h-10" />
       </div>
 
       {/* ── Bottom Sheet ── */}
       <div className="absolute bottom-0 left-0 right-0 z-[1001]">
         <motion.div
+          ref={sheetRef}
           initial={{ y: '100%' }}
-          animate={{ y: 0 }}
+          animate={{ y: isExpanded ? 0 : dragRange }}
           transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-          className="bg-white dark:bg-[#1a1a1a] rounded-t-[2.5rem] shadow-[0_-10px_40px_rgba(0,0,0,0.1)] dark:shadow-2xl w-full max-w-2xl mx-auto border-t border-gray-100 dark:border-white/5 max-h-[75vh] flex flex-col"
+          className="bg-white dark:bg-[#1a1a1a] rounded-t-[2.5rem] shadow-[0_-10px_40px_rgba(0,0,0,0.1)] dark:shadow-2xl w-full max-w-2xl mx-auto border-t border-gray-100 dark:border-white/5 flex flex-col overflow-hidden"
+          data-lenis-prevent
+          drag="y"
+          dragControls={dragControls}
+          dragListener={false}
+          dragConstraints={{ top: 0, bottom: dragRange }}
+          dragElastic={0.15}
+          dragMomentum={false}
+          onDragEnd={(event, info) => {
+            if (info.offset.y > 100 || info.velocity.y > 100) {
+              setIsExpanded(false);
+            } else if (info.offset.y < -100 || info.velocity.y < -100) {
+              setIsExpanded(true);
+            }
+          }}
+          style={{ height: '75vh' }}
         >
-          <div className="w-full pt-4 pb-2 flex justify-center flex-shrink-0">
+          <div 
+            className="w-full pt-4 pb-2 flex justify-center flex-shrink-0 cursor-pointer"
+            onPointerDown={(e) => dragControls.start(e)}
+            onClick={() => setIsExpanded(!isExpanded)}
+            style={{ touchAction: 'none' }}
+          >
             <div className="w-12 h-1 bg-gray-200 dark:bg-white/10 rounded-full" />
           </div>
 
-          <div className="px-6 pb-8 pt-2 overflow-y-auto custom-scrollbar flex-1">
+          <div 
+            className="px-6 pb-8 pt-2 overflow-y-auto custom-scrollbar flex-1" 
+            data-lenis-prevent
+          >
             <div className="flex items-end justify-between gap-4 mb-6">
               <div className="flex-1">
                 <p className="text-[#00c982] font-black text-[10px] uppercase tracking-[0.2em] mb-1.5">
