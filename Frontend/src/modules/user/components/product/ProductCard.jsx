@@ -15,7 +15,7 @@ const ProductCard = memo(({ product, isCompact = false, customTheme, imgPadding,
   const navigate = useNavigate();
   const { isDarkMode } = useTheme();
   const { toggleWishlist, isInWishlist } = useWishlist();
-  const { activeStore, isStoreOutOfRange, isStoreInactive } = useStore();
+  const { activeStore, nearbyStores, setActiveStore, isStoreOutOfRange, isStoreInactive } = useStore();
 
   const productId = product.id || product._id;
 
@@ -23,12 +23,43 @@ const ProductCard = memo(({ product, isCompact = false, customTheme, imgPadding,
   const quantity = cartItem ? cartItem.quantity : 0;
   const savings = product.originalPrice ? product.originalPrice - product.price : 0;
 
-  // Check deliverability and stock
-  const isDeliverable = product.isDeliverable !== false;
-  const availableStock = product.availableStock ?? 999;
-  const lowStockThreshold = product.lowStockThreshold ?? 0;
+  // Dynamic availability evaluation based on nearbyStores
+  const productVendorId = (product.vendor?._id || product.vendor)?.toString();
+  
+  let effectiveStore = null;
+  let effectiveIsDeliverable = false;
+  let effectiveAvailableStock = 0;
+  let effectiveLowStockThreshold = product.lowStockThreshold ?? 10;
+  
+  if (productVendorId) {
+    // Vendor product: check if vendor is in nearby stores
+    const matchedVendor = nearbyStores?.find(s => s.id?.toString() === productVendorId && s.type === 'vendor');
+    if (matchedVendor) {
+      effectiveStore = matchedVendor;
+      effectiveIsDeliverable = true;
+      effectiveAvailableStock = product.stock ?? product.availableStock ?? 999;
+      effectiveLowStockThreshold = product.lowStockThreshold ?? 10;
+    }
+  } else if (product.branchStocks && product.branchStocks.length > 0) {
+    // Branch product: check if any branch in nearby stores has stock
+    const matchedBranch = nearbyStores?.find(s => 
+      s.type === 'branch' && 
+      product.branchStocks.some(bs => (bs.branchId?._id || bs.branchId)?.toString() === s.id?.toString() && bs.stock > 0)
+    );
+    if (matchedBranch) {
+      const bsEntry = product.branchStocks.find(bs => (bs.branchId?._id || bs.branchId)?.toString() === matchedBranch.id?.toString());
+      effectiveStore = matchedBranch;
+      effectiveIsDeliverable = true;
+      effectiveAvailableStock = bsEntry?.stock ?? product.availableStock ?? 999;
+      effectiveLowStockThreshold = bsEntry?.lowStockThreshold ?? 10;
+    }
+  }
 
-  // Only disable if completely out of stock — Low Stock products are still orderable
+  // If the product vendor/branch is in nearby stores, override default backend values
+  const isDeliverable = effectiveStore ? effectiveIsDeliverable : (product.isDeliverable !== false);
+  const availableStock = effectiveStore ? effectiveAvailableStock : (product.availableStock ?? product.stock ?? 999);
+  const lowStockThreshold = effectiveStore ? effectiveLowStockThreshold : (product.lowStockThreshold ?? 10);
+  
   const isOutOfStock = availableStock <= 0;
   const isBtnDisabled = !isDeliverable || isStoreOutOfRange || isStoreInactive || isOutOfStock;
 
@@ -36,7 +67,27 @@ const ProductCard = memo(({ product, isCompact = false, customTheme, imgPadding,
     if (isBtnDisabled) return;
     e.preventDefault();
     e.stopPropagation();
-    protectAction(() => addToCart(product));
+    protectAction(() => {
+      if (effectiveStore && activeStore?.id?.toString() !== effectiveStore.id?.toString()) {
+        console.log("[ProductCard] Switching active store to:", effectiveStore.name);
+        setActiveStore(effectiveStore);
+        setTimeout(() => {
+          addToCart({
+            ...product,
+            isDeliverable: true,
+            availableStock: availableStock,
+            maxAllowed: availableStock
+          });
+        }, 100);
+      } else {
+        addToCart({
+          ...product,
+          isDeliverable: isDeliverable,
+          availableStock: availableStock,
+          maxAllowed: availableStock
+        });
+      }
+    });
   };
 
   const handleUpdateQuantity = (e, delta) => {

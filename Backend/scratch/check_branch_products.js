@@ -1,41 +1,24 @@
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import Product from '../src/models/Product.js';
 
 dotenv.config();
 
-const MONGO_URI = process.env.MONGO_URI;
-
-// Define Product Schema inline
-const productSchema = new mongoose.Schema({
-  name: String,
-  basePrice: Number,
-  image: String,
-  category: String,
-  sku: String,
-  status: String,
-  branchStocks: [{
-    branchId: mongoose.Schema.Types.ObjectId,
-    stock: Number
-  }]
-}, { collection: 'products' });
-
-const Product = mongoose.model('Product', productSchema);
-
 async function run() {
-  await mongoose.connect(MONGO_URI);
-  console.log('Connected');
+  await mongoose.connect(process.env.MONGO_URI);
+  console.log('--- Connected to DB ---');
 
-  const branchId = new mongoose.Types.ObjectId('6992d2e61f274bc67e4117ea');
+  const udaipurBranchId = '69e732a2e7e9bc830e36ac16';
   
-  // Look for products where branchStocks.branchId is branchId
+  // Find products that have stocks at Udaipur branch
   const products = await Product.find({
-    'branchStocks.branchId': branchId
-  }).limit(15);
-  
-  console.log('Found:', products.length);
-  products.forEach((p, idx) => {
-    const bs = p.branchStocks.find(b => b.branchId.toString() === branchId.toString());
-    console.log(`${idx + 1}. Name: "${p.name}", Price: ${p.basePrice}, Category: "${p.category}", Stock: ${bs ? bs.stock : 'N/A'}`);
+    'branchStocks.branchId': new mongoose.Types.ObjectId(udaipurBranchId)
+  }).lean();
+
+  console.log(`Products in Udaipur branch (Count: ${products.length}):`);
+  products.forEach(p => {
+    const stockInfo = p.branchStocks.find(bs => bs.branchId.toString() === udaipurBranchId);
+    console.log(`ID: ${p._id}, Name: ${p.name}, Status: ${p.status}, Stock: ${stockInfo?.stock}`);
   });
 
   await mongoose.disconnect();

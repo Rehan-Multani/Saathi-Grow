@@ -225,7 +225,7 @@ export const getActiveOfferDeals = async (req, res) => {
     // Manually populate the sliced products since populate() doesn't work directly on aggregate result objects easily without more stages
     const offers = await OfferDeal.populate(result, {
       path: 'products.productId',
-      select: 'name image basePrice mrp sku unitType unitValue status isVeg branchStocks vendor'
+      select: 'name image basePrice mrp sku unitType unitValue status isVeg branchStocks vendor stock lowStockThreshold'
     });
 
     // Decorate each product with isDeliverable flag when store context is provided
@@ -313,7 +313,7 @@ export const getOfferProducts = async (req, res) => {
       ]
     })
       .slice('products', [(pageNum - 1) * limitNum, limitNum])
-      .populate('products.productId', 'name image basePrice mrp sku unitType unitValue status isVeg branchStocks vendor category');
+      .populate('products.productId', 'name image basePrice mrp sku unitType unitValue status isVeg branchStocks vendor category stock lowStockThreshold');
 
     if (!offer) return res.status(404).json({ message: 'Offer not found or expired' });
 

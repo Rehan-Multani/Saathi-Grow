@@ -893,7 +893,7 @@ export const getProductById = async (req, res) => {
         }
       } else if (storeType === 'vendor' && pObj.vendor) {
         pObj.sourceInfo = {
-          id: effectiveStoreId,
+          id: pObj.vendor._id || pObj.vendor,
           type: 'Vendor',
           name: pObj.vendor.storeName,
           logo: pObj.vendor.logo,

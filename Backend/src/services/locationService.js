@@ -254,7 +254,7 @@ export const getGoogleDistances = async (origin, destinations) => {
 
     if (response.data.status === 'OK' && response.data.rows[0]) {
       return response.data.rows[0].elements.map((el, idx) => ({
-        distance: el.distance?.value / 1000 || 99999, // in KM
+        distance: (el.distance && typeof el.distance.value === 'number') ? el.distance.value / 1000 : 99999, // in KM
         duration: el.duration?.value || 0, // in seconds
         destination: destinations[idx]
       }));

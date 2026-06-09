@@ -17,7 +17,7 @@ const ProductDetailsPage = () => {
     const navigate = useNavigate();
     const { addToCart, updateQuantity, cart } = useCart();
     const { user, token, protectAction } = useAuth();
-    const { activeStore, isStoreOutOfRange, isStoreInactive, openStoreSelector } = useStore();
+    const { activeStore, nearbyStores, setActiveStore, isStoreOutOfRange, isStoreInactive, openStoreSelector } = useStore();
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
     const [selectedImage, setSelectedImage] = useState(null);
@@ -47,6 +47,28 @@ const ProductDetailsPage = () => {
                 storeId: activeStore?.id,
                 storeType: activeStore?.type
             });
+
+            // Automatically switch active store if product is from a different vendor/branch in range
+            const productVendorId = (data.vendor?._id || data.vendor)?.toString();
+            if (productVendorId && activeStore?.id?.toString() !== productVendorId) {
+                const matchedStore = nearbyStores?.find(s => s.id?.toString() === productVendorId && s.type === 'vendor');
+                if (matchedStore) {
+                    console.log("[ProductDetails] Switching active store to product vendor:", matchedStore.name);
+                    setActiveStore(matchedStore);
+                    return;
+                }
+            } else if (!productVendorId && data.branchStocks && data.branchStocks.length > 0) {
+                const branchesWithStock = data.branchStocks.filter(bs => bs.stock > 0);
+                const matchedBranch = nearbyStores?.find(s => 
+                    s.type === 'branch' && 
+                    branchesWithStock.some(bs => (bs.branchId?._id || bs.branchId)?.toString() === s.id?.toString())
+                );
+                if (matchedBranch && activeStore?.id?.toString() !== matchedBranch.id?.toString()) {
+                    console.log("[ProductDetails] Switching active store to product branch:", matchedBranch.name);
+                    setActiveStore(matchedBranch);
+                    return;
+                }
+            }
 
             // Standardize mapping to frontend model
             const p = {
@@ -148,7 +170,7 @@ const ProductDetailsPage = () => {
         };
         window.addEventListener('saathi_refresh', handleRefresh);
         return () => window.removeEventListener('saathi_refresh', handleRefresh);
-    }, [id, activeStore?.id]);
+    }, [id, activeStore?.id, nearbyStores]);
 
     const handleDemandRequest = async () => {
         if (demandLogged) return;

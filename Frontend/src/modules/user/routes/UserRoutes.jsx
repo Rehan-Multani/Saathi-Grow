@@ -124,7 +124,8 @@ const UserLayout = () => {
         '/occasion',
         '/campaign',
         '/brand',
-        '/store'
+        '/store',
+        '/offer'
     ];
     
     const isFocusedPath = focusedPaths.some(path => location.pathname.startsWith(path)) || 
@@ -134,6 +135,10 @@ const UserLayout = () => {
 
     const hideNavbarMobile = isFocusedPath || hideDesktopChrome;
 
+    const isHome = location.pathname === '/';
+    const isOrders = location.pathname.startsWith('/orders');
+    const shouldAddPadding = !isHome && !isOrders;
+
     // Determine Theme based on route (for Occasion Pages & Lowest Prices)
     const occasionMatch = matchPath("/occasion/:slug", location.pathname);
     const occasionSlug = occasionMatch?.params?.slug;
@@ -141,7 +146,8 @@ const UserLayout = () => {
 
     // Check if we should hide the OfferTicker
     const isCategoryPage = location.pathname.startsWith('/category');
-    const showOfferTicker = !isCategoryPage && !hideDesktopChrome;
+    const isOfferPage = location.pathname.startsWith('/offer');
+    const showOfferTicker = !isCategoryPage && !isOfferPage && !hideDesktopChrome;
 
     // Check for Lowest Prices Page
     const isLowestPricesPage = matchPath("/lowest-prices", location.pathname);
@@ -229,6 +235,40 @@ const UserLayout = () => {
                     .user-footer-safe {
                         padding-bottom: calc(env(safe-area-inset-bottom, 16px) + 12px) !important;
                     }
+
+                    /* Extra padding for non-home, non-orders pages on mobile */
+                    .user-module-root main.extra-mobile-padding {
+                        padding-top: calc(env(safe-area-inset-top, 24px) + 16px) !important;
+                        padding-bottom: calc(72px + env(safe-area-inset-bottom, 16px) + 48px) !important;
+                    }
+
+                    /* Pull sticky headers back to the very top of the viewport on pages with extra mobile padding */
+                    .user-module-root main.extra-mobile-padding .sticky.top-0 {
+                        margin-top: calc(-1 * (env(safe-area-inset-top, 24px) + 16px)) !important;
+                    }
+                }
+
+                /* Disable text copying/selection on small screens (mobile and tablet) */
+                @media (max-width: 1024px) {
+                    .user-module-root {
+                        -webkit-touch-callout: none !important;
+                        -webkit-user-select: none !important;
+                        -khtml-user-select: none !important;
+                        -moz-user-select: none !important;
+                        -ms-user-select: none !important;
+                        user-select: none !important;
+                    }
+                    /* Keep inputs, textareas, and contenteditable elements selectable */
+                    .user-module-root input,
+                    .user-module-root textarea,
+                    .user-module-root [contenteditable="true"] {
+                        -webkit-touch-callout: default !important;
+                        -webkit-user-select: text !important;
+                        -khtml-user-select: text !important;
+                        -moz-user-select: text !important;
+                        -ms-user-select: text !important;
+                        user-select: text !important;
+                    }
                 }
             `}</style>
             <FirebaseNotificationHandler token={token} role="user" isApp={isWebView} showToast={true} />
@@ -249,7 +289,7 @@ const UserLayout = () => {
             <LoginModal />
             <SearchOverlay />
 
-            <main className={`flex-grow bg-white dark:!bg-black transition-colors duration-300 ${hideDesktopChrome ? '' : 'pb-20 md:pb-0'}`}>
+            <main className={`flex-grow bg-white dark:!bg-black transition-colors duration-300 ${hideDesktopChrome ? '' : 'pb-20 md:pb-0'} ${shouldAddPadding ? 'extra-mobile-padding' : ''}`}>
                 {disablePullToRefresh ? (
                      <Suspense fallback={<LoadingFallback />}>
                         <AnimatePresence mode="wait">

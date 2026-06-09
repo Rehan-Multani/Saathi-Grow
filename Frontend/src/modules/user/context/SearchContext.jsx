@@ -8,14 +8,23 @@ export const useSearch = () => useContext(SearchContext);
 export const SearchProvider = ({ children }) => {
     const [searchQuery, setSearchQuery] = useState('');
     const [isSearchOverlayOpen, setIsSearchOverlayOpen] = useState(false);
+    const [startVoiceSearch, setStartVoiceSearch] = useState(false);
     const location = useLocation();
 
     useEffect(() => {
         setIsSearchOverlayOpen(false);
+        setStartVoiceSearch(false);
     }, [location.pathname]);
 
     return (
-        <SearchContext.Provider value={{ searchQuery, setSearchQuery, isSearchOverlayOpen, setIsSearchOverlayOpen }}>
+        <SearchContext.Provider value={{ 
+            searchQuery, 
+            setSearchQuery, 
+            isSearchOverlayOpen, 
+            setIsSearchOverlayOpen,
+            startVoiceSearch,
+            setStartVoiceSearch
+        }}>
             {children}
         </SearchContext.Provider>
     );

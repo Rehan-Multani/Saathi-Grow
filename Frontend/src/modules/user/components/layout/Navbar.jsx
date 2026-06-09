@@ -18,7 +18,7 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen, customTheme }) => {
   const { cartCount, cartTotal, toggleCart } = useCart();
   const { user, logout, protectAction } = useAuth();
   const { location, openLocationModal } = useLocation();
-  const { searchQuery, setSearchQuery, isSearchOverlayOpen, setIsSearchOverlayOpen } = useSearch();
+  const { searchQuery, setSearchQuery, isSearchOverlayOpen, setIsSearchOverlayOpen, setStartVoiceSearch } = useSearch();
   const { isDarkMode, toggleTheme } = useTheme();
   const [unreadCount, setUnreadCount] = useState(0);
   const { activeStore, isStoreOutOfRange, isStoreSelectorOpen, setIsStoreSelectorOpen } = useStore();
@@ -185,7 +185,16 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen, customTheme }) => {
             <span className="text-[14px] font-medium text-gray-500 flex-1 truncate" style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
               Search "dal", "milk" or "bread"...
             </span>
-            <Mic className="text-[#0c831f]" size={18} strokeWidth={2} />
+            <div
+              onClick={(e) => {
+                e.stopPropagation();
+                setStartVoiceSearch(true);
+                setIsSearchOverlayOpen(true);
+              }}
+              className="p-1 hover:bg-black/5 dark:hover:bg-white/5 rounded-full transition-colors cursor-pointer flex items-center justify-center"
+            >
+              <Mic className="text-[#0c831f]" size={18} strokeWidth={2} />
+            </div>
           </div>
         </div>
       </div>

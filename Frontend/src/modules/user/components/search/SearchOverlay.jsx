@@ -13,7 +13,7 @@ import { normalizeProduct } from '../../pages/home/HomePage';
 import { searchProducts, searchProductsWithAI } from '../../api/shopApi';
 
 const SearchOverlay = () => {
-    const { searchQuery, setSearchQuery, isSearchOverlayOpen, setIsSearchOverlayOpen } = useSearch();
+    const { searchQuery, setSearchQuery, isSearchOverlayOpen, setIsSearchOverlayOpen, startVoiceSearch, setStartVoiceSearch } = useSearch();
     const { isDarkMode } = useTheme();
     const { activeStore } = useStore();
     const navigate = useNavigate();
@@ -33,6 +33,13 @@ const SearchOverlay = () => {
     const [totalPages, setTotalPages] = useState(1);
     const [totalResults, setTotalResults] = useState(0);
     const [isFocused, setIsFocused] = useState(true);
+
+    useEffect(() => {
+        if (isSearchOverlayOpen && startVoiceSearch) {
+            setShowVoiceModal(true);
+            setStartVoiceSearch(false);
+        }
+    }, [isSearchOverlayOpen, startVoiceSearch, setStartVoiceSearch]);
 
     const startListening = () => {
         setShowVoiceModal(true);

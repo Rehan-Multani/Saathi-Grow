@@ -487,7 +487,10 @@ export const normalizeProduct = (product) => ({
     weight: product.unitValue ? `${product.unitValue} ${product.unitType || ''}`.trim() : (product.weight || ''),
     image: product.image || null,
     status: product.status,
-    isDeliverable: product.isDeliverable
+    isDeliverable: product.isDeliverable,
+    availableStock: product.availableStock,
+    lowStockThreshold: product.lowStockThreshold,
+    inStore: product.inStore
 });
 
 // Sub-component for individual product rows to manage scroll state with Lazy Loading

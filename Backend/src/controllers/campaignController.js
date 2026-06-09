@@ -87,7 +87,7 @@ export const getActiveCampaignSections = async (req, res) => {
       bannerImage: 1,
       products: 1
     })
-      .populate('products.productId', 'name image basePrice mrp unitType unitValue category status isSaathigro')
+      .populate('products.productId', 'name image basePrice mrp unitType unitValue category status isSaathigro branchStocks vendor stock lowStockThreshold')
       .sort('-createdAt')
       .lean();
 
@@ -361,7 +361,7 @@ export const getCampaignProducts = async (req, res) => {
 
     const section = await CampaignSection.findById(req.params.id)
       .slice('products', [(pageNum - 1) * limitNum, limitNum])
-      .populate('products.productId', 'name image basePrice mrp sku unitType unitValue category status isVeg branchStocks vendor');
+      .populate('products.productId', 'name image basePrice mrp sku unitType unitValue category status isVeg branchStocks vendor stock lowStockThreshold');
 
     if (!section) return res.status(404).json({ message: 'Campaign not found' });
 
