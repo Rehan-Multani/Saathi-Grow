@@ -216,35 +216,35 @@ const UserLayout = () => {
                 @media (max-width: 767px) {
                     /* Main header safe area */
                     .user-header-safe {
-                        padding-top: env(safe-area-inset-top, 24px) !important;
+                        padding-top: max(env(safe-area-inset-top, 32px), 32px) !important;
                     }
                     /* Push the spacer down as well */
                     .user-header-safe + div {
-                        margin-top: env(safe-area-inset-top, 24px) !important;
+                        margin-top: max(env(safe-area-inset-top, 32px), 32px) !important;
                     }
                     /* Page sticky headers (like My Orders header) */
                     .user-module-root .sticky.top-0 {
-                        padding-top: calc(env(safe-area-inset-top, 24px) + 12px) !important;
+                        padding-top: calc(max(env(safe-area-inset-top, 32px), 32px) + 12px) !important;
                         padding-bottom: 12px !important;
                     }
                     /* Ensure main content is padded at the bottom for the nav bar */
                     .user-module-root main {
-                        padding-bottom: calc(72px + env(safe-area-inset-bottom, 16px) + 12px) !important;
+                        padding-bottom: calc(72px + max(env(safe-area-inset-bottom, 16px), 16px) + 12px) !important;
                     }
                     /* Mobile Footer safe area */
                     .user-footer-safe {
-                        padding-bottom: calc(env(safe-area-inset-bottom, 16px) + 12px) !important;
+                        padding-bottom: calc(max(env(safe-area-inset-bottom, 16px), 16px) + 12px) !important;
                     }
 
                     /* Extra padding for non-home, non-orders pages on mobile */
                     .user-module-root main.extra-mobile-padding {
-                        padding-top: calc(env(safe-area-inset-top, 24px) + 16px) !important;
-                        padding-bottom: calc(72px + env(safe-area-inset-bottom, 16px) + 48px) !important;
+                        padding-top: calc(max(env(safe-area-inset-top, 32px), 32px) + 16px) !important;
+                        padding-bottom: calc(72px + max(env(safe-area-inset-bottom, 16px), 16px) + 48px) !important;
                     }
 
                     /* Pull sticky headers back to the very top of the viewport on pages with extra mobile padding */
                     .user-module-root main.extra-mobile-padding .sticky.top-0 {
-                        margin-top: calc(-1 * (env(safe-area-inset-top, 24px) + 16px)) !important;
+                        margin-top: calc(-1 * (max(env(safe-area-inset-top, 32px), 32px) + 16px)) !important;
                     }
                 }
 

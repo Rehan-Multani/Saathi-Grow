@@ -272,6 +272,11 @@ export const LocationProvider = ({ children }) => {
                     console.error('Location detection error:', error);
                     // Fallback to manual location modal if user denies or error occurs
                     setShowLocationModal(true);
+                },
+                {
+                    enableHighAccuracy: false,
+                    timeout: 5000,
+                    maximumAge: 300000
                 }
             );
         } else {

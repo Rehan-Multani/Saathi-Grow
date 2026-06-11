@@ -115,8 +115,8 @@ app.options('*', cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
 }));
 app.use(morgan('dev')); // Logging
-app.use(express.json()); // Body parser
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '50mb' })); // Body parser
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use((req, res, next) => {
   const requestId = randomUUID();
   req.requestId = requestId;

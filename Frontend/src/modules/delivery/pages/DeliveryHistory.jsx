@@ -18,6 +18,7 @@ import { toast } from 'react-toastify';
 import useDelivery from '../hooks/useDelivery';
 import { formatCurrency } from '../../vendor/utils/formatDate';
 import { downloadCSV } from '../../../common/utils/formatUtils';
+import { API_BASE_URL } from '../../../config/apiConfig';
 
 
 const DeliveryHistory = () => {
@@ -73,6 +74,21 @@ const DeliveryHistory = () => {
         }
         const id = toast.loading("Generating delivery history report...");
         try {
+            const fileName = `delivery_history_${new Date().toISOString().split('T')[0]}.csv`;
+
+            // Build a direct backend export URL for Flutter bridge (native download manager)
+            let directExportUrl = null;
+            if (token) {
+                let base = API_BASE_URL || '/api';
+                if (!base.startsWith('http')) {
+                    const origin = window.location.origin;
+                    base = base.startsWith('/') ? `${origin}${base}` : `${origin}/${base}`;
+                }
+                const dateParam = dateFilter ? `&date=${dateFilter}` : '';
+                directExportUrl = `${base}/delivery/history/export?token=${encodeURIComponent(token)}${dateParam}`;
+            }
+
+            // Build local CSV string (used by proxy POST and desktop fallbacks)
             const csvContent = "Order ID,Date,Customer,Location,Status,Amount\n" +
                 historicalOrders.map(o => {
                     const cust = String(o.customer || '').replace(/"/g, '""');
@@ -81,8 +97,12 @@ const DeliveryHistory = () => {
                 }).join("\n");
 
             const bomCsvContent = "\uFEFF" + csvContent;
-            const fileName = `delivery_history_${new Date().toISOString().split('T')[0]}.csv`;
-            downloadCSV(bomCsvContent, fileName);
+
+            // downloadCSV auto-picks the right strategy:
+            //   1. Flutter bridge  → sends directExportUrl to Flutter's native download manager
+            //   2. Proxy POST      → server streams back the file (mobile browser fallback)
+            //   3. Data URI        → standard desktop download
+            downloadCSV(bomCsvContent, fileName, directExportUrl);
 
             toast.update(id, { render: "Report downloaded successfully", type: "success", isLoading: false, autoClose: 2000 });
         } catch (error) {

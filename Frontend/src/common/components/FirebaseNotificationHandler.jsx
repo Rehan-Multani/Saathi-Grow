@@ -22,7 +22,7 @@ const FirebaseNotificationHandler = ({ token, role, isApp = false, showToast = f
         // 1. Get FCM Token
         const fcmToken = await generateToken();
         if (fcmToken) {
-          console.log(`FCM Token registered for ${role}:`, fcmToken);
+          // console.log(`FCM Token registered for ${role}:`, fcmToken);
           
           // 2. Determine API Endpoint based on role
           let endpoint = '';
@@ -55,7 +55,7 @@ const FirebaseNotificationHandler = ({ token, role, isApp = false, showToast = f
 
     // 4. Set up Foreground message listener
     const unsubscribe = onMessageListener((payload) => {
-      console.log('Foreground Message received: ', payload);
+      // console.log('Foreground Message received: ', payload);
       
       const title = payload.notification?.title || payload.data?.title || 'New Notification';
       const body = payload.notification?.body || payload.data?.body || '';

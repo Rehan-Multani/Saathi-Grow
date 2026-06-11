@@ -3,6 +3,7 @@ import { getProducts } from '../../../modules/admin/api/productApi';
 import { getAllOrdersAdmin } from '../../../modules/admin/api/orderApi';
 import { Download, RefreshCw, FileText, ShoppingCart, Package } from 'lucide-react';
 import * as XLSX from 'xlsx';
+import { downloadCSV } from '../../utils/formatUtils';
 
 const VyaparReport = ({ token }) => {
     const [data, setData] = useState([]);
@@ -110,7 +111,10 @@ const VyaparReport = ({ token }) => {
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
         const filename = reportType === 'catalog' ? "Vyapar_Item_List.xlsx" : `Vyapar_Daily_Sales_${new Date().toISOString().split('T')[0]}.xlsx`;
-        XLSX.writeFile(wb, filename);
+        
+        const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+        const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        downloadCSV(blob, filename);
     };
 
     return (

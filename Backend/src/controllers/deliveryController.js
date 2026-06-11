@@ -633,5 +633,81 @@ export const getRouteDirections = async (req, res) => {
 
 
 
+// @desc    Export full delivery history as a pure CSV file (mobile-safe)
+// @route   GET /api/delivery/history/export
+// @access  Private (Rider) — token passed as query param for direct-URL downloads
+export const exportHistory = async (req, res) => {
+    try {
+        const partner = req.partner;
+        if (!partner) return res.status(404).json({ message: 'Partner not found' });
+
+        const { date } = req.query;
+
+        const query = {
+            deliveryPartner: partner._id,
+            status: { $in: ['completed', 'partial_complete'] }
+        };
+
+        if (date) {
+            const [year, month, day] = date.split('-').map(Number);
+            const startOfDay = new Date(year, month - 1, day, 0, 0, 0, 0);
+            const endOfDay   = new Date(year, month - 1, day, 23, 59, 59, 999);
+            query.$or = [
+                { createdAt:   { $gte: startOfDay, $lte: endOfDay } },
+                { completedAt: { $gte: startOfDay, $lte: endOfDay } }
+            ];
+        }
+
+        const runs = await DeliveryRun.find(query)
+            .populate({
+                path: 'orders.order',
+                populate: [{ path: 'user', select: 'name phone' }]
+            })
+            .sort({ createdAt: -1 });
+
+        // Build pure CSV rows
+        const header = 'Order ID,Date,Time,Customer,Phone,Location,Status,Amount (INR),Payment Method';
+        const rows = [];
+
+        for (const run of runs) {
+            for (const stop of run.orders) {
+                if (!stop.order) continue;
+                const o = stop.order;
+                const ts = new Date(stop.deliveredAt || stop.failedAt || run.completedAt || run.createdAt);
+                const escape = (v) => `"${String(v || '').replace(/"/g, '""')}"`;
+                rows.push([
+                    escape(o.orderId || o._id),
+                    escape(ts.toLocaleDateString('en-IN')),
+                    escape(ts.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })),
+                    escape(o.user?.name || 'Customer'),
+                    escape(o.user?.phone || ''),
+                    escape(o.shippingAddress?.street || ''),
+                    escape(stop.status === 'delivered' ? 'Delivered' : (stop.status === 'failed' ? 'Failed' : stop.status)),
+                    escape(o.totalAmount || 0),
+                    escape((o.paymentMethod || 'online').toUpperCase())
+                ].join(','));
+            }
+        }
+
+        const csvBody = header + '\n' + rows.join('\n');
+
+        // UTF-8 BOM + strict mobile headers
+        const BOM = '\uFEFF';
+        const fileName = `delivery_history_${new Date().toISOString().split('T')[0]}.csv`;
+
+        res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+        res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+
+        return res.status(200).send(BOM + csvBody);
+    } catch (error) {
+        console.error('[exportHistory] error:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+
 // End of Delivery Controller
 

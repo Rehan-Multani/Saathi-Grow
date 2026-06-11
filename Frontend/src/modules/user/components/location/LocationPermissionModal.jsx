@@ -51,6 +51,11 @@ const LocationPermissionModal = () => {
                     // Fallback to manual selection modal
                     setShowPermissionModal(false);
                     setShowLocationModal(true);
+                },
+                {
+                    enableHighAccuracy: false,
+                    timeout: 5000,
+                    maximumAge: 300000
                 }
             );
         } else {

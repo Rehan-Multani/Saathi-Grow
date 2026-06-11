@@ -145,21 +145,32 @@ export const requirePermission = (requiredPermission) => {
 };
 
 // Protect Delivery Partner Logic
+// Supports token from: (1) Authorization header or (2) ?token= query param (for direct download URLs in Flutter WebView)
 export const protectDeliveryPartner = async (req, res, next) => {
   let token;
+
+  // 1. Try Authorization header first (standard API calls)
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    token = req.headers.authorization.split(' ')[1];
+  }
+  // 2. Fall back to ?token= query param (for direct-URL file downloads from Flutter)
+  else if (req.query.token) {
+    token = req.query.token;
+  }
+
+  if (token) {
     try {
-      token = req.headers.authorization.split(' ')[1];
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       req.partner = await DeliveryPartner.findById(decoded.id);
       if (!req.partner) return res.status(401).json({ message: 'Delivery Partner access denied' });
       if (req.partner.authStatus !== 'Active') return res.status(403).json({ message: 'Account is suspended or inactive. Please contact support at support@saathigro.in.' });
-      next();
+      return next();
     } catch (error) {
-      res.status(401).json({ message: 'Session expired, please login again' });
+      return res.status(401).json({ message: 'Session expired, please login again' });
     }
   }
-  if (!token) res.status(401).json({ message: 'Delivery Partner authentication required' });
+
+  return res.status(401).json({ message: 'Delivery Partner authentication required' });
 };
 // Protect routes for both Vendors and Admins (Branch Managers)
 export const protectStoreManager = async (req, res, next) => {

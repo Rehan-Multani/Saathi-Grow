@@ -89,6 +89,11 @@ const LocationModal = () => {
                 (error) => {
                     alert('Unable to retrieve your location');
                     setDetecting(false);
+                },
+                {
+                    enableHighAccuracy: false,
+                    timeout: 5000,
+                    maximumAge: 300000
                 }
             );
         } else {

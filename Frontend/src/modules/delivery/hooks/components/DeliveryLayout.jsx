@@ -139,16 +139,16 @@ const DeliveryLayout = ({ children }) => {
             <style>{`
                 @media (max-width: 767px) {
                     .mobile-header-safe {
-                        height: calc(3.5rem + env(safe-area-inset-top, 24px)) !important;
-                        padding-top: env(safe-area-inset-top, 24px) !important;
+                        height: calc(3.5rem + max(env(safe-area-inset-top, 32px), 32px)) !important;
+                        padding-top: max(env(safe-area-inset-top, 32px), 32px) !important;
                     }
                     .mobile-main-safe {
-                        padding-top: calc(3.5rem + env(safe-area-inset-top, 24px)) !important;
-                        padding-bottom: calc(72px + env(safe-area-inset-bottom, 16px) + 16px) !important;
+                        padding-top: calc(3.5rem + max(env(safe-area-inset-top, 32px), 32px)) !important;
+                        padding-bottom: calc(72px + max(env(safe-area-inset-bottom, 16px), 16px) + 16px) !important;
                     }
                     .mobile-nav-safe {
-                        height: calc(72px + env(safe-area-inset-bottom, 16px)) !important;
-                        padding-bottom: env(safe-area-inset-bottom, 16px) !important;
+                        height: calc(72px + max(env(safe-area-inset-bottom, 16px), 16px)) !important;
+                        padding-bottom: max(env(safe-area-inset-bottom, 16px), 16px) !important;
                     }
                 }
             `}</style>

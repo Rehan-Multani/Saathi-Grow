@@ -9,7 +9,8 @@ import {
     getDashboardStats,
     simulateOrder,
     getDeliveryDetail,
-    getRouteDirections
+    getRouteDirections,
+    exportHistory
 } from '../controllers/deliveryController.js';
 import { updateFCMToken } from '../controllers/notificationController.js';
 import { protectDeliveryPartner } from '../middleware/authMiddleware.js';
@@ -32,6 +33,9 @@ router.patch('/orders/:id/status', updateDeliveryStatus);
 
 router.get('/wallet', getWallet);
 router.get('/stats', getDashboardStats);
+
+// Direct CSV download for mobile — streams pure CSV with BOM + strict headers
+router.get('/history/export', exportHistory);
 
 // Simulation route
 router.post('/simulate-order', simulateOrder);
