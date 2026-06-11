@@ -153,13 +153,33 @@ const executeProxyDownload = (contentString, fileName, contentType = 'text/csv',
  * @param {string}      [directUrl] Optional direct backend URL for the Flutter bridge
  */
 export const downloadCSV = (content, fileName, directUrl = null) => {
-    // ── Flutter WebView: use JS channel bridge with direct URL ──────────────
+    // ── Mobile WebView / Android browser / Flutter App: Use direct GET URL if available ──
+    if (directUrl && (isFlutterWebView() || shouldUseProxy())) {
+        // If there's an explicit legacy postMessage bridge, try it first
+        try {
+            if (window.FlutterDownloader && typeof window.FlutterDownloader.postMessage === 'function') {
+                const message = JSON.stringify({ url: directUrl, fileName });
+                window.FlutterDownloader.postMessage(message);
+                return;
+            }
+        } catch (e) {
+            console.warn('[downloadCSV] Legacy Flutter bridge call failed:', e);
+        }
+
+        // Direct GET download triggers the WebView's standard download listener (onDownloadStartRequest)
+        // or a mobile browser's standard downloader. Since it's a GET request that returns
+        // Content-Disposition: attachment, it won't navigate away from the current page.
+        window.location.href = directUrl;
+        return;
+    }
+
+    // ── Flutter WebView: fallback JS channel bridge with direct URL ──────────
     if (isFlutterWebView() && directUrl) {
         const bridged = executeFlutterBridgeDownload(directUrl, fileName);
         if (bridged) return;
     }
 
-    // ── Mobile WebView / Android browser: server-side proxy POST ───────────
+    // ── Mobile WebView / Android browser: server-side proxy POST fallback ────
     if (shouldUseProxy()) {
         if (content instanceof Blob) {
             const reader = new FileReader();
