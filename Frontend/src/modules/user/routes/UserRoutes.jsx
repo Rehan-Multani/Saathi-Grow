@@ -274,7 +274,14 @@ const UserLayout = () => {
             <FirebaseNotificationHandler token={token} role="user" isApp={isWebView} showToast={true} />
             <ScrollToTop />
 
-            <div className={`fixed top-0 left-0 right-0 z-[100] ${hideDesktopChrome ? 'hidden md:hidden' : ''} ${hideNavbarMobile && !hideDesktopChrome ? 'hidden md:block' : ''} user-header-safe`}>
+            <div 
+                className={`fixed top-0 left-0 right-0 z-[100] ${hideDesktopChrome ? 'hidden md:hidden' : ''} ${hideNavbarMobile && !hideDesktopChrome ? 'hidden md:block' : ''} user-header-safe transition-colors duration-300`}
+                style={{
+                    backgroundColor: showOfferTicker 
+                        ? '#0c831f' 
+                        : (isDarkMode ? '#000' : (customTheme?.bgColor || '#fff'))
+                }}
+            >
                 {showOfferTicker && <OfferTicker />}
                 <Navbar isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} customTheme={customTheme} />
             </div>

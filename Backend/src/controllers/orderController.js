@@ -22,7 +22,7 @@ import PromoUsage from '../models/PromoUsage.js';
 import { sendPushNotification, notifyByBranchAndPermission, notifySuperAdmins } from '../services/notificationService.js';
 import { sendSystemNotificationEmail } from '../services/emailService.js';
 import { buildRouteCacheKey, getCachedRoute, setCachedRoute } from '../services/routeCacheService.js';
-import { triggerAutoAssignmentForOrder } from './adminDeliveryController.js';
+// import { triggerAutoAssignmentForOrder } from './adminDeliveryController.js';
 
 /**
  * Enrich order items with physicalLocation from the product document.
@@ -462,10 +462,12 @@ export const verifyRazorpayPayment = async (req, res) => {
       body: `Your order ${createdOrder.orderId} was successful and is being processed.`
     }, { orderId: createdOrder.orderId, status: 'confirmed' });
 
-    // Auto-assign to nearest delivery partner if applicable
+    // Auto-assign to nearest delivery partner if applicable - DISABLED for manual assignment
+    /*
     triggerAutoAssignmentForOrder(createdOrder._id).catch(err => {
       console.error('[AutoAssign] Error in verifyRazorpayPayment background trigger:', err);
     });
+    */
 
     // 2. Notify Staff/Admin/Vendor based on product ownership
     if (createdOrder.vendor) {
@@ -1156,10 +1158,12 @@ export const createWalletOrder = async (req, res) => {
       body: `Order ${createdOrder.orderId} was successful using your wallet balance.`
     }, { orderId: createdOrder.orderId, status: 'confirmed' });
 
-    // Auto-assign to nearest delivery partner if applicable
+    // Auto-assign to nearest delivery partner if applicable - DISABLED for manual assignment
+    /*
     triggerAutoAssignmentForOrder(createdOrder._id).catch(err => {
       console.error('[AutoAssign] Error in createWalletOrder background trigger:', err);
     });
+    */
 
     // 2. Notify Staff/Admin/Vendor
     if (createdOrder.vendor) {
@@ -1775,12 +1779,14 @@ export const updateOrderStatus = async (req, res) => {
 
     res.json(updatedOrder);
 
-    // Auto-assign to delivery partner if status is confirmed or preparing
+    // Auto-assign to delivery partner if status is confirmed or preparing - DISABLED for manual assignment
+    /*
     if (status === 'confirmed' || status === 'preparing') {
       triggerAutoAssignmentForOrder(updatedOrder._id).catch(err => {
         console.error('[AutoAssign] Error in updateOrderStatus background trigger:', err);
       });
     }
+    */
 
     // --- Production Notifications ---
     // Notify Customer of Status Update
@@ -2033,12 +2039,14 @@ export const updateVendorOrderStatus = async (req, res) => {
 
     res.json({ message: `Order status updated to ${status}`, order });
 
-    // Auto-assign to nearest delivery partner if order is ready or preparing and lacks partner
+    // Auto-assign to nearest delivery partner if order is ready or preparing and lacks partner - DISABLED for manual assignment
+    /*
     if (status === 'preparing' || status === 'ready_for_pickup') {
       triggerAutoAssignmentForOrder(order._id).catch(err => {
         console.error('[AutoAssign] Error in updateVendorOrderStatus background trigger:', err);
       });
     }
+    */
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

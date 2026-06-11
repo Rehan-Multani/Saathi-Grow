@@ -112,3 +112,45 @@
     width: 15px;
     height: 6px;
 }
+
+/* High-Contrast OTP Input Field for WebViews */
+.otp-input-field {
+    width: 100% !important;
+    height: 48px !important;
+    background-color: #ffffff !important;
+    border: 2px solid #cbd5e1 !important;
+    border-radius: 12px !important;
+    text-align: center !important;
+    font-weight: 900 !important;
+    font-size: 16px !important;
+    letter-spacing: 0.3em !important;
+    color: #0f172a !important;
+    transition: all 0.2s ease-in-out !important;
+    padding: 0 !important;
+}
+
+.otp-input-field::placeholder {
+    color: #94a3b8 !important;
+    letter-spacing: normal !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+}
+
+.otp-input-field:focus {
+    background-color: #ffffff !important;
+    border-color: #0f172a !important;
+    outline: none !important;
+    box-shadow: 0 0 0 1px #0f172a !important;
+}
+
+/* Dark Mode Support */
+.dark .otp-input-field {
+    background-color: #1e293b !important;
+    border-color: #475569 !important;
+    color: #ffffff !important;
+}
+
+.dark .otp-input-field:focus {
+    border-color: #ffffff !important;
+    box-shadow: 0 0 0 1px #ffffff !important;
+}

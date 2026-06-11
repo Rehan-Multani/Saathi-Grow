@@ -398,7 +398,7 @@ const LiveTracking = () => {
                                             <div className="flex gap-2">
                                                 {isReturn ? (
                                                     <div className="flex-1 flex flex-col gap-2">
-                                                        <input type="text" maxLength={4} placeholder="Enter OTP Code" className="w-full h-11 bg-white border border-slate-200 rounded-xl text-center font-black text-sm tracking-[0.3em] text-slate-900 placeholder:text-slate-400 placeholder:tracking-normal placeholder:text-xs" value={otpInput} onChange={e => setOtpInput(e.target.value)} />
+                                                        <input type="text" maxLength={4} placeholder="Enter OTP Code" className="otp-input-field" value={otpInput} onChange={e => setOtpInput(e.target.value)} />
                                                         <button onClick={() => handleAction('stop', stop.order._id, 'picked_up', otpInput)} disabled={!otpInput} className="w-full h-11 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg active:scale-95 disabled:opacity-30 transition-all">Verify & Collect</button>
                                                     </div>
                                                 ) : (
@@ -413,7 +413,7 @@ const LiveTracking = () => {
                                                             ) : (
                                                                 <div className="flex-1 flex flex-col gap-2">
                                                                     {stop.order?.paymentMethod === 'cod' && <p className="text-center text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-[-4px]">COD Collected ✓</p>}
-                                                                    <input type="text" maxLength={4} placeholder="Enter OTP Code" className="w-full h-11 bg-white border border-slate-200 rounded-xl text-center font-black text-sm tracking-[0.3em] text-slate-900 placeholder:text-slate-400 placeholder:tracking-normal placeholder:text-xs" value={otpInput} onChange={e => setOtpInput(e.target.value)} />
+                                                                    <input type="text" maxLength={4} placeholder="Enter OTP Code" className="otp-input-field" value={otpInput} onChange={e => setOtpInput(e.target.value)} />
                                                                     <button onClick={() => handleAction('stop', stop.order._id, 'delivered', otpInput)} disabled={!otpInput} className="w-full h-11 bg-slate-900 text-white rounded-xl font-black text-[10px] uppercase tracking-widest active:scale-95 disabled:opacity-30 transition-all">Verify & Deliver</button>
                                                                 </div>
                                                             )
