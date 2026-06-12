@@ -153,6 +153,12 @@ const executeProxyDownload = (contentString, fileName, contentType = 'text/csv',
  * @param {string}      [directUrl] Optional direct backend URL for the Flutter bridge
  */
 export const downloadCSV = (content, fileName, directUrl = null) => {
+    // ── Flutter WebView: Try modern Javascript Channel handler first ──────────
+    if (isFlutterWebView() && directUrl) {
+        const bridged = executeFlutterBridgeDownload(directUrl, fileName);
+        if (bridged) return;
+    }
+
     // ── Mobile WebView / Android browser / Flutter App: Use direct GET URL if available ──
     if (directUrl && (isFlutterWebView() || shouldUseProxy())) {
         // If there's an explicit legacy postMessage bridge, try it first
@@ -171,12 +177,6 @@ export const downloadCSV = (content, fileName, directUrl = null) => {
         // Content-Disposition: attachment, it won't navigate away from the current page.
         window.location.href = directUrl;
         return;
-    }
-
-    // ── Flutter WebView: fallback JS channel bridge with direct URL ──────────
-    if (isFlutterWebView() && directUrl) {
-        const bridged = executeFlutterBridgeDownload(directUrl, fileName);
-        if (bridged) return;
     }
 
     // ── Mobile WebView / Android browser: server-side proxy POST fallback ────
