@@ -293,3 +293,35 @@ export const updateProfile = async (req, res) => {
     res.status(500).json({ message: 'Server error updating profile' });
   }
 };
+
+// @desc    Delete user profile (account deletion)
+// @route   DELETE /api/auth/profile
+// @access  Private
+export const deleteProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Delete profile image from cloudinary if exists
+    if (user.profileImagePublicId) {
+      try {
+        await cloudinary.uploader.destroy(user.profileImagePublicId);
+      } catch (err) {
+        console.error('Error deleting image from Cloudinary:', err);
+      }
+    }
+
+    await User.findByIdAndDelete(req.user._id);
+
+    res.json({
+      success: true,
+      message: 'Account deleted successfully'
+    });
+  } catch (error) {
+    console.error('Delete Profile Error:', error);
+    res.status(500).json({ message: 'Server error deleting account' });
+  }
+};
+

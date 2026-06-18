@@ -250,3 +250,35 @@ export const updateProfile = async (req, res) => {
     res.status(500).json({ message: error.message || 'Server error updating profile' });
   }
 };
+
+// @desc    Delete delivery partner profile (account deletion)
+// @route   DELETE /api/delivery/auth/profile
+// @access  Private (Partner)
+export const deleteProfile = async (req, res) => {
+  try {
+    const partner = await DeliveryPartner.findById(req.partner._id);
+    if (!partner) {
+      return res.status(404).json({ message: 'Delivery Partner not found' });
+    }
+
+    // Delete profile image from cloudinary if exists
+    if (partner.profileImagePublicId) {
+      try {
+        await cloudinary.uploader.destroy(partner.profileImagePublicId);
+      } catch (err) {
+        console.error('Error deleting image from Cloudinary:', err);
+      }
+    }
+
+    await DeliveryPartner.findByIdAndDelete(req.partner._id);
+
+    res.json({
+      success: true,
+      message: 'Account deleted successfully'
+    });
+  } catch (error) {
+    console.error('Delete Profile Error:', error);
+    res.status(500).json({ message: 'Server error deleting account' });
+  }
+};
+

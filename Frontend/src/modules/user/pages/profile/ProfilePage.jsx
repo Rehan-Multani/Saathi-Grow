@@ -8,6 +8,7 @@ import { getUserTags } from '../../api/orderApi';
 import axios from 'axios';
 import { API_BASE_URL } from '../../../../config/apiConfig';
 import ImageSourceModal from '../../../../common/components/modals/ImageSourceModal';
+import { showDeleteConfirmation, showSuccessAlert, showErrorAlert } from '../../../../common/utils/alertUtils';
 
 const ProfilePage = () => {
     const navigate = useNavigate();
@@ -111,6 +112,30 @@ const ProfilePage = () => {
         }
     };
 
+    const handleDeleteAccount = async () => {
+        const result = await showDeleteConfirmation(
+            'Delete Account?',
+            'This action is permanent and your account data will be permanently deleted from our database.'
+        );
+        if (result.isConfirmed) {
+            try {
+                const res = await axios.delete(`${API_BASE_URL}/auth/profile`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                if (res.data.success) {
+                    await showSuccessAlert('Deleted!', 'Your account has been deleted.');
+                    auth.logout();
+                    navigate('/');
+                } else {
+                    showErrorAlert('Error', res.data.message || 'Could not delete account.');
+                }
+            } catch (err) {
+                console.error('Delete account error:', err);
+                showErrorAlert('Error', err.response?.data?.message || 'Server error deleting account.');
+            }
+        }
+    };
+
     const openEditModal = () => {
         setEditName(user?.name || '');
         setEditEmail(user?.email || '');
@@ -165,16 +190,7 @@ const ProfilePage = () => {
 
                 </div>
 
-                {/* Mobile top-left back button */}
-                <button
-                    onClick={() => {
-                        const from = location.state?.from || '/';
-                        navigate(from);
-                    }}
-                    className="fixed top-4 left-4 z-50 md:hidden flex items-center justify-center w-8 h-8 bg-white dark:bg-[#141414] text-gray-800 dark:text-gray-200 rounded-full shadow-lg border border-gray-100 dark:border-white/10 active:scale-95 transition-transform"
-                >
-                    <ArrowLeft size={18} />
-                </button>
+
 
 
 
@@ -288,6 +304,23 @@ const ProfilePage = () => {
                                     <div className="text-left">
                                         <h4 className="!text-[14px] font-semibold text-red-600 dark:text-red-400 leading-none mb-1 md:mb-1.5">Log Out</h4>
                                         <p className="!text-[10px] md:!text-sm text-red-400/70 font-medium">Sign out of your account</p>
+                                    </div>
+                                </div>
+                                <ChevronRight size={16} className="text-red-200 group-hover:text-red-500 transition-colors md:w-5 md:h-5" />
+                            </button>
+
+                            {/* Delete Account Button */}
+                            <button
+                                onClick={handleDeleteAccount}
+                                className="w-full py-3 px-6 md:py-1.5 md:px-4 flex items-center justify-between bg-transparent md:bg-white md:dark:bg-black hover:bg-red-50 dark:hover:bg-red-900/10 transition-all group border-t border-gray-100 dark:border-white/5 md:mt-1 md:rounded-2xl md:border"
+                            >
+                                <div className="flex items-center gap-4 md:gap-6">
+                                    <div className="w-9 h-9 md:w-9 md:h-9 bg-red-50 dark:bg-red-900/20 md:border border-red-100 dark:border-red-500/10 rounded-full md:rounded-lg flex items-center justify-center text-red-500 md:shadow-sm">
+                                        <Shield size={18} className="md:w-4.5 md:h-4.5 text-red-500" />
+                                    </div>
+                                    <div className="text-left">
+                                        <h4 className="!text-[14px] font-semibold text-red-600 dark:text-red-400 leading-none mb-1 md:mb-1.5">Delete Account</h4>
+                                        <p className="!text-[10px] md:!text-sm text-red-400/70 font-medium">Permanently delete your account</p>
                                     </div>
                                 </div>
                                 <ChevronRight size={16} className="text-red-200 group-hover:text-red-500 transition-colors md:w-5 md:h-5" />

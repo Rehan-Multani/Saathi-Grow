@@ -4,7 +4,8 @@ import {
   verifyOTP,
   resendOTP,
   getUserProfile,
-  updateProfile
+  updateProfile,
+  deleteProfile
 } from '../controllers/authController.js';
 import { updateFCMToken } from '../controllers/notificationController.js';
 import { protect } from '../middleware/authMiddleware.js';
@@ -26,6 +27,7 @@ router.post('/resend-otp', validateUserOtpResendPayload, resendOTP);
 // Profile Management
 router.get('/profile', protect, getUserProfile);
 router.put('/profile', protect, userUpload.single('image'), updateProfile);
+router.delete('/profile', protect, deleteProfile);
 router.put('/fcm-token', protect, updateFCMToken);
 
 export default router;

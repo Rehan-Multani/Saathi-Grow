@@ -29,9 +29,10 @@ import {
 } from 'lucide-react';
 import useDeliveryStore from '../store/deliveryStore';
 import { toast } from 'react-toastify';
-import { updateDeliveryProfile, changeDeliveryPassword } from '../api/deliveryAuthApi';
+import { updateDeliveryProfile, changeDeliveryPassword, deleteDeliveryProfile } from '../api/deliveryAuthApi';
 import { useTheme } from '../../user/context/ThemeContext';
 import ImageSourceModal from '../../../common/components/modals/ImageSourceModal';
+import { showDeleteConfirmation, showSuccessAlert, showErrorAlert } from '../../../common/utils/alertUtils';
 
 const ProfileSettings = () => {
     const { profile, logout, token, fetchProfile } = useDeliveryStore();
@@ -59,6 +60,28 @@ const ProfileSettings = () => {
         logout();
         toast.info('Logged out successfully');
         navigate('/delivery/login');
+    };
+
+    const handleDeleteAccount = async () => {
+        const result = await showDeleteConfirmation(
+            'Delete Account?',
+            'This action is permanent and your account data will be permanently deleted from our database.'
+        );
+        if (result.isConfirmed) {
+            try {
+                const res = await deleteDeliveryProfile(token);
+                if (res.success) {
+                    await showSuccessAlert('Deleted!', 'Your account has been deleted.');
+                    logout();
+                    navigate('/delivery/login');
+                } else {
+                    showErrorAlert('Error', res.message || 'Could not delete account.');
+                }
+            } catch (err) {
+                console.error('Delete account error:', err);
+                showErrorAlert('Error', err.response?.data?.message || 'Server error deleting account.');
+            }
+        }
     };
 
     const handleEditStart = () => {
@@ -573,6 +596,21 @@ const ProfileSettings = () => {
                     <div className="flex-1">
                         <h4 className="font-bold text-sm text-red-500">Log out</h4>
                         <p className="text-[10px] text-red-300 mt-0.5 uppercase tracking-tighter">End current duty session</p>
+                    </div>
+                    <ChevronRight size={16} className="text-red-100 group-hover:translate-x-0.5 transition-all" />
+                </div>
+
+                {/* Delete Account Row - Integrated list item */}
+                <div
+                    onClick={handleDeleteAccount}
+                    className="flex items-center gap-4 py-4 cursor-pointer group active:opacity-60 transition-all border-b border-slate-50 dark:border-zinc-800/30 px-0.5"
+                >
+                    <div className="text-red-500 opacity-80 group-hover:scale-105 transition-transform">
+                        <Shield size={20} />
+                    </div>
+                    <div className="flex-1">
+                        <h4 className="font-bold text-sm text-red-500">Delete Account</h4>
+                        <p className="text-[10px] text-red-300 mt-0.5 uppercase tracking-tighter">Permanently delete your account</p>
                     </div>
                     <ChevronRight size={16} className="text-red-100 group-hover:translate-x-0.5 transition-all" />
                 </div>

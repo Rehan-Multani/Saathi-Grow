@@ -43,3 +43,10 @@ export const changeDeliveryPassword = async (token, currentPassword, newPassword
   );
   return data;
 };
+
+export const deleteDeliveryProfile = async (token) => {
+  const { data } = await axios.delete(`${API_URL}/delivery/auth/profile`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return data;
+};

@@ -5,7 +5,8 @@ import {
   verifyOTP,
   getProfile,
   updateProfile,
-  changePassword
+  changePassword,
+  deleteProfile
 } from '../controllers/deliveryAuthController.js';
 import { protectDeliveryPartner } from '../middleware/authMiddleware.js';
 import {
@@ -22,6 +23,7 @@ router.post('/verify-otp', validateDeliveryOtpVerifyPayload, verifyOTP);
 
 router.get('/profile', protectDeliveryPartner, getProfile);
 router.put('/profile', protectDeliveryPartner, deliveryUpload.single('profileImage'), updateProfile);
+router.delete('/profile', protectDeliveryPartner, deleteProfile);
 router.put('/change-password', protectDeliveryPartner, changePassword);
 
 export default router;
