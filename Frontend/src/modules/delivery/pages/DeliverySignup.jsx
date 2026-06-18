@@ -268,7 +268,7 @@ const DeliverySignup = () => {
         </div>
 
         {/* Login link */}
-        <div className="mt-6 text-center">
+        <div className="mt-6 text-center flex flex-col gap-2">
           <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
             Already have an account?{' '}
             <button
@@ -276,6 +276,15 @@ const DeliverySignup = () => {
               className="text-[#028A0F] font-black hover:underline"
             >
               Login here
+            </button>
+          </p>
+          <p className="text-xs text-gray-400 dark:text-gray-500 font-medium">
+            Need help?{' '}
+            <button
+              onClick={() => navigate('/delivery/support')}
+              className="text-[#028A0F] font-black hover:underline"
+            >
+              Contact Support
             </button>
           </p>
         </div>

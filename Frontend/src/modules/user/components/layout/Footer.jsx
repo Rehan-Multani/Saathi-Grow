@@ -69,15 +69,10 @@ const Footer = ({ customTheme }) => {
           <div className="flex flex-col items-start text-left">
             <h3 className="text-[9px] sm:text-sm font-bold text-white mb-2 sm:mb-5">Resources</h3>
             <ul className="space-y-2 sm:space-y-3 p-0 list-none">
-              <li><Link to="/help" className="text-gray-400 hover:text-[#0c831f] text-[7.5px] sm:text-sm transition-colors">Help Center</Link></li>
-              <li><Link to="/help" className="text-gray-400 hover:text-[#0c831f] text-[7.5px] sm:text-sm transition-colors">Contact</Link></li>
-              {policies.map(p => (
-                <li key={p._id}>
-                  <Link to={`/legal/${p.slug}`} className="text-gray-400 hover:text-[#0c831f] text-[7.5px] sm:text-sm transition-colors">
-                    {p.title}
-                  </Link>
-                </li>
-              ))}
+              <li><Link to="/support/user" className="text-gray-400 hover:text-[#0c831f] text-[7.5px] sm:text-sm transition-colors">Help Center (User)</Link></li>
+              <li><Link to="/delivery/support" className="text-gray-400 hover:text-[#0c831f] text-[7.5px] sm:text-sm transition-colors">Delivery Support</Link></li>
+              <li><Link to="/privacy-policy" className="text-gray-400 hover:text-[#0c831f] text-[7.5px] sm:text-sm transition-colors">Privacy Policy</Link></li>
+              <li><Link to="/legal/user-terms-conditions" className="text-gray-400 hover:text-[#0c831f] text-[7.5px] sm:text-sm transition-colors">Terms of Service</Link></li>
             </ul>
           </div>
 

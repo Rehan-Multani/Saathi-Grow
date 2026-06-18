@@ -63,9 +63,11 @@ const PolicyViewerModal = ({ isOpen, onClose, policySlug, audience, title }) => 
             </div>
           ) : (
             <div 
-              className="prose prose-sm sm:prose-base dark:prose-invert max-w-none text-gray-700 dark:text-gray-300"
-              dangerouslySetInnerHTML={{ __html: content }}
-            />
+              className="prose prose-sm sm:prose-base dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 font-medium leading-relaxed"
+              style={{ whiteSpace: 'pre-wrap' }}
+            >
+              {content}
+            </div>
           )}
         </div>
         

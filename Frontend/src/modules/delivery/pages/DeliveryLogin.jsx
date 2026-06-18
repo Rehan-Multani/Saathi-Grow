@@ -203,7 +203,7 @@ const DeliveryLogin = () => {
           <span className="text-[10px] uppercase font-bold tracking-widest">Secure Rider Access Only</span>
         </div>
 
-        <div className="mt-4 text-center">
+        <div className="mt-4 text-center flex flex-col gap-2">
           <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
             New rider?{' '}
             <button
@@ -211,6 +211,15 @@ const DeliveryLogin = () => {
               className="text-[#028A0F] font-black hover:underline"
             >
               Apply to join
+            </button>
+          </p>
+          <p className="text-xs text-gray-400 dark:text-gray-500 font-medium">
+            Need help?{' '}
+            <button
+              onClick={() => navigate('/delivery/support')}
+              className="text-[#028A0F] font-black hover:underline"
+            >
+              Contact Support
             </button>
           </p>
         </div>

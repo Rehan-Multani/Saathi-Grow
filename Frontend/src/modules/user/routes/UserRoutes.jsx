@@ -64,6 +64,10 @@ const OfferPage = lazy(() => import('../pages/offer/OfferPage'));
 const LogoutConfirmationPage = lazy(() => import('../pages/auth/LogoutConfirmationPage'));
 const LegalPage = lazy(() => import('../pages/support/LegalPage'));
 const ShopListingPage = lazy(() => import('../pages/shop/ShopListingPage'));
+const PublicPrivacyPolicy = lazy(() => import('../pages/support/PublicPrivacyPolicy'));
+const PublicUserSupport = lazy(() => import('../pages/support/PublicUserSupport'));
+
+
 
 const LoadingFallback = () => (
     <div className="fixed inset-0 z-[9999] bg-white flex flex-col items-center justify-center overflow-hidden">
@@ -125,7 +129,9 @@ const UserLayout = () => {
         '/campaign',
         '/brand',
         '/store',
-        '/offer'
+        '/offer',
+        '/privacy-policy',
+        '/support'
     ];
     
     const isFocusedPath = focusedPaths.some(path => location.pathname.startsWith(path)) || 
@@ -163,7 +169,7 @@ const UserLayout = () => {
     const { refreshShopData } = useShop();
     // const { isStoreSelectorOpen, setIsStoreSelectorOpen } = useStore();
 
-    const isAuthPath = ['/login', '/register', '/logout-confirmation'].includes(location.pathname);
+    const isPublicPath = ['/login', '/register', '/logout-confirmation', '/privacy-policy', '/support/user', '/support/delivery'].includes(location.pathname) || location.pathname.startsWith('/legal/');
 
     const handleRefresh = async () => {
         try {
@@ -205,7 +211,7 @@ const UserLayout = () => {
     if (loading) return <LoadingFallback />;
 
     // APK Mandatory Login Logic
-    if (isWebView && !token && !isAuthPath) {
+    if (isWebView && !token && !isPublicPath) {
         return <Navigate to="/login" replace />;
     }
 
@@ -421,6 +427,7 @@ const UserRoutes = () => {
                         <Route path="/help" element={<HelpPage />} />
                         <Route path="/settings" element={<SettingsPage />} />
                         <Route path="/legal/:slug" element={<LegalPage />} />
+                        <Route path="/support/user" element={<PublicUserSupport />} />
 
                         {/* Offers */}
                         <Route path="/offer/:id" element={<OfferPage />} />
@@ -430,6 +437,7 @@ const UserRoutes = () => {
                         <Route path="/register" element={<RegisterPage />} />
                         <Route path="/logout-confirmation" element={<LogoutConfirmationPage />} />
                     </Route>
+                    <Route path="/privacy-policy" element={<PublicPrivacyPolicy />} />
                 </Routes>
             </Suspense>
         </ShopProvider>

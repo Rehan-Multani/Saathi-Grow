@@ -103,6 +103,87 @@ You have the right to:
 7. CONTACT US
 For privacy-related queries: privacy@Saathigro.com
 SaathiGro Operations, Indore, Madhya Pradesh, India`
+    },
+    {
+      title: 'Privacy Policy',
+      slug: 'user-privacy-policy',
+      targetAudience: ['User'],
+      isActive: true,
+      content: `PRIVACY POLICY — SAATHIGRO USER
+
+Last Updated: April 2026
+
+1. INTRODUCTION
+Welcome to SaathiGro. We are committed to protecting your personal information and your right to privacy. If you have any questions or concerns about our policy, or our practices with regards to your personal information, please contact us at support@Saathigro.com.
+
+2. INFORMATION WE COLLECT
+We collect personal information that you voluntarily provide to us when you:
+- Register on the platform (Name, phone number, email, address)
+- Place an order (Delivery address, items purchased, payment preference)
+- Contact our customer service or write complaints.
+
+3. HOW WE USE YOUR INFORMATION
+We use personal information collected via our Services for a variety of business purposes:
+- To facilitate account creation and logon process.
+- To deliver services and orders to you.
+- To send you marketing, promotional, and updates messages.
+- To respond to user inquiries and offer support.
+- For business purposes such as data analysis, identifying usage trends, and evaluating our promotional campaigns.
+
+4. SHARING YOUR INFORMATION
+We only share information with your consent, to comply with laws, to provide you with services, to protect your rights, or to fulfill business obligations. This includes:
+- Sharing details with our Delivery Partners so they can locate your delivery address.
+- Third-party payment processors to verify and complete transactions.
+
+5. SECURITY OF YOUR INFORMATION
+We use administrative, technical, and physical security measures to help protect your personal information. While we have taken reasonable steps to secure the personal information you provide to us, please be aware that despite our efforts, no security measures are perfect or impenetrable.
+
+6. YOUR PRIVACY RIGHTS
+You may review, change, or terminate your account at any time by contacting us. If you request to delete your account, we will deactivate or delete your account and information from our active databases, subject to regulatory storage rules.
+
+7. CONTACT US
+If you have questions or comments about this policy, you may email us at privacy@Saathigro.com.`
+    },
+    {
+      title: 'Terms & Conditions',
+      slug: 'user-terms-conditions',
+      targetAudience: ['User'],
+      isActive: true,
+      content: `TERMS & CONDITIONS — SAATHIGRO USER AGREEMENT
+
+Last Updated: April 2026
+
+1. ACCEPTANCE OF TERMS
+By downloading, installing, or using the SaathiGro application or website, you agree to comply with and be bound by these Terms & Conditions. If you do not agree to these terms, please do not use our services.
+
+2. USER ACCOUNTS
+To use certain features, you must register for an account. You agree to:
+- Provide accurate and current info during registration.
+- Maintain the security of your password and credentials.
+- Promptly update account info if there are changes.
+- Accept all risks of unauthorized access to your account if credentials are leaked.
+
+3. ORDERING & CANCELLATIONS
+- Order placement: All orders are subject to availability.
+- Pricing: Prices are subject to change. Delivery fees and taxes are detailed at checkout.
+- Cancellation: Orders can only be cancelled before they are dispatched or processed. Please refer to our Refund & Return Policy for details.
+
+4. DELIVERIES
+- Delivery times are estimates and not guarantees. We work to deliver in minutes, but extreme weather, traffic, or system loads may cause delays.
+- You must be available to receive the delivery at the designated address. If you are unavailable, the order may be cancelled with no refund.
+
+5. REFUNDS AND RETURNS
+- Perishable goods, once delivered, cannot be returned unless they are damaged or incorrect at the time of delivery.
+- If you receive damaged or incorrect items, you must raise a complaint within the app or contact support within 24 hours of delivery.
+
+6. CODE OF CONDUCT
+You agree not to misuse our platform, engage in fraudulent activities, or harass our delivery partners or staff.
+
+7. LIMITATION OF LIABILITY
+SaathiGro shall not be liable for any indirect, incidental, special, or consequential damages arising out of or in connection with the use of our services.
+
+8. CONTACT US
+For any legal queries, contact support@Saathigro.com.`
     }
   ];
 
@@ -112,7 +193,8 @@ SaathiGro Operations, Indore, Madhya Pradesh, India`
       await db.collection('legalpages').insertOne({ ...page, createdAt: new Date(), updatedAt: new Date() });
       console.log(`✓ Seeded: ${page.title}`);
     } else {
-      console.log(`- Already exists: ${page.title}`);
+      await db.collection('legalpages').updateOne({ slug: page.slug }, { $set: { ...page, updatedAt: new Date() } });
+      console.log(`✓ Updated: ${page.title}`);
     }
   }
 

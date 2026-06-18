@@ -18,6 +18,9 @@ import FirebaseNotificationHandler from '../../../common/components/FirebaseNoti
 import { isWebView } from '../../../utils/deviceUtils';
 import NewOrderDeliveryPopup from '../components/NewOrderDeliveryPopup';
 
+const DeliveryPrivacyPolicy = lazy(() => import('../pages/DeliveryPrivacyPolicy'));
+const DeliverySupport = lazy(() => import('../../user/pages/support/PublicDeliverySupport'));
+
 const Loading = () => (
     <div className="flex items-center justify-center min-h-[60vh]">
         <div className="w-12 h-12 border-4 border-lime-100 border-t-pink-500 rounded-full animate-spin"></div>
@@ -41,6 +44,8 @@ const DeliveryRoutes = () => {
                     <Routes>
                         <Route path="/login" element={token ? <Navigate to="/delivery/dashboard" replace /> : <Login />} />
                         <Route path="/signup" element={token ? <Navigate to="/delivery/dashboard" replace /> : <Signup />} />
+                        <Route path="/privacy-policy" element={<DeliveryPrivacyPolicy />} />
+                        <Route path="/support" element={<DeliverySupport />} />
 
                         <Route path="/*" element={
                             <DeliveryGuard>
