@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { useLocation } from './LocationContext';
 import { getNearbyStores } from '../api/shopApi';
 

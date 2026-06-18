@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MapPin } from 'lucide-react';
+import { MapPin, X } from 'lucide-react';
 import { useLocation } from '../../context/LocationContext';
 
 const LocationPermissionModal = () => {
@@ -81,6 +81,15 @@ const LocationPermissionModal = () => {
 
             {/* Modal Card */}
             <div className="bg-white dark:bg-[#111111] w-full max-w-[360px] relative z-10 overflow-hidden rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-white/20 dark:border-white/5 p-6 flex flex-col items-center text-center animate-in zoom-in-95 duration-200">
+                {/* Close Button */}
+                <button
+                    onClick={() => setShowPermissionModal(false)}
+                    className="absolute top-4 right-4 p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-full transition-colors"
+                    aria-label="Close"
+                >
+                    <X size={20} className="text-gray-400 dark:text-gray-500" />
+                </button>
+
                 {/* Pin Circle Icon */}
                 <div className="w-20 h-20 bg-[#0c831f]/10 dark:bg-[#0c831f]/20 rounded-full flex items-center justify-center mb-6">
                     <div className="w-14 h-14 bg-[#0c831f]/20 dark:bg-[#0c831f]/30 rounded-full flex items-center justify-center">
