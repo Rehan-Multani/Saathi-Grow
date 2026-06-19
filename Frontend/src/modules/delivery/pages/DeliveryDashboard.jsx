@@ -193,13 +193,12 @@ const DeliveryDashboard = () => {
                                 className="absolute inset-0 w-full h-full object-cover grayscale-[0.3]"
                                 onError={(e) => e.target.style.display = 'none'}
                             />
-                            <div className="absolute inset-0 bg-gradient-to-t from-white dark:from-zinc-900 via-transparent to-transparent"></div>
                             <button
                                 onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=22.7196,75.8577`, '_blank')}
                                 className="navigate-btn-override absolute bottom-3 right-3 bg-slate-900 dark:bg-white text-white dark:text-zinc-900 p-3 shadow-xl active:scale-95 transition-all flex items-center gap-2"
                             >
                                 <Navigation size={12} fill="white" className="dark:fill-zinc-900" />
-                                <span className="text-[8px] font-black uppercase tracking-widest">Navigate</span>
+                                <span className="text-[8px] font-black uppercase tracking-widest">Arriving Soon</span>
                             </button>
                         </div>
 
