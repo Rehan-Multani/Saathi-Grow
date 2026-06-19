@@ -20,6 +20,7 @@ import useDeliveryStore from '../store/deliveryStore';
 import useDelivery from '../hooks/useDelivery';
 import { useNavigate } from 'react-router-dom';
 import { formatCurrency } from '../../vendor/utils/formatDate';
+import mapImage from '../../../assets/image.png';
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
@@ -188,7 +189,7 @@ const DeliveryDashboard = () => {
                                 <span className="text-[10px] font-black uppercase tracking-widest opacity-40">Tactical Map Offline</span>
                             </div>
                             <img
-                                src={mapUrl}
+                                src={mapImage}
                                 alt=""
                                 className="absolute inset-0 w-full h-full object-cover grayscale-[0.3]"
                                 onError={(e) => e.target.style.display = 'none'}
