@@ -15,11 +15,15 @@ async function seed() {
   await mongoose.connect(MONGO_URI);
   console.log('Connected to MongoDB');
 
-  const phone = '9009925021'; // test number — OTP is always 123456
+  const phone = '9685974247'; // test number — OTP is always 123456
 
   const existing = await DeliveryPartner.findOne({ phone });
   if (existing) {
-    console.log('\n⚠️  Delivery partner already exists:\n');
+    console.log('\n⚠️  Delivery partner already exists. Updating OTP and status...\n');
+    existing.otp = '123456';
+    existing.otpExpires = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000); // 1 year expiry
+    existing.authStatus = 'Active';
+    await existing.save();
     printCreds(existing);
     await mongoose.disconnect();
     return;
@@ -38,6 +42,8 @@ async function seed() {
       type: 'Point',
       coordinates: [75.8577, 22.7196], // Indore [lng, lat]
     },
+    otp: '123456',
+    otpExpires: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year expiry
   });
 
   console.log('\n✅ Delivery partner created:\n');
