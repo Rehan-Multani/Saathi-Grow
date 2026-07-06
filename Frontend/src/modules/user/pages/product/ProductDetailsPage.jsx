@@ -35,6 +35,7 @@ const ProductDetailsPage = () => {
     const [reviewComment, setReviewComment] = useState('');
     const [isSubmittingReview, setIsSubmittingReview] = useState(false);
     const [hasUserReviewed, setHasUserReviewed] = useState(false);
+    const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
 
     const loadProduct = async (silent = false) => {
         try {
@@ -90,10 +91,12 @@ const ProductDetailsPage = () => {
                 brandInfo: data.brandInfo,
                 sourceInfo: data.sourceInfo,
                 averageRating: data.averageRating || 0,
-                ratingCount: data.ratingCount || 0
+                ratingCount: data.ratingCount || 0,
+                variants: (data.variants || []).filter((variant) => variant?.value)
             };
 
             setProduct(p);
+            setSelectedVariantIndex(0);
             setSelectedImage(p.image);
             setProductImages(p.images);
 
@@ -242,12 +245,35 @@ const ProductDetailsPage = () => {
 
     if (error || (!loading && !product)) return <div className="p-8 text-center text-gray-500">Product not found. <Link to="/" className="text-green-600 underline">Return Home</Link></div>;
 
-    const cartItem = cart.find(item => item.id === (product?.id || id));
+    const hasVariants = product?.variants?.length > 0;
+    const selectedVariant = hasVariants ? product.variants[selectedVariantIndex] : null;
+    const cartItemId = selectedVariant ? `${product.id}::${selectedVariant.value}` : (product?.id || id);
+    const activePrice = selectedVariant?.price ?? product?.price ?? 0;
+    const activeStock = selectedVariant?.stock ?? product?.availableStock ?? 999;
+    const activeWeight = selectedVariant?.value || product?.weight;
+    const cartItem = cart.find(item => item.id === cartItemId);
     const quantity = cartItem ? cartItem.quantity : 0;
 
+    const buildCartProduct = () => ({
+        ...product,
+        id: cartItemId,
+        productId: product.id,
+        price: activePrice,
+        weight: activeWeight,
+        availableStock: activeStock,
+        maxAllowed: activeStock,
+        selectedVariant: selectedVariant ? {
+            type: selectedVariant.type,
+            value: selectedVariant.value,
+            price: selectedVariant.price,
+            stock: selectedVariant.stock,
+        } : null,
+        name: selectedVariant ? `${product.name} (${selectedVariant.value})` : product.name,
+    });
+
     // Check if product is disabled based on stock/delivery
-    const isOutOfStock = (product?.availableStock ?? 999) <= 0;
-    const isLowStock = (product?.availableStock ?? 999) <= (product?.lowStockThreshold ?? 0) && (product?.availableStock ?? 999) > 0;
+    const isOutOfStock = activeStock <= 0;
+    const isLowStock = activeStock <= (product?.lowStockThreshold ?? 0) && activeStock > 0;
     // Only block if completely out of stock — Low Stock products are still orderable
     const isBtnDisabled = product?.isDeliverable === false || isStoreOutOfRange || isStoreInactive || isOutOfStock;
     const availabilityTone = isStoreInactive
@@ -386,14 +412,50 @@ const ProductDetailsPage = () => {
                         </div>
 
                         <div className="text-[11px] font-medium text-gray-500 mb-2 uppercase tracking-wide">
-                            {product.weight}
+                            {activeWeight}
                         </div>
+
+                        {hasVariants && (
+                            <div className="mb-4">
+                                <p className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-2">Select Unit</p>
+                                <div className="flex flex-wrap gap-2">
+                                    {product.variants.map((variant, index) => {
+                                        const isSelected = selectedVariantIndex === index;
+                                        const isVariantOut = (variant.stock ?? 0) <= 0;
+                                        return (
+                                            <button
+                                                key={`${variant.value}-${index}`}
+                                                type="button"
+                                                onClick={() => setSelectedVariantIndex(index)}
+                                                className={`min-w-[92px] px-3 py-2 rounded-xl border text-left transition-all ${isSelected ? 'border-[#0c831f] bg-[#0c831f]/5 shadow-sm' : 'border-gray-200 bg-white dark:bg-[#18181b] hover:border-[#0c831f]/40'} ${isVariantOut ? 'opacity-70' : ''}`}
+                                            >
+                                                <div className={`text-sm font-bold ${isSelected ? 'text-[#0c831f]' : 'text-gray-900 dark:text-white'}`}>
+                                                    {variant.value}
+                                                </div>
+                                                <div className="text-[10px] font-semibold text-gray-500 mt-0.5">
+                                                    {isVariantOut ? 'Out of stock' : `₹${variant.price ?? activePrice}`}
+                                                </div>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
 
                         <div className="text-lg font-bold text-[#0c831f] dark:text-[#10b981] mb-2">
-                            ₹ {product.price}.00
+                            ₹ {activePrice}.00
                         </div>
 
-                        {product.maxAllowed > 0 && (
+                        {activeStock > 0 && (
+                            <div className="flex items-center gap-1.5 mb-3">
+                                <AlertCircle size={12} className="text-[#0c831f]" />
+                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                                    Qty: <span className="text-[#0c831f]">{activeStock} units </span>
+                                </span>
+                            </div>
+                        )}
+
+                        {product.maxAllowed > 0 && !hasVariants && (
                             <div className="flex items-center gap-1.5 mb-3">
                                 <AlertCircle size={12} className="text-[#0c831f]" />
                                 <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
@@ -453,7 +515,7 @@ const ProductDetailsPage = () => {
                         <div className="mb-1">
                             <p className="text-[10px] text-gray-500 font-medium mb-0.5 uppercase tracking-widest">Total Amount:</p>
                             <div className="text-2xl md:text-3xl font-black text-[#0c831f] dark:text-[#10b981]">
-                                ₹ {product.price * (quantity || 1)}.00
+                                ₹ {activePrice * (quantity || 1)}.00
                             </div>
                         </div>
 
@@ -461,7 +523,7 @@ const ProductDetailsPage = () => {
                             <div className="flex gap-3 items-center w-full">
                                 {quantity === 0 ? (
                                     <button
-                                        onClick={() => protectAction(() => addToCart(product))}
+                                        onClick={() => protectAction(() => addToCart(buildCartProduct()))}
                                         disabled={isBtnDisabled}
                                         className={`flex-1 flex items-center justify-center gap-2 font-bold py-3.5 px-6 !rounded-full transition-all shadow-lg ${isBtnDisabled
                                             ? 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none border border-gray-200'
@@ -479,7 +541,7 @@ const ProductDetailsPage = () => {
                                 ) : (
                                     <div className={`flex items-center bg-[#0c831f] rounded-full p-1 w-fit shadow-lg shadow-green-500/20 ${isBtnDisabled ? 'bg-gray-400 cursor-not-allowed' : ''}`}>
                                         <button
-                                            onClick={() => !isBtnDisabled && protectAction(() => updateQuantity(product.id, -1))}
+                                            onClick={() => !isBtnDisabled && protectAction(() => updateQuantity(cartItemId, -1))}
                                             disabled={isBtnDisabled}
                                             className="w-10 h-10 flex items-center justify-center text-white hover:bg-white/10 rounded-full transition-colors disabled:cursor-not-allowed"
                                         >
@@ -487,7 +549,7 @@ const ProductDetailsPage = () => {
                                         </button>
                                         <span className="w-10 text-center font-black text-lg text-white">{quantity}</span>
                                         <button
-                                            onClick={() => !isBtnDisabled && protectAction(() => updateQuantity(product.id, 1))}
+                                            onClick={() => !isBtnDisabled && protectAction(() => updateQuantity(cartItemId, 1))}
                                             disabled={isBtnDisabled}
                                             className="w-10 h-10 flex items-center justify-center text-white hover:bg-white/10 rounded-full transition-colors disabled:cursor-not-allowed"
                                         >

@@ -5,6 +5,8 @@ import ImageCropperModal from '../../../../common/components/ImageCropperModal';
 import { getCategories } from '../../api/categoryApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { toast } from 'react-toastify';
+import MultiCategoryDropdown from '../../../../common/components/forms/MultiCategoryDropdown';
+import { normalizeBrandCategories, formatBrandCategories } from '../../../../common/utils/brandUtils';
 
 const BrandEditModal = ({ show, onHide, brand, onSave }) => {
     const { t } = useTranslation('admin_categories');
@@ -13,7 +15,7 @@ const BrandEditModal = ({ show, onHide, brand, onSave }) => {
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
         name: '',
-        category: '',
+        categories: [],
         status: 'Active',
         website: '',
         description: ''
@@ -41,7 +43,7 @@ const BrandEditModal = ({ show, onHide, brand, onSave }) => {
         if (brand && show) {
             setFormData({
                 name: brand.name || '',
-                category: brand.category || '',
+                categories: normalizeBrandCategories(brand.category),
                 status: brand.status || 'Active',
                 website: brand.website || '',
                 description: brand.description || ''
@@ -88,11 +90,15 @@ const BrandEditModal = ({ show, onHide, brand, onSave }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (!formData.name || formData.categories.length === 0) {
+            toast.error(t('messages.name_required'));
+            return;
+        }
         setLoading(true);
         try {
             const data = new FormData();
             data.append('name', formData.name);
-            data.append('category', formData.category);
+            data.append('category', JSON.stringify(formData.categories));
             data.append('status', formData.status);
             data.append('website', formData.website);
             data.append('description', formData.description);
@@ -158,7 +164,7 @@ const BrandEditModal = ({ show, onHide, brand, onSave }) => {
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <div className="text-[13px] font-black text-slate-800 truncate leading-none uppercase tracking-tight">{formData.name || 'UNNAMED'}</div>
-                                        <div className="text-[10px] font-bold text-slate-400 mt-1 uppercase truncate">{formData.category || 'NO CATEGORY'}</div>
+                                        <div className="text-[10px] font-bold text-slate-400 mt-1 uppercase truncate">{formatBrandCategories(formData.categories) || 'NO CATEGORY'}</div>
                                     </div>
                                 </div>
                             </div>
@@ -176,13 +182,14 @@ const BrandEditModal = ({ show, onHide, brand, onSave }) => {
                                 </div>
                                 <div className="space-y-2.5">
                                     <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">{t('brands.table.category')}</label>
-                                    <div className="relative group">
-                                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors" size={16} />
-                                        <select name="category" value={formData.category} onChange={handleChange} required className="brand-input with-icon font-bold appearance-none">
-                                            <option value="">{t('subcategories.form.parent_placeholder')}</option>
-                                            {categories.map(cat => <option key={cat._id} value={cat.name}>{cat.name}</option>)}
-                                        </select>
-                                        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none opacity-40"><RefreshCw size={12} className="animate-spin-slow" /></div>
+                                    <div className="relative group brand-input with-icon py-2.5">
+                                        <Search className="absolute left-4 top-4 text-slate-300 group-focus-within:text-blue-500 transition-colors" size={16} />
+                                        <MultiCategoryDropdown
+                                            categories={categories}
+                                            selected={formData.categories}
+                                            onChange={(categories) => setFormData((prev) => ({ ...prev, categories }))}
+                                            placeholder={t('subcategories.form.parent_placeholder')}
+                                        />
                                     </div>
                                 </div>
                             </div>

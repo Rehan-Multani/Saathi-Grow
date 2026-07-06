@@ -169,7 +169,7 @@ const ProductCard = memo(({ product, isCompact = false, customTheme, imgPadding,
         {/* Title */}
         <Link to={`/product/${productId}`} className="z-10">
           <div
-            className="font-bold text-gray-800 dark:text-zinc-100 text-[8.5px] sm:text-[15px] leading-tight mb-0.5 line-clamp-2 min-h-[20px] sm:min-h-[32px] transition-colors tracking-tight hover:text-[var(--theme-color)]"
+            className="font-bold text-gray-800 dark:text-zinc-100 text-[11px] sm:text-[16px] leading-tight mb-0.5 line-clamp-2 min-h-[26px] sm:min-h-[34px] transition-colors tracking-tight hover:text-[var(--theme-color)]"
             style={{ color: 'inherit' }}
           >
             {product.name}
@@ -177,15 +177,15 @@ const ProductCard = memo(({ product, isCompact = false, customTheme, imgPadding,
         </Link>
 
         {/* Weight */}
-        <div className="text-gray-400 dark:text-zinc-500 text-[7.5px] sm:text-[10px] mb-1.5 font-medium uppercase tracking-widest">{product.weight}</div>
+        <div className="text-gray-400 dark:text-zinc-500 text-[10px] sm:text-[11px] mb-1.5 font-medium uppercase tracking-widest">{product.weight}</div>
 
         {/* Bottom Row: Price & Action */}
         <div className={`flex items-center justify-between mt-auto z-10 ${isLowestPrice ? 'gap-1' : ''}`}>
           <div className="flex flex-col">
             {product.originalPrice && product.originalPrice > product.price && (
-              <span className="text-gray-400 dark:text-zinc-600 line-through text-[9px] font-medium leading-none">₹{product.originalPrice}</span>
+              <span className="text-gray-400 dark:text-zinc-600 line-through text-[10px] sm:text-[11px] font-medium leading-none">₹{product.originalPrice}</span>
             )}
-            <span className="text-[12px] sm:text-[18px] font-bold text-gray-900 dark:text-white tracking-tighter leading-tight">₹{product.price}</span>
+            <span className="text-[14px] sm:text-[19px] font-bold text-gray-900 dark:text-white tracking-tighter leading-tight">₹{product.price}</span>
           </div>
 
           {quantity > 0 ? (
@@ -218,7 +218,7 @@ const ProductCard = memo(({ product, isCompact = false, customTheme, imgPadding,
             <button
               onClick={handleAddToCart}
               disabled={isBtnDisabled}
-              className={`${(isLargeButton || isLowestPrice || isValentine || isSaathiSignature) ? ((isValentine || isSaathiSignature) ? 'px-3 sm:px-3 h-[24px] sm:h-[30px] text-[4px]' : isLowestPrice ? 'px-3 sm:px-3 h-[24px] sm:h-[30px] text-[5px]' : 'px-4 sm:px-4 h-[28px] sm:h-[34px] text-[8px]') : (isCompact ? 'px-2 sm:px-3 h-[18px] sm:h-[30px] text-[7px]' : 'px-3 sm:px-4 h-[22px] sm:h-[34px] text-[8px]')} py-1 text-white border border-transparent transition-all sm:text-[11px] font-bold !rounded-full uppercase tracking-wider shadow-sm flex items-center justify-center ${isBtnDisabled ? 'bg-gray-400 cursor-not-allowed' : 'active:scale-95'}`}
+              className={`${(isLargeButton || isLowestPrice || isValentine || isSaathiSignature) ? ((isValentine || isSaathiSignature) ? 'px-3 sm:px-3 h-[24px] sm:h-[30px] text-[9px]' : isLowestPrice ? 'px-3 sm:px-3 h-[24px] sm:h-[30px] text-[10px]' : 'px-4 sm:px-4 h-[28px] sm:h-[34px] text-[10px]') : (isCompact ? 'px-2 sm:px-3 h-[20px] sm:h-[30px] text-[10px]' : 'px-3 sm:px-4 h-[24px] sm:h-[34px] text-[10px]')} py-1 text-white border border-transparent transition-all sm:text-[12px] font-bold !rounded-full uppercase tracking-wider shadow-sm flex items-center justify-center ${isBtnDisabled ? 'bg-gray-400 cursor-not-allowed' : 'active:scale-95'}`}
               style={!isBtnDisabled ? { backgroundColor: isDarkMode ? '#0c831f' : (customTheme ? customTheme.themeColor : '#0c831f') } : {}}
             >
               ADD

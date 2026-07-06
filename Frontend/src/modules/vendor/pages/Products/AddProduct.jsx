@@ -10,6 +10,7 @@ import { getBrands } from '../../../../common/api/brandApi';
 import { addVendorProduct, getVendorAISuggestions } from '../../api/vendorProductApi';
 import { getAvailableVendorLocations } from '../../api/vendorLocationApi';
 import { toast } from 'react-toastify';
+import { brandMatchesCategory } from '../../../../common/utils/brandUtils';
 
 const AddProduct = () => {
     const navigate = useNavigate();
@@ -88,11 +89,7 @@ const AddProduct = () => {
 
     useEffect(() => {
         if (formData.category) {
-            const matches = brands.filter(b => {
-                const brandCat = (b.category || '').toLowerCase().trim();
-                const selectedCat = (formData.category || '').toLowerCase().trim();
-                return brandCat === selectedCat;
-            });
+            const matches = brands.filter(b => brandMatchesCategory(b, formData.category));
             setFilteredBrands(matches);
 
             const filteredSub = subCategories.filter(sc =>

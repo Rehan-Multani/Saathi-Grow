@@ -3,13 +3,15 @@ import { Save, Camera, X } from 'lucide-react';
 import ImageCropperModal from '../../../../common/components/ImageCropperModal';
 import { getCategories } from '../../../../common/api/categoryApi';
 import { useVendor } from '../../contexts/VendorContext';
+import MultiCategoryDropdown from '../../../../common/components/forms/MultiCategoryDropdown';
+import { normalizeBrandCategories } from '../../../../common/utils/brandUtils';
 
 const BrandEditModal = ({ show, onHide, brand, onSave }) => {
   const { vendor } = useVendor();
   const [categories, setCategories] = useState([]);
   const [formData, setFormData] = useState({
     name: '',
-    category: '',
+    categories: [],
     status: 'Active',
     website: '',
     description: ''
@@ -37,7 +39,7 @@ const BrandEditModal = ({ show, onHide, brand, onSave }) => {
     if (brand) {
       setFormData({
         name: brand.name || '',
-        category: brand.category || '',
+        categories: normalizeBrandCategories(brand.category),
         status: brand.status || 'Active',
         website: brand.website || '',
         description: brand.description || ''
@@ -86,10 +88,11 @@ const BrandEditModal = ({ show, onHide, brand, onSave }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!formData.name || formData.categories.length === 0) return;
 
     const data = new FormData();
     data.append('name', formData.name);
-    data.append('category', formData.category);
+    data.append('category', JSON.stringify(formData.categories));
     data.append('status', formData.status);
     data.append('website', formData.website);
     data.append('description', formData.description);
@@ -160,18 +163,13 @@ const BrandEditModal = ({ show, onHide, brand, onSave }) => {
                   </div>
                   <div>
                     <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Category</label>
-                    <select
-                      name="category"
-                      value={formData.category}
-                      onChange={handleChange}
-                      required
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-900 focus:bg-white focus:border-[#0c831f] focus:ring-1 focus:ring-[#0c831f] outline-none transition-all"
-                    >
-                      <option value="">Select Category</option>
-                      {categories.map((cat) => (
-                        <option key={cat._id} value={cat.name}>{cat.name}</option>
-                      ))}
-                    </select>
+                    <MultiCategoryDropdown
+                      categories={categories}
+                      selected={formData.categories}
+                      onChange={(categories) => setFormData((prev) => ({ ...prev, categories }))}
+                      placeholder="Select categories"
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-900"
+                    />
                   </div>
                 </div>
 

@@ -9,6 +9,7 @@ import { toast } from 'react-toastify';
 import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
 import { pageInfoData } from '../../../../common/data/pageInfoData';
 import BrandEditModal from '../../components/products/BrandEditModal';
+import { formatBrandCategories } from '../../../../common/utils/brandUtils';
 
 const BrandStatusBadge = ({ status }) => {
     const { t } = useTranslation('admin_categories');
@@ -51,7 +52,7 @@ const AllBrands = () => {
 
     const filtered = brands.filter(b =>
         b.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        b.category.toLowerCase().includes(searchTerm.toLowerCase())
+        formatBrandCategories(b.category).toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     const totalPages = Math.ceil(filtered.length / limit) || 1;
@@ -164,7 +165,7 @@ const AllBrands = () => {
                                         </td>
                                         <td className="px-8 py-5">
                                             <span className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-[10px] font-black uppercase tracking-widest border border-blue-100/50">
-                                                {b.category}
+                                                {formatBrandCategories(b.category)}
                                             </span>
                                         </td>
                                         <td className="px-8 py-5">

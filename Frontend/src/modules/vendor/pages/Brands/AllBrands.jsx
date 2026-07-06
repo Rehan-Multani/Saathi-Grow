@@ -6,6 +6,7 @@ import BrandEditModal from '../../components/Brands/BrandEditModal';
 import { useVendor } from '../../contexts/VendorContext';
 import { getBrands, deleteBrand, updateBrand } from '../../../../common/api/brandApi';
 import { toast } from 'react-toastify';
+import { formatBrandCategories } from '../../../../common/utils/brandUtils';
 
 const AllBrands = () => {
   const { vendor } = useVendor();
@@ -37,7 +38,7 @@ const AllBrands = () => {
 
   const filtered = brands.filter(b =>
     b.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    b.category.toLowerCase().includes(searchTerm.toLowerCase())
+    formatBrandCategories(b.category).toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const totalItems = filtered.length;
@@ -150,7 +151,7 @@ const AllBrands = () => {
                         </td>
                         <td className="px-6 py-4 text-center">
                           <span className="inline-block px-2.5 py-1 bg-gray-100/80 text-gray-600 rounded-md text-[10px] font-bold uppercase tracking-wider border border-gray-200">
-                            {b.category}
+                            {formatBrandCategories(b.category)}
                           </span>
                         </td>
                         <td className="px-6 py-4 text-center">

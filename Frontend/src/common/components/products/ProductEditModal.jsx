@@ -13,6 +13,16 @@ import { useStoreManagerAuth } from '../../../modules/store-manager/context/Stor
 import { getAISuggestions } from '../../api/productApi';
 import { getAvailableAdminLocations } from '../../../modules/admin/api/physicalLocationApi';
 import { toast } from 'react-toastify';
+import { brandMatchesCategory } from '../../utils/brandUtils';
+import ProductVariantsEditor, { normalizeVariantsForSubmit } from '../forms/ProductVariantsEditor';
+
+const mapProductVariants = (variants = []) =>
+    (variants || []).map((variant) => ({
+        type: variant.type || 'Weight',
+        value: variant.value || '',
+        price: variant.price ?? '',
+        stock: variant.stock ?? '',
+    }));
 
 const ProductEditModal = ({ show, onHide, product, onSave }) => {
     const { t } = useTranslation('admin_products');
@@ -42,7 +52,8 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
         reorderThreshold: 10, maxCapacityPerSku: 0, isStockAutoSync: false,
         weightCategory: 'Light', isFragile: false, temperatureType: 'Normal',
         pickPriority: 0, pickingZone: 'Other',
-        variantGroupId: '', pickSequence: 0
+        variantGroupId: '', pickSequence: 0,
+        variants: []
     });
 
     const [imagePreview, setImagePreview] = useState(null);
@@ -92,7 +103,8 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
                 pickPriority: product.pickPriority || 0,
                 pickingZone: product.pickingZone || 'Other',
                 variantGroupId: product.variantGroupId || '',
-                pickSequence: product.pickSequence || 0
+                pickSequence: product.pickSequence || 0,
+                variants: mapProductVariants(product.variants)
             });
             const activeStocks = (product.branchStocks || []).map(bs => {
                 const bid = bs.branchId?._id || bs.branchId;
@@ -121,7 +133,7 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
 
     useEffect(() => {
         if (formData.category) {
-            setFilteredBrands(brands.filter(b => b.category === formData.category));
+            setFilteredBrands(brands.filter(b => brandMatchesCategory(b, formData.category)));
             setFilteredSubCategories(subCategories.filter(sc => sc.categoryName === formData.category || sc.category?.name === formData.category));
         } else {
             setFilteredBrands([]);
@@ -212,9 +224,12 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
             const isAll = !isVendorProduct && branchStocks.length === branches.length;
             
             Object.keys(formData).forEach(key => {
+                if (key === 'variants') return;
                 if (key === 'tags') data.append(key, Array.isArray(formData.tags) ? formData.tags.join(',') : formData.tags);
                 else data.append(key, formData[key]);
             });
+
+            data.append('variants', JSON.stringify(normalizeVariantsForSubmit(formData.variants, formData.basePrice)));
 
             if (!isVendorProduct) {
                 data.append('specificBranches', branchStocks.map(bs => bs.branchId).join(','));
@@ -443,13 +458,18 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
                                 </div>
                             </div>
 
-                            {/* Section 7: Variant Handling */}
+                            {/* Section 7: Product Variants */}
                             <div className="space-y-6 pt-6 border-t border-slate-50">
                                 <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2">
                                     <span className="w-1 h-4 bg-rose-400 rounded-full"></span>
-                                    Variant Handling
+                                    Product Variants
                                 </h4>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <ProductVariantsEditor
+                                    variants={formData.variants}
+                                    onChange={(variants) => setFormData((prev) => ({ ...prev, variants }))}
+                                    fallbackPrice={formData.basePrice}
+                                />
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-slate-100">
                                     <div className="space-y-2">
                                         <label className="text-sm font-semibold text-slate-700 text-[11px] uppercase tracking-wider">Variant Group ID</label>
                                         <input type="text" name="variantGroupId" value={formData.variantGroupId} onChange={handleChange} className="form-input-simple" placeholder="E.g. COCO-OIL-01" />

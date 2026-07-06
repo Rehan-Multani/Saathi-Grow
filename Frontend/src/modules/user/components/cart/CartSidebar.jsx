@@ -94,7 +94,7 @@ const CartSidebar = () => {
                 )}
 
                 {/* Scrollable Content */}
-                <div className="flex-1 overflow-y-auto p-2.5 space-y-2.5">
+                <div className="flex-1 overflow-y-auto p-2.5 pb-10 space-y-2.5">
                     {cart.length === 0 ? (
                         <div className="h-full flex flex-col items-center justify-center text-center p-6">
                             <div className="w-16 h-16 bg-white dark:bg-white/5 rounded-full flex items-center justify-center mb-4 shadow-sm">
@@ -179,7 +179,7 @@ const CartSidebar = () => {
 
                 {/* Fixed Bottom Section (Bill & CTA) */}
                 {cart.length > 0 && (
-                    <div className="bg-white dark:bg-[#111111] border-t border-gray-100 dark:border-white/5 p-3 sm:p-4 space-y-3 z-20">
+                    <div className="bg-white dark:bg-[#111111] border-t border-gray-100 dark:border-white/5 px-3 pt-3 pb-[calc(max(env(safe-area-inset-bottom,16px),16px)+20px)] sm:p-4 sm:pb-4 space-y-3 z-20">
                         {/* Bill Details - Moved here to be fixed */}
                         <div className="p-3 bg-gray-50/50 dark:bg-white/5 rounded-[20px] shadow-sm border border-gray-100 dark:border-white/5">
                             <h3 className="!text-[9px] font-black text-gray-400 dark:text-gray-500 mb-3 text-left uppercase tracking-widest">Bill details</h3>

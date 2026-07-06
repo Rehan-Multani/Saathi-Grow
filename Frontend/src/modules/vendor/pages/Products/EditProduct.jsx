@@ -10,6 +10,16 @@ import { getBrands } from '../../../../common/api/brandApi';
 import { updateVendorProduct, getVendorAISuggestions } from '../../api/vendorProductApi';
 import { getAvailableVendorLocations } from '../../api/vendorLocationApi';
 import { toast } from 'react-toastify';
+import { brandMatchesCategory } from '../../../../common/utils/brandUtils';
+import ProductVariantsEditor, { normalizeVariantsForSubmit } from '../../../../common/components/forms/ProductVariantsEditor';
+
+const mapProductVariants = (variants = []) =>
+    (variants || []).map((variant) => ({
+        type: variant.type || 'Weight',
+        value: variant.value || '',
+        price: variant.price ?? '',
+        stock: variant.stock ?? '',
+    }));
 
 const EditProduct = () => {
     const { productId } = useParams();
@@ -79,7 +89,7 @@ const EditProduct = () => {
                 lowStockThreshold: product.lowStockThreshold || 10,
                 status: product.status || '',
                 isSaathigro: product.isSaathigro || false,
-                variants: product.variants || []
+                variants: mapProductVariants(product.variants)
             });
             setImagePreview(product.image);
             setGalleryPreviews(product.gallery || []);
@@ -119,11 +129,7 @@ const EditProduct = () => {
 
     useEffect(() => {
         if (formData.category) {
-            const matches = brands.filter(b => {
-                const brandCat = (b.category || '').toLowerCase().trim();
-                const selectedCat = (formData.category || '').toLowerCase().trim();
-                return brandCat === selectedCat;
-            });
+            const matches = brands.filter(b => brandMatchesCategory(b, formData.category));
             setFilteredBrands(matches);
 
             const filteredSub = subCategories.filter(sc =>
@@ -269,10 +275,12 @@ const EditProduct = () => {
         try {
             const data = new FormData();
             Object.keys(formData).forEach(key => {
+                if (key === 'variants') return;
                 if (key === 'tags') data.append(key, formData.tags.join(','));
-                else if (key === 'variants') data.append(key, JSON.stringify(formData.variants));
                 else data.append(key, formData[key]);
             });
+
+            data.append('variants', JSON.stringify(normalizeVariantsForSubmit(formData.variants, formData.basePrice)));
 
             if (imageFile) data.append('image', imageFile);
 
@@ -390,6 +398,15 @@ const EditProduct = () => {
                                     </div>
                                 </div>
                             </div>
+                        </div>
+
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                            <h2 className="text-sm font-bold text-gray-900 uppercase tracking-widest mb-4">Product Variants</h2>
+                            <ProductVariantsEditor
+                                variants={formData.variants}
+                                onChange={(variants) => setFormData((prev) => ({ ...prev, variants }))}
+                                fallbackPrice={formData.basePrice}
+                            />
                         </div>
                     </div>
 

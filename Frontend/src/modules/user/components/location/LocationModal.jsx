@@ -116,6 +116,7 @@ const LocationModal = () => {
     const cityCoords = {
         'Indore': [75.8577, 22.7196],
         'Bhopal': [77.4126, 23.2599],
+        'Udaipur': [73.7125, 24.5854],
         'Mumbai': [72.8777, 19.0760],
         'Delhi': [77.1025, 28.7041],
         'Bangalore': [77.5946, 12.9716]

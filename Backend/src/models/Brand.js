@@ -12,8 +12,12 @@ const brandSchema = new mongoose.Schema({
     default: ''
   },
   category: {
-    type: String,
-    required: [true, 'Brand category is required']
+    type: [String],
+    required: [true, 'Brand category is required'],
+    validate: {
+      validator: (value) => Array.isArray(value) && value.length > 0,
+      message: 'At least one category is required'
+    }
   },
   website: {
     type: String,

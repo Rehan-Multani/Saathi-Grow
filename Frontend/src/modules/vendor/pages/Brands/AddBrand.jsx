@@ -6,6 +6,7 @@ import { useVendor } from '../../contexts/VendorContext';
 import { createBrand } from '../../../../common/api/brandApi';
 import { getCategories } from '../../../../common/api/categoryApi';
 import { toast } from 'react-toastify';
+import MultiCategoryDropdown from '../../../../common/components/forms/MultiCategoryDropdown';
 
 const AddBrand = () => {
   const navigate = useNavigate();
@@ -14,7 +15,7 @@ const AddBrand = () => {
   const [categories, setCategories] = useState([]);
   const [formData, setFormData] = useState({
     name: '',
-    category: '',
+    categories: [],
     status: 'Active',
     website: '',
     description: ''
@@ -73,7 +74,7 @@ const AddBrand = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.name || !formData.category) {
+    if (!formData.name || formData.categories.length === 0) {
       return toast.error('Name and Category are required');
     }
 
@@ -81,7 +82,7 @@ const AddBrand = () => {
     try {
       const brandData = new FormData();
       brandData.append('name', formData.name);
-      brandData.append('category', formData.category);
+      brandData.append('category', JSON.stringify(formData.categories));
       brandData.append('status', formData.status);
       brandData.append('website', formData.website);
       brandData.append('description', formData.description);
@@ -138,18 +139,13 @@ const AddBrand = () => {
 
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-1.5 flex items-center gap-1">Category <span className="text-red-500">*</span></label>
-                  <select
-                    name="category"
-                    value={formData.category}
-                    onChange={handleChange}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-900 focus:bg-white focus:border-[#0c831f] focus:ring-1 focus:ring-[#0c831f] outline-none transition-all"
-                    required
-                  >
-                    <option value="">Select Category</option>
-                    {categories.map((cat) => (
-                      <option key={cat._id} value={cat.name}>{cat.name}</option>
-                    ))}
-                  </select>
+                  <MultiCategoryDropdown
+                    categories={categories}
+                    selected={formData.categories}
+                    onChange={(categories) => setFormData((prev) => ({ ...prev, categories }))}
+                    placeholder="Select categories"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-900"
+                  />
                 </div>
 
                 <div>

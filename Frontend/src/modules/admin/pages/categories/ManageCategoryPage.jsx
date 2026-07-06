@@ -12,6 +12,7 @@ import ProductPickerModal from '../../../../common/components/forms/ProductPicke
 import MediaUploadField from '../../../../common/components/forms/MediaUploadField';
 import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
 import { pageInfoData } from '../../../../common/data/pageInfoData';
+import { brandMatchesCategory } from '../../../../common/utils/brandUtils';
 
 const defaultTheme = {
   pageBg: '#f6fbf7',
@@ -243,7 +244,7 @@ const ManageCategoryPage = () => {
 
   const filteredBrands = useMemo(() => {
     if (!selectedCategory) return [];
-    return brands.filter((brand) => String(brand.category || '').toLowerCase() === String(selectedCategory.name || '').toLowerCase());
+    return brands.filter((brand) => brandMatchesCategory(brand, selectedCategory.name));
   }, [brands, selectedCategory]);
 
   const handleCategoryChange = (categoryId) => {

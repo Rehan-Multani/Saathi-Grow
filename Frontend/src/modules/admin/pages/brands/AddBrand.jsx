@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
 import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
 import { pageInfoData } from '../../../../common/data/pageInfoData';
+import MultiCategoryDropdown from '../../../../common/components/forms/MultiCategoryDropdown';
 
 const AddBrand = () => {
     const { t } = useTranslation('admin_categories');
@@ -21,7 +22,7 @@ const AddBrand = () => {
 
     const [formData, setFormData] = useState({
         name: '',
-        category: '',
+        categories: [],
         status: 'Active',
         website: '',
         description: ''
@@ -82,13 +83,13 @@ const AddBrand = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!formData.name || !formData.category) return toast.error(t('messages.name_required'));
+        if (!formData.name || formData.categories.length === 0) return toast.error(t('messages.name_required'));
 
         setLoading(true);
         try {
             const brandData = new FormData();
             brandData.append('name', formData.name);
-            brandData.append('category', formData.category);
+            brandData.append('category', JSON.stringify(formData.categories));
             brandData.append('status', formData.status);
             brandData.append('website', formData.website);
             brandData.append('description', formData.description);
@@ -145,20 +146,16 @@ const AddBrand = () => {
                                 </div>
                                 <div className="space-y-2.5">
                                     <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">{t('brands.table.category')} <span className="text-rose-500">*</span></label>
-                                    <div className="relative group">
-                                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors" size={17} />
-                                        <select 
-                                            name="category" 
-                                            value={formData.category} 
-                                            onChange={handleChange} 
-                                            required 
-                                            className="brand-add-input pl-12 font-bold appearance-none pr-10"
+                                    <div className="relative group brand-add-input pl-12 pr-10 py-2.5">
+                                        <Search className="absolute left-4 top-4 text-slate-300 group-focus-within:text-blue-500 transition-colors" size={17} />
+                                        <MultiCategoryDropdown
+                                            categories={categories}
+                                            selected={formData.categories}
+                                            onChange={(categories) => setFormData((prev) => ({ ...prev, categories }))}
+                                            placeholder={t('subcategories.form.parent_placeholder')}
                                             disabled={categoriesLoading}
-                                        >
-                                            <option value="">{t('subcategories.form.parent_placeholder')}</option>
-                                            {categories.map(cat => <option key={cat._id} value={cat.name}>{cat.name}</option>)}
-                                        </select>
-                                        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none opacity-40"><RefreshCw size={12} className={categoriesLoading ? 'animate-spin' : ''} /></div>
+                                        />
+                                        <div className="absolute right-4 top-4 pointer-events-none opacity-40"><RefreshCw size={12} className={categoriesLoading ? 'animate-spin' : ''} /></div>
                                     </div>
                                 </div>
                             </div>
