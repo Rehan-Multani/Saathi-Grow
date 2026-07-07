@@ -84,11 +84,16 @@ const makeFileFilter = () => (req, file, cb) => {
 
 const uploadOpts = { fileFilter: makeFileFilter(), limits: { fileSize: 10 * 1024 * 1024 } };
 
+// Product images allow larger files (up to 50MB) than other uploads.
+const productUploadOpts = { fileFilter: makeFileFilter(), limits: { fileSize: 50 * 1024 * 1024 } };
+
 // Named exports — routes import whichever they need
 const upload          = multer({ storage: adminStorage,    ...uploadOpts });
 const userUpload      = multer({ storage: userStorage,     ...uploadOpts });
 const deliveryUpload  = multer({ storage: deliveryStorage, ...uploadOpts });
 const productUpload   = multer({ storage: productStorage,  ...uploadOpts });
+// Dedicated large-limit uploader for product image/gallery (keeps same admin storage folder).
+const productImageUpload = multer({ storage: adminStorage, ...productUploadOpts });
 const complaintUpload = multer({ storage: complaintStorage,...uploadOpts });
 const returnUpload    = multer({ storage: returnStorage,   ...uploadOpts });
 
@@ -128,6 +133,7 @@ export {
   productUpload,
   complaintUpload,
   returnUpload,
+  productImageUpload,
   memoryUpload,
   uploadBufferToCloudinary,
 };

@@ -6,7 +6,7 @@ import axios from 'axios';
 import { API_BASE_URL } from '../../../../config/apiConfig';
 
 const MobileFooter = ({ setIsMenuOpen, isBottomSheetOpen }) => {
-    const { user } = useAuth();
+    const { user, showLoginModal } = useAuth();
     const location = useLocation();
     const [isKeyboardOpen, setIsKeyboardOpen] = React.useState(false);
     const [unreadCount, setUnreadCount] = React.useState(0);
@@ -97,7 +97,7 @@ const MobileFooter = ({ setIsMenuOpen, isBottomSheetOpen }) => {
     const isComplaintPage = location.pathname.includes('/complaint') || location.pathname.includes('/support/raise-ticket');
     const isReturnPage = location.pathname.includes('/return');
     const isCategoryPage = location.pathname.startsWith('/category');
-    const isActuallyHidden = hideOnPages.includes(location.pathname) || isTrackingPage || isComplaintPage || isReturnPage || (isKeyboardOpen && !isCategoryPage);
+    const isActuallyHidden = hideOnPages.includes(location.pathname) || isTrackingPage || isComplaintPage || isReturnPage || showLoginModal || (isKeyboardOpen && !isCategoryPage);
 
     const navItems = [
         { path: '/', label: 'Home', icon: Home },

@@ -1819,6 +1819,45 @@ export const deleteOrder = async (req, res) => {
   }
 };
 
+// @desc    Delete multiple orders at once (Admin/Staff)
+// @route   DELETE /api/orders/admin/bulk
+// @access  Private (Admin/Staff with MANAGE_ORDERS)
+export const bulkDeleteOrders = async (req, res) => {
+  try {
+    const { ids } = req.body;
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ message: 'No order ids provided' });
+    }
+
+    const objectIds = ids.filter((id) => mongoose.Types.ObjectId.isValid(id));
+    const orderIds = ids.filter((id) => !mongoose.Types.ObjectId.isValid(id));
+
+    const query = { $or: [] };
+    if (objectIds.length) query.$or.push({ _id: { $in: objectIds } });
+    if (orderIds.length) query.$or.push({ orderId: { $in: orderIds } });
+
+    if (query.$or.length === 0) {
+      return res.status(400).json({ message: 'No valid order ids provided' });
+    }
+
+    // Branch Security: non-admins can only delete orders from their own branch
+    if (req.admin?.role !== 'Admin') {
+      if (!req.admin?.branchId) return res.status(403).json({ message: 'No branch assigned' });
+      query.branchId = req.admin.branchId;
+    }
+
+    const result = await Order.deleteMany(query);
+
+    res.json({
+      message: `${result.deletedCount} order(s) deleted successfully`,
+      deletedCount: result.deletedCount
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // @desc    Get return requests for Admin/Staff (Central control)
 // @route   GET /api/orders/admin/returns
 // @access  Private (Admin/Staff)

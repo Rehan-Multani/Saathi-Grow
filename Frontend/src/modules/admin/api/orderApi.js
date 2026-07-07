@@ -90,6 +90,17 @@ export const deleteOrder = async (id) => {
   return data;
 };
 
+export const bulkDeleteOrders = async (ids = []) => {
+  const auth = getAuthDetails();
+  if (!auth) return null;
+
+  const { data } = await axios.delete(`${API_URL}/admin/bulk`, {
+    headers: { Authorization: `Bearer ${auth.token}` },
+    data: { ids }
+  });
+  return data;
+};
+
 export const getReturnRequests = async (params = {}, options = {}) => {
   const auth = getAuthDetails();
   if (!auth) {

@@ -49,7 +49,7 @@ import {
   deleteOfferDeal
 } from '../controllers/offerController.js';
 import { protectVendor } from '../middleware/authMiddleware.js';
-import { upload } from '../config/cloudinary.js';
+import { upload, productImageUpload } from '../config/cloudinary.js';
 
 const router = express.Router();
 
@@ -72,10 +72,10 @@ router.put('/fcm-token', protectVendor, updateFCMToken);
 // Product management for vendor
 router.route('/products')
   .get(protectVendor, getVendorProducts)
-  .post(protectVendor, upload.fields([{ name: 'image', maxCount: 1 }, { name: 'gallery', maxCount: 10 }]), addVendorProduct);
+  .post(protectVendor, productImageUpload.fields([{ name: 'image', maxCount: 1 }, { name: 'gallery', maxCount: 10 }]), addVendorProduct);
 
 router.route('/products/:id')
-  .put(protectVendor, upload.fields([{ name: 'image', maxCount: 1 }, { name: 'gallery', maxCount: 10 }]), updateVendorProduct)
+  .put(protectVendor, productImageUpload.fields([{ name: 'image', maxCount: 1 }, { name: 'gallery', maxCount: 10 }]), updateVendorProduct)
   .delete(protectVendor, deleteVendorProduct);
 
 router.route('/products/:id/stock')

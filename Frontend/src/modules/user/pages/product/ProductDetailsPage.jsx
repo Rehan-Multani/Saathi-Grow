@@ -455,15 +455,6 @@ const ProductDetailsPage = () => {
                             </div>
                         )}
 
-                        {product.maxAllowed > 0 && !hasVariants && (
-                            <div className="flex items-center gap-1.5 mb-3">
-                                <AlertCircle size={12} className="text-[#0c831f]" />
-                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                                    Qty: <span className="text-[#0c831f]">{product.maxAllowed} units </span>
-                                </span>
-                            </div>
-                        )}
-
                         {/* Brand & Source Section - Ultra Compact Pills */}
                         <div className="flex gap-2 mb-6 overflow-x-auto scrollbar-hide lg-scrollbar-show no-scrollbar pr-4">
                             {/* Brand Pill */}

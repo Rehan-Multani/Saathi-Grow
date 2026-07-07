@@ -9,6 +9,7 @@ import {
   getAllOrdersAdmin,
   updateOrderStatus,
   deleteOrder,
+  bulkDeleteOrders,
   getReturnRequests,
   handleStoreReturnAction,
   cancelOrderUser,
@@ -54,6 +55,7 @@ router.get('/admin/:id', protectAdmin, requirePermission('VIEW_ORDERS'), getOrde
 router.put('/admin/:id/status', protectAdmin, requirePermission('MANAGE_ORDERS'), idempotencyGuard(), sensitiveAdminActionLimiter, auditAction('ORDER_STATUS_UPDATE'), updateOrderStatus);
 router.put('/admin/:id/return/accept', protectAdmin, requirePermission('MANAGE_REFUNDS_RETURNS'), idempotencyGuard(), sensitiveAdminActionLimiter, auditAction('RETURN_REQUEST_HANDLE'), handleStoreReturnAction);
 router.post('/admin/returns/batch-schedule', protectAdmin, requirePermission('MANAGE_REFUNDS_RETURNS'), idempotencyGuard(), sensitiveAdminActionLimiter, auditAction('RETURN_BATCH_SCHEDULE'), createReturnBatch);
+router.delete('/admin/bulk', protectAdmin, requirePermission('MANAGE_ORDERS'), idempotencyGuard(), sensitiveAdminActionLimiter, auditAction('ORDER_BULK_DELETE'), bulkDeleteOrders);
 router.delete('/admin/:id', protectAdmin, requirePermission('MANAGE_ORDERS'), idempotencyGuard(), sensitiveAdminActionLimiter, auditAction('ORDER_DELETE'), deleteOrder);
 
 export default router;

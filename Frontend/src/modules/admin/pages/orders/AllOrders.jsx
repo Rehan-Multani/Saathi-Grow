@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import { Search, Eye, Printer, Filter, Download, Store, Upload, Clock, ChevronLeft, ChevronRight, Zap, CreditCard, Calendar, Truck, Edit3, Trash2, CheckCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import OrderDetailsModal from '../../../../common/components/orders/OrderDetailsModal';
-import { getAllOrdersAdmin, deleteOrder, updateOrderStatus, getOrderDetails } from '../../api/orderApi';
+import { getAllOrdersAdmin, deleteOrder, bulkDeleteOrders, updateOrderStatus, getOrderDetails } from '../../api/orderApi';
 import { getDeliverySlots } from '../../api/deliverySlotApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import Swal from 'sweetalert2';
@@ -37,6 +37,7 @@ const AllOrders = () => {
     const [showModal, setShowModal] = useState(false);
     const [showFilterMenu, setShowFilterMenu] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState(null);
+    const [selectedIds, setSelectedIds] = useState([]);
     const { adminUser } = useAdminAuth();
 
     const generateAndPrintReceipt = (order) => {
@@ -321,17 +322,79 @@ const AllOrders = () => {
     const handleDeleteOrder = async (orderId) => {
         const result = await Swal.fire({
             title: t('actions.delete_confirm_title'),
-            text: t('actions.delete_confirm_text', { id: orderId }),
+            html: `
+                <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+                    <p style="color:#475569;font-size:14px;margin:0;">${t('actions.delete_confirm_text', { id: orderId })}</p>
+                    <div style="background:#fef2f2;border:1px solid #fecaca;color:#b91c1c;font-size:12px;font-weight:600;padding:8px 12px;border-radius:8px;">
+                        ${t('actions.delete_warning', { defaultValue: 'This action cannot be undone.' })}
+                    </div>
+                </div>
+            `,
             icon: 'warning',
             showCancelButton: true,
+            reverseButtons: true,
+            focusCancel: true,
             confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#64748b',
             confirmButtonText: t('common:yes_confirm'),
+            cancelButtonText: t('common:cancel', { defaultValue: 'Cancel' }),
         });
 
         if (result.isConfirmed) {
             try {
                 await deleteOrder(orderId);
                 toast.success(t('actions.delete_success'));
+                setSelectedIds((prev) => prev.filter(id => id !== orderId));
+                fetchOrders();
+            } catch (error) {
+                toast.error(error.response?.data?.message || t('common:error_occurred'));
+            }
+        }
+    };
+
+    const toggleSelect = (id) => {
+        setSelectedIds((prev) => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+    };
+
+    const allSelected = orders.length > 0 && orders.every(o => selectedIds.includes(o._id));
+
+    const toggleSelectAll = () => {
+        if (allSelected) {
+            const currentIds = orders.map(o => o._id);
+            setSelectedIds((prev) => prev.filter(id => !currentIds.includes(id)));
+        } else {
+            setSelectedIds((prev) => Array.from(new Set([...prev, ...orders.map(o => o._id)])));
+        }
+    };
+
+    const handleBulkDelete = async () => {
+        if (selectedIds.length === 0) return;
+
+        const result = await Swal.fire({
+            title: t('actions.bulk_delete_confirm_title', { defaultValue: 'Delete selected orders?' }),
+            html: `
+                <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+                    <p style="color:#475569;font-size:14px;margin:0;">${t('actions.bulk_delete_confirm_text', { count: selectedIds.length, defaultValue: `Are you sure you want to delete ${selectedIds.length} selected order(s)?` })}</p>
+                    <div style="background:#fef2f2;border:1px solid #fecaca;color:#b91c1c;font-size:12px;font-weight:600;padding:8px 12px;border-radius:8px;">
+                        ${t('actions.delete_warning', { defaultValue: 'This action cannot be undone.' })}
+                    </div>
+                </div>
+            `,
+            icon: 'warning',
+            showCancelButton: true,
+            reverseButtons: true,
+            focusCancel: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: t('common:yes_confirm'),
+            cancelButtonText: t('common:cancel', { defaultValue: 'Cancel' }),
+        });
+
+        if (result.isConfirmed) {
+            try {
+                await bulkDeleteOrders(selectedIds);
+                toast.success(t('actions.bulk_delete_success', { count: selectedIds.length, defaultValue: `${selectedIds.length} order(s) deleted` }));
+                setSelectedIds([]);
                 fetchOrders();
             } catch (error) {
                 toast.error(error.response?.data?.message || t('common:error_occurred'));
@@ -635,11 +698,36 @@ const AllOrders = () => {
                 </div>
             </div>
 
+            {selectedIds.length > 0 && (
+                <div className="bg-blue-600 text-white rounded-xl px-4 py-3 mb-4 flex items-center justify-between shadow-sm">
+                    <div className="flex items-center gap-3">
+                        <span className="text-sm font-bold">{selectedIds.length} {t('selected', { defaultValue: 'selected' })}</span>
+                        <button onClick={() => setSelectedIds([])} className="text-xs font-medium text-blue-100 hover:text-white underline">
+                            {t('clear_selection', { defaultValue: 'Clear' })}
+                        </button>
+                    </div>
+                    <button
+                        onClick={handleBulkDelete}
+                        className="flex items-center gap-2 px-4 py-2 bg-white text-red-600 rounded-lg text-sm font-bold hover:bg-red-50 transition-colors"
+                    >
+                        <Trash2 size={16} /> {t('actions.delete', { defaultValue: 'Delete' })}
+                    </button>
+                </div>
+            )}
+
             <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden mb-8">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
                         <thead>
                             <tr className="bg-slate-50 text-[11px] font-bold text-slate-400 uppercase tracking-wide border-b border-slate-100">
+                                <th className="px-6 py-4 w-10">
+                                    <input
+                                        type="checkbox"
+                                        checked={allSelected}
+                                        onChange={toggleSelectAll}
+                                        className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer accent-blue-600"
+                                    />
+                                </th>
                                 <th className="px-6 py-4">{t('table.id')}</th>
                                 <th className="px-6 py-4">{t('table.customer')}</th>
                                 <th className="px-6 py-4">{t('table.date')}</th>
@@ -658,7 +746,15 @@ const AllOrders = () => {
                                 ))
                             ) : orders.length > 0 ? (
                                 orders.map((order) => (
-                                    <tr key={order._id} className="hover:bg-slate-50/50 transition-colors">
+                                    <tr key={order._id} className={`hover:bg-slate-50/50 transition-colors ${selectedIds.includes(order._id) ? 'bg-blue-50/40' : ''}`}>
+                                        <td className="px-6 py-4">
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedIds.includes(order._id)}
+                                                onChange={() => toggleSelect(order._id)}
+                                                className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer accent-blue-600"
+                                            />
+                                        </td>
                                         <td className="px-6 py-4">
                                             <span className="text-sm font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded">
                                                 #{order.orderId || order._id}
@@ -701,6 +797,7 @@ const AllOrders = () => {
                                                 )}
                                                 <button onClick={() => handleShowDetails(order)} title="View Details" className="p-2 hover:bg-slate-100 hover:text-slate-900 rounded-lg text-slate-400 transition-colors"><Eye size={16} /></button>
                                                 <button onClick={() => handlePrintReceipt(order)} title="Print Receipt" className="p-2 hover:bg-blue-50 hover:text-blue-600 rounded-lg text-slate-400 transition-colors"><Printer size={16} /></button>
+                                                <button onClick={() => handleDeleteOrder(order._id)} title="Delete Order" className="p-2 hover:bg-red-50 hover:text-red-600 rounded-lg text-slate-400 transition-colors"><Trash2 size={16} /></button>
                                             </div>
                                         </td>
                                     </tr>

@@ -285,6 +285,13 @@ const AddProduct = () => {
         }
     }, []);
 
+    const handleRemoveImage = useCallback((e) => {
+        e?.stopPropagation();
+        e?.preventDefault();
+        setImagePreview(null);
+        setImageFile(null);
+    }, []);
+
     const handleCropComplete = useCallback(async (croppedImage) => {
         try {
             setImagePreview(croppedImage);
@@ -865,10 +872,23 @@ const AddProduct = () => {
                                     </>
                                 )}
                                 <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleImageChange} accept="image/*" />
-                                {imagePreview && <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-xs font-bold">Replace Main Photo</div>}
+                                {imagePreview && <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-xs font-bold pointer-events-none">Replace Main Photo</div>}
+                                {imagePreview && (
+                                    <button
+                                        type="button"
+                                        onClick={handleRemoveImage}
+                                        title="Remove image"
+                                        className="absolute top-2 right-2 z-10 p-1.5 bg-white/90 hover:bg-white rounded-lg text-red-500 shadow-md transition-all"
+                                    >
+                                        <Trash2 size={16} />
+                                    </button>
+                                )}
                             </div>
                             {!imagePreview && (
                                 <p className="text-[11px] text-red-400 font-semibold">Upload a product image to continue</p>
+                            )}
+                            {imagePreview && (
+                                <p className="text-[11px] text-slate-400 font-medium">Click image to replace, or use the trash icon to remove.</p>
                             )}
                         </div>
 

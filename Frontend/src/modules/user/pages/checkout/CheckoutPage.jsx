@@ -735,13 +735,13 @@ const CheckoutPage = () => {
                         </div>
                         <div className="flex justify-between items-center">
                             <span className="text-[11px] text-gray-500 font-medium capitalize">Delivery fee</span>
-                            <span className={`text-[11px] font-black ${billDetails?.deliveryFee === 0 ? 'text-[#0c831f]' : 'text-gray-900 dark:text-white'}`}>
-                                {billDetails?.deliveryFee === 0 ? 'Free' : `₹${billDetails?.deliveryFee || '-'}`}
+                            <span className={`text-[11px] font-black ${Number(billDetails?.deliveryFee) === 0 ? 'text-[#0c831f]' : 'text-gray-900 dark:text-white'}`}>
+                                {Number(billDetails?.deliveryFee) === 0 ? 'Free' : `₹${Number(billDetails?.deliveryFee) || 0}`}
                             </span>
                         </div>
                         <div className="flex justify-between items-center">
                             <span className="text-[11px] text-gray-500 font-medium capitalize">Handling fee</span>
-                            <span className="text-[11px] font-black text-gray-900 dark:text-white">₹{billDetails?.handlingFee || '-'}</span>
+                            <span className="text-[11px] font-black text-gray-900 dark:text-white">₹{Number(billDetails?.handlingFee) || 0}</span>
                         </div>
 
                         {billDetails?.taxAmount > 0 && (
@@ -775,7 +775,7 @@ const CheckoutPage = () => {
 
                         <div className="pt-5 border-t border-dashed border-gray-100 dark:border-white/10 flex justify-between items-center">
                             <span className="text-[14px] font-black text-gray-900 dark:text-white">To pay</span>
-                            <span className="text-[20px] font-black text-gray-900 dark:text-white tracking-tighter">₹{billDetails?.totalAmount || '-'}</span>
+                            <span className="text-[20px] font-black text-gray-900 dark:text-white tracking-tighter">₹{Number(billDetails?.totalAmount) || 0}</span>
                         </div>
                     </div>
                 </div>
@@ -786,7 +786,7 @@ const CheckoutPage = () => {
                 <div className="max-w-2xl mx-auto flex items-center justify-between gap-5 px-1">
                     <div className="flex flex-col">
                         <span className="text-[8px] text-gray-400 font-black uppercase tracking-widest">Total Pay</span>
-                        <span className="text-[18px] font-black text-gray-900 dark:text-white tracking-tighter leading-none">₹{billDetails?.totalAmount || '-'}</span>
+                        <span className="text-[18px] font-black text-gray-900 dark:text-white tracking-tighter leading-none">₹{Number(billDetails?.totalAmount) || 0}</span>
                     </div>
                     <button
                         onClick={handlePlaceOrder}

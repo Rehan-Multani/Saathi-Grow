@@ -7,6 +7,8 @@
   "dashboard": "Dashboard",
   "save": "Save",
   "cancel": "Cancel",
+  "yes_confirm": "Yes, delete",
+  "error_occurred": "Something went wrong",
   "add": "Add",
   "update": "Update",
   "loading": "Loading...",

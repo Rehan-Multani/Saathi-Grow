@@ -18,7 +18,7 @@ import {
   bulkUploadProducts
 } from '../controllers/productController.js';
 import { protectAdmin, restrictTo, requirePermission, optionalProtectAdmin, protectStoreManager, optionalProtectStoreManager } from '../middleware/authMiddleware.js';
-import { upload } from '../config/cloudinary.js';
+import { upload, productImageUpload } from '../config/cloudinary.js';
 import multer from 'multer';
 
 const csvUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
@@ -48,10 +48,10 @@ router.use(protectAdmin);
 // Dynamic Routes Section
 router.get('/:id/inventory-logs', requirePermission('MANAGE_INVENTORY'), getInventoryLogs);
 
-router.post('/', requirePermission('MANAGE_PRODUCTS'), upload.fields([{ name: 'image', maxCount: 1 }, { name: 'gallery', maxCount: 10 }]), createProduct);
+router.post('/', requirePermission('MANAGE_PRODUCTS'), productImageUpload.fields([{ name: 'image', maxCount: 1 }, { name: 'gallery', maxCount: 10 }]), createProduct);
 
 router.route('/:id')
-  .put(requirePermission('MANAGE_PRODUCTS'), upload.fields([{ name: 'image', maxCount: 1 }, { name: 'gallery', maxCount: 10 }]), updateProduct)
+  .put(requirePermission('MANAGE_PRODUCTS'), productImageUpload.fields([{ name: 'image', maxCount: 1 }, { name: 'gallery', maxCount: 10 }]), updateProduct)
   .delete(requirePermission('MANAGE_PRODUCTS'), restrictTo('Admin', 'Store Manager'), deleteProduct);
 
 router.post('/:id/inventory', requirePermission('MANAGE_INVENTORY'), adjustInventory);
