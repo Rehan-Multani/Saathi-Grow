@@ -35,3 +35,32 @@ messaging.onBackgroundMessage((payload) => {
 
   self.registration.showNotification(title, options);
 });
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+
+  const data = event.notification?.data || {};
+  const origin = self.location.origin;
+  const fallbackUrl = `${origin}/notifications`;
+
+  let targetUrl = data.link || data.url || '';
+  if (!targetUrl && data.orderId) {
+    targetUrl = `${origin}/orders/${data.orderId}`;
+  }
+  if (!targetUrl) targetUrl = fallbackUrl;
+
+  event.waitUntil((async () => {
+    const allClients = await clients.matchAll({ type: 'window', includeUncontrolled: true });
+    const sameOriginClient = allClients.find((c) => c.url.startsWith(origin));
+
+    if (sameOriginClient) {
+      await sameOriginClient.focus();
+      if ('navigate' in sameOriginClient) {
+        return sameOriginClient.navigate(targetUrl);
+      }
+      return;
+    }
+
+    await clients.openWindow(targetUrl);
+  })());
+});

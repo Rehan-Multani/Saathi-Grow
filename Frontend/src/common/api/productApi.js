@@ -69,6 +69,23 @@ export const deleteProduct = async (token, id) => {
   return data;
 };
 
+export const bulkDeleteProducts = async (token, ids = []) => {
+  const response = await fetch(`${PRODUCTS_API_BASE_URL}/bulk`, {
+    method: 'DELETE',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ ids }),
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || 'Failed to delete products');
+  }
+  return data;
+};
+
 export const getProductById = async (token, id) => {
   const response = await fetch(`${PRODUCTS_API_BASE_URL}/${id}`, {
     method: 'GET',

@@ -33,32 +33,35 @@ const AllSubCategories = () => {
 
     const [page, setPage] = useState(1);
     const limit = 10;
+    const [pagination, setPagination] = useState({ total: 0, totalPages: 1, page: 1, limit });
 
     const fetchSubCategories = useCallback(async () => {
         if (!adminUser?.token) return;
         setLoading(true);
         try {
-            const data = await getSubCategories(adminUser.token);
-            setSubCategories(data);
+            const data = await getSubCategories(adminUser.token, { page, limit, search: searchTerm });
+            const nextSubCategories = Array.isArray(data?.subCategories) ? data.subCategories : (Array.isArray(data) ? data : []);
+            const nextPagination = data?.pagination || {
+                total: nextSubCategories.length,
+                totalPages: Math.ceil(nextSubCategories.length / limit) || 1,
+                page,
+                limit
+            };
+            setSubCategories(nextSubCategories);
+            setPagination(nextPagination);
         } catch (error) {
             // toast.error(t('loading_failed'));
         } finally {
             setLoading(false);
         }
-    }, [adminUser.token, t]);
+    }, [adminUser.token, page, searchTerm, t]);
 
     useEffect(() => {
         fetchSubCategories();
     }, [fetchSubCategories]);
 
-    const filtered = subCategories.filter(sc =>
-        sc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        sc.categoryName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        sc.category?.name?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
-    const totalPages = Math.ceil(filtered.length / limit) || 1;
-    const paginatedItems = filtered.slice((page - 1) * limit, page * limit);
+    const totalFiltered = pagination.total || 0;
+    const totalPages = pagination.totalPages || 1;
 
     useEffect(() => { setPage(1); }, [searchTerm]);
 
@@ -84,7 +87,7 @@ const AllSubCategories = () => {
         if (result.isConfirmed) {
             try {
                 await deleteSubCategory(adminUser.token, id);
-                setSubCategories(subCategories.filter(sc => sc._id !== id));
+                fetchSubCategories();
                 showSuccessAlert(t('messages.delete_success'));
             } catch (error) {
                 showErrorAlert('Error', error.message);
@@ -149,8 +152,8 @@ const AllSubCategories = () => {
                                         </div>
                                     </td>
                                 </tr>
-                            ) : paginatedItems.length > 0 ? (
-                                paginatedItems.map((sc) => (
+                            ) : subCategories.length > 0 ? (
+                                subCategories.map((sc) => (
                                     <tr key={sc._id} className="hover:bg-slate-50/20 transition-colors group">
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-4">
@@ -221,38 +224,40 @@ const AllSubCategories = () => {
                 </div>
 
                 {/* Pagination */}
-                {!loading && totalPages > 1 && (
+                {!loading && totalFiltered > 0 && (
                     <div className="px-6 py-4 bg-slate-50/50 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
                         <div className="text-xs font-medium text-slate-500 italic">
-                            Displaying {((page - 1) * limit) + 1}-{Math.min(page * limit, filtered.length)} of {filtered.length} subcategories
+                            Displaying {((page - 1) * limit) + 1}-{Math.min(page * limit, totalFiltered)} of {totalFiltered} subcategories
                         </div>
-                        <div className="flex items-center gap-2">
-                            <button
-                                onClick={() => setPage(p => Math.max(1, p - 1))}
-                                disabled={page === 1}
-                                className={`p-2 rounded-lg border transition-all ${page === 1 ? 'text-slate-200 border-slate-100' : 'bg-white border-slate-200 text-slate-600 hover:border-blue-500 hover:text-blue-600 shadow-sm'}`}
-                            >
-                                <ChevronLeft size={16} />
-                            </button>
-                            <div className="flex gap-1">
-                                {[...Array(totalPages)].map((_, i) => (
-                                    <button
-                                        key={i}
-                                        onClick={() => setPage(i + 1)}
-                                        className={`w-9 h-9 text-xs font-bold rounded-lg transition-all ${page === (i + 1) ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100 border border-slate-100'}`}
-                                    >
-                                        {i + 1}
-                                    </button>
-                                ))}
+                        {totalPages > 1 && (
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                                    disabled={page === 1}
+                                    className={`p-2 rounded-lg border transition-all ${page === 1 ? 'text-slate-200 border-slate-100' : 'bg-white border-slate-200 text-slate-600 hover:border-blue-500 hover:text-blue-600 shadow-sm'}`}
+                                >
+                                    <ChevronLeft size={16} />
+                                </button>
+                                <div className="flex gap-1">
+                                    {[...Array(totalPages)].map((_, i) => (
+                                        <button
+                                            key={i}
+                                            onClick={() => setPage(i + 1)}
+                                            className={`w-9 h-9 text-xs font-bold rounded-lg transition-all ${page === (i + 1) ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100 border border-slate-100'}`}
+                                        >
+                                            {i + 1}
+                                        </button>
+                                    ))}
+                                </div>
+                                <button
+                                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                                    disabled={page === totalPages}
+                                    className={`p-2 rounded-lg border transition-all ${page === totalPages ? 'text-slate-200 border-slate-100' : 'bg-white border-slate-200 text-slate-600 hover:border-blue-500 hover:text-blue-600 shadow-sm'}`}
+                                >
+                                    <ChevronRight size={16} />
+                                </button>
                             </div>
-                            <button
-                                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                                disabled={page === totalPages}
-                                className={`p-2 rounded-lg border transition-all ${page === totalPages ? 'text-slate-200 border-slate-100' : 'bg-white border-slate-200 text-slate-600 hover:border-blue-500 hover:text-blue-600 shadow-sm'}`}
-                            >
-                                <ChevronRight size={16} />
-                            </button>
-                        </div>
+                        )}
                     </div>
                 )}
             </div>

@@ -32,7 +32,7 @@ const AllStaff = () => {
         try {
             const { staff, pagination: paginationData } = await getAllStaff(
                 adminUser.token,
-                { page, limit, search: searchTerm },
+                { page, limit, search: searchTerm, includeMeta: true },
                 { paginated: true }
             );
             setStaffList(Array.isArray(staff) ? staff : []);
@@ -263,45 +263,39 @@ const AllStaff = () => {
 
                 {/* Pagination */}
                 {!loading && totalFiltered > 0 && (
-                    <div className="px-6 py-4 bg-slate-50/30 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <div className="px-6 py-4 bg-slate-50/50 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
                         <div className="text-xs font-medium text-slate-500 italic">
-                            Showing {staffList.length} of {totalFiltered} team members
+                            Showing {((page - 1) * limit) + 1}-{Math.min(page * limit, totalFiltered)} of {totalFiltered} team members
                         </div>
-                        <div className="flex items-center gap-2">
-                            <button
-                                onClick={() => setPage(p => Math.max(1, p - 1))}
-                                disabled={page === 1}
-                                className={`p-2 rounded-lg border transition-all ${page === 1 ? 'text-slate-200 border-slate-100' : 'bg-white border-slate-200 text-slate-600 hover:border-blue-500 hover:text-blue-600 shadow-sm'}`}
-                            >
-                                <ChevronLeft size={16} />
-                            </button>
-                            <div className="flex items-center gap-1">
-                                {[...Array(totalPages)].map((_, i) => {
-                                    const p = i + 1;
-                                    if (p === 1 || p === totalPages || Math.abs(page - p) <= 1) {
-                                        return (
-                                            <button
-                                                key={p}
-                                                onClick={() => setPage(p)}
-                                                className={`w-9 h-9 rounded-lg text-xs font-bold transition-all ${page === p ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100 border border-slate-100'}`}
-                                            >
-                                                {p}
-                                            </button>
-                                        );
-                                    } else if (p === page - 2 || p === page + 2) {
-                                        return <span key={p} className="text-slate-300 px-0.5 font-bold">...</span>;
-                                    }
-                                    return null;
-                                })}
+                        {totalPages > 1 && (
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                                    disabled={page === 1}
+                                    className={`p-2 rounded-lg border transition-all ${page === 1 ? 'text-slate-200 border-slate-100' : 'bg-white border-slate-200 text-slate-600 hover:border-blue-500 hover:text-blue-600 shadow-sm'}`}
+                                >
+                                    <ChevronLeft size={16} />
+                                </button>
+                                <div className="flex gap-1">
+                                    {[...Array(totalPages)].map((_, i) => (
+                                        <button
+                                            key={i}
+                                            onClick={() => setPage(i + 1)}
+                                            className={`w-9 h-9 text-xs font-bold rounded-lg transition-all ${page === (i + 1) ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100 border border-slate-100'}`}
+                                        >
+                                            {i + 1}
+                                        </button>
+                                    ))}
+                                </div>
+                                <button
+                                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                                    disabled={page === totalPages}
+                                    className={`p-2 rounded-lg border transition-all ${page === totalPages ? 'text-slate-200 border-slate-100' : 'bg-white border-slate-200 text-slate-600 hover:border-blue-500 hover:text-blue-600 shadow-sm'}`}
+                                >
+                                    <ChevronRight size={16} />
+                                </button>
                             </div>
-                            <button
-                                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                                disabled={page === totalPages}
-                                className={`p-2 rounded-lg border transition-all ${page === totalPages ? 'text-slate-200 border-slate-100' : 'bg-white border-slate-200 text-slate-600 hover:border-blue-500 hover:text-blue-600 shadow-sm'}`}
-                            >
-                                <ChevronRight size={16} />
-                            </button>
-                        </div>
+                        )}
                     </div>
                 )}
             </div>

@@ -10,6 +10,25 @@ import Notification from '../models/Notification.js';
 const sentCache = new Map();
 const CACHE_TTL = 10000; // 10 seconds
 
+const buildDeepLink = (recipientModel, data = {}) => {
+  const baseUrl = process.env.CLIENT_URL || 'https://saathi-grow-8oyg.vercel.app';
+  const orderId = data?.orderId;
+  const ticketId = data?.ticketId;
+
+  if (orderId) {
+    if (recipientModel === 'User') return `${baseUrl}/orders/${orderId}`;
+    if (recipientModel === 'DeliveryPartner') return `${baseUrl}/delivery/dashboard`;
+    if (recipientModel === 'Vendor') return `${baseUrl}/vendor/orders`;
+    if (recipientModel === 'Admin') return `${baseUrl}/admin/orders`;
+  }
+
+  if (ticketId && recipientModel === 'User') {
+    return `${baseUrl}/my-complaints`;
+  }
+
+  return baseUrl;
+};
+
 /**
  * Send push notification to a specific user/partner
  * @param {string} recipientId - MongoDB ID of the recipient
@@ -75,6 +94,7 @@ export const sendPushNotification = async (recipientId, recipientModel, notifica
 
     const messages = uniqueTokens.map(token => {
       console.log('Sending notification to token:', token);
+      const deepLink = buildDeepLink(recipientModel, data);
       const message = {
         token,
         notification: {
@@ -85,6 +105,7 @@ export const sendPushNotification = async (recipientId, recipientModel, notifica
           ...Object.fromEntries(
             Object.entries(data).map(([k, v]) => [k, String(v)])
           ),
+          link: deepLink,
           click_action: 'FLUTTER_NOTIFICATION_CLICK',
         },
         // ✅ Web push config (Windows Notification Center + browser)
@@ -101,7 +122,7 @@ export const sendPushNotification = async (recipientId, recipientModel, notifica
             vibrate: [200, 100, 200, 100, 200, 100, 200],
           },
           fcmOptions: {
-            link: process.env.CLIENT_URL || 'https://saathi-grow-8oyg.vercel.app',
+            link: deepLink,
           },
         },
         // ✅ Android config

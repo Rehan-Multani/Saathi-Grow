@@ -115,14 +115,14 @@ const StockAdjustments = () => {
                                         </td>
                                         <td className="px-4 py-4 text-center">
                                             <div className={`text-xs font-bold ${ (log.type === 'Addition' || log.type === 'Return') ? 'text-emerald-600' : 'text-rose-600'}`}>
-                                                {(log.type === 'Addition' || log.type === 'Return') ? '+' : '-'}{log.changeAmount}
+                                                {(log.type === 'Addition' || log.type === 'Return') ? '+' : '-'}{Math.abs(log.changeAmount ?? 0)}
                                             </div>
                                             <div className="text-[9px] text-slate-400 font-bold uppercase tracking-tight mt-0.5">Stock: {log.newStock}</div>
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <div className="flex flex-col items-end">
                                                 <div className="text-xs font-bold text-slate-900 leading-tight flex items-center gap-1.5">
-                                                    {log.admin?.name || 'System'} <User size={12} className="text-slate-300" />
+                                                    <User size={12} className="text-slate-300" /> {log.admin?.name || 'System'}
                                                 </div>
                                                 <div className="text-[10px] text-slate-400 font-semibold max-w-[140px] truncate">{log.reason || 'No reason provided'}</div>
                                             </div>

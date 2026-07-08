@@ -32,31 +32,35 @@ const AllBrands = () => {
 
     const [page, setPage] = useState(1);
     const limit = 10;
+    const [pagination, setPagination] = useState({ total: 0, totalPages: 1, page: 1, limit });
 
     const fetchBrands = useCallback(async () => {
         if (!adminUser?.token) return;
         setLoading(true);
         try {
-            const data = await getBrands(adminUser.token);
-            setBrands(data);
+            const data = await getBrands(adminUser.token, { page, limit, search: searchTerm });
+            const nextBrands = Array.isArray(data?.brands) ? data.brands : (Array.isArray(data) ? data : []);
+            const nextPagination = data?.pagination || {
+                total: nextBrands.length,
+                totalPages: Math.ceil(nextBrands.length / limit) || 1,
+                page,
+                limit
+            };
+            setBrands(nextBrands);
+            setPagination(nextPagination);
         } catch (error) {
             // toast.error(t('loading_failed'));
         } finally {
             setLoading(false);
         }
-    }, [adminUser.token, t]);
+    }, [adminUser.token, page, searchTerm, t]);
 
     useEffect(() => {
         fetchBrands();
     }, [fetchBrands]);
 
-    const filtered = brands.filter(b =>
-        b.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        formatBrandCategories(b.category).toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
-    const totalPages = Math.ceil(filtered.length / limit) || 1;
-    const paginatedItems = filtered.slice((page - 1) * limit, page * limit);
+    const totalFiltered = pagination.total || 0;
+    const totalPages = pagination.totalPages || 1;
 
     useEffect(() => { setPage(1); }, [searchTerm]);
 
@@ -65,7 +69,7 @@ const AllBrands = () => {
         if (result.isConfirmed) {
             try {
                 await deleteBrand(adminUser.token, id);
-                setBrands(brands.filter(b => b._id !== id));
+                fetchBrands();
                 showSuccessAlert(t('messages.delete_success'));
             } catch (error) {
                 showErrorAlert('Error', error.message);
@@ -149,8 +153,8 @@ const AllBrands = () => {
                                         <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest tracking-widest">{t('loading')}</p>
                                     </td>
                                 </tr>
-                            ) : paginatedItems.length > 0 ? (
-                                paginatedItems.map((b) => (
+                            ) : brands.length > 0 ? (
+                                brands.map((b) => (
                                     <tr key={b._id} className="hover:bg-slate-50/50 transition-colors group">
                                         <td className="px-8 py-5">
                                             <div className="flex items-center gap-5">
@@ -224,38 +228,40 @@ const AllBrands = () => {
                 </div>
 
                 {/* Pagination */}
-                {!loading && totalPages > 1 && (
+                {!loading && totalFiltered > 0 && (
                     <div className="px-8 py-5 bg-white border-t border-slate-50 flex items-center justify-between">
                         <span className="text-[11px] font-bold text-slate-300 uppercase tracking-widest">
-                            {t('pagination.showing')} {((page - 1) * limit) + 1} - {Math.min(page * limit, filtered.length)} of {filtered.length} {t('brands.title')}
+                            {t('pagination.showing')} {((page - 1) * limit) + 1} - {Math.min(page * limit, totalFiltered)} of {totalFiltered} {t('brands.title')}
                         </span>
-                        <div className="flex gap-1.5 items-center">
-                            <button 
-                                onClick={() => setPage(p => Math.max(1, p - 1))} 
-                                disabled={page === 1} 
-                                className="w-10 h-10 flex items-center justify-center hover:bg-slate-50 rounded-xl text-slate-400 disabled:opacity-20 transition-all border border-transparent hover:border-slate-100"
-                            >
-                                <ChevronLeft size={20} />
-                            </button>
-                            <div className="flex gap-1">
-                                {[...Array(totalPages)].map((_, i) => (
-                                    <button
-                                        key={i}
-                                        onClick={() => setPage(i + 1)}
-                                        className={`w-10  h-10 text-[11px] font-black rounded-xl transition-all ${page === (i + 1) ? 'bg-blue-600 text-white shadow-lg shadow-blue-100' : 'text-slate-400 hover:bg-slate-50'}`}
-                                    >
-                                        {i + 1}
-                                    </button>
-                                ))}
+                        {totalPages > 1 && (
+                            <div className="flex gap-1.5 items-center">
+                                <button 
+                                    onClick={() => setPage(p => Math.max(1, p - 1))} 
+                                    disabled={page === 1} 
+                                    className="w-10 h-10 flex items-center justify-center hover:bg-slate-50 rounded-xl text-slate-400 disabled:opacity-20 transition-all border border-transparent hover:border-slate-100"
+                                >
+                                    <ChevronLeft size={20} />
+                                </button>
+                                <div className="flex gap-1">
+                                    {[...Array(totalPages)].map((_, i) => (
+                                        <button
+                                            key={i}
+                                            onClick={() => setPage(i + 1)}
+                                            className={`w-10  h-10 text-[11px] font-black rounded-xl transition-all ${page === (i + 1) ? 'bg-blue-600 text-white shadow-lg shadow-blue-100' : 'text-slate-400 hover:bg-slate-50'}`}
+                                        >
+                                            {i + 1}
+                                        </button>
+                                    ))}
+                                </div>
+                                <button 
+                                    onClick={() => setPage(p => Math.min(totalPages, p + 1))} 
+                                    disabled={page === totalPages} 
+                                    className="w-10 h-10 flex items-center justify-center hover:bg-slate-50 rounded-xl text-slate-400 disabled:opacity-20 transition-all border border-transparent hover:border-slate-100"
+                                >
+                                    <ChevronRight size={20} />
+                                </button>
                             </div>
-                            <button 
-                                onClick={() => setPage(p => Math.min(totalPages, p + 1))} 
-                                disabled={page === totalPages} 
-                                className="w-10 h-10 flex items-center justify-center hover:bg-slate-50 rounded-xl text-slate-400 disabled:opacity-20 transition-all border border-transparent hover:border-slate-100"
-                            >
-                                <ChevronRight size={20} />
-                            </button>
-                        </div>
+                        )}
                     </div>
                 )}
             </div>

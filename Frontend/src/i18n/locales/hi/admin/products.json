@@ -65,7 +65,15 @@
     "update_success": "उत्पाद सफलतापूर्वक अपडेट किया गया",
     "managed_by_vendor": "यह उत्पाद विक्रेता द्वारा प्रबंधित है",
     "delete_confirm_title": "उत्पाद हटाएं?",
-    "delete_confirm_text": "क्या आप वाकई {{name}} को हटाना चाहते हैं?"
+    "delete_confirm_text": "क्या आप वाकई {{name}} को हटाना चाहते हैं?",
+    "bulk_delete_confirm_title": "चयनित उत्पाद हटाएं?",
+    "bulk_delete_confirm_text": "क्या आप वाकई {{count}} चयनित उत्पाद हटाना चाहते हैं? यह पूर्ववत नहीं हो सकता।",
+    "bulk_delete_success": "{{count}} उत्पाद हटाए गए"
+  },
+  "selection": {
+    "selected": "{{count}} चयनित",
+    "clear": "साफ़ करें",
+    "delete": "हटाएं"
   },
   "filters": {
     "options": "फ़िल्टर विकल्प",
@@ -77,7 +85,8 @@
     "sku_count": "{{count}} उत्पाद मिले",
     "syncing": "सिंक हो रहा है...",
     "no_products": "कोई उत्पाद नहीं मिला",
-    "page_of": "पेज {{current}} / {{total}}"
+    "page_of": "पेज {{current}} / {{total}}",
+    "showing_range": "{{total}} में से {{start}}–{{end}} दिखा रहे हैं"
   },
   "restock": {
     "title": "स्टॉक अपडेट करें",

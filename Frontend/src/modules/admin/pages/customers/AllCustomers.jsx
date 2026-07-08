@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Search, MoreHorizontal, Mail, Phone, MapPin, Eye, Ban, CheckCircle, Send, ChevronLeft, ChevronRight, Filter, X, Loader2, User, ShieldCheck } from 'lucide-react';
+import { Search, MoreHorizontal, Mail, Phone, MapPin, Eye, Ban, CheckCircle, Send, ChevronLeft, ChevronRight, Filter, X, Loader2, Trash2 } from 'lucide-react';
 import CustomerDetailsModal from '../../../../common/components/customers/CustomerDetailsModal';
 import SendMessageModal from '../../../../common/components/customers/SendMessageModal';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import * as customerApi from '../../../../common/api/customerManagementApi';
+import { showDeleteConfirmation } from '../../../../common/utils/alertUtils';
 import { toast } from 'react-toastify';
 import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
 import { pageInfoData } from '../../../../common/data/pageInfoData';
@@ -119,6 +120,30 @@ const AllCustomers = () => {
             toast.success(customer.isActive ? t('all.alerts.block_success') : t('all.alerts.unblock_success'));
         } catch (error) {
             toast.error(t('all.errors.update_failed'));
+        }
+    };
+
+    const handleDelete = async (customer) => {
+        const result = await showDeleteConfirmation(
+            t('all.alerts.delete_confirm_title'),
+            t('all.alerts.delete_confirm_text', { name: customer.name || t('all.anonymous') })
+        );
+        if (!result.isConfirmed) return;
+
+        try {
+            await customerApi.deleteCustomer(adminUser.token, customer._id);
+            setCustomers((prev) => prev.filter((c) => c._id !== customer._id));
+            setPagination((prev) => ({
+                ...prev,
+                total: Math.max(0, (prev.total || 1) - 1)
+            }));
+            if (selectedCustomer?._id === customer._id) {
+                setShowDetailsModal(false);
+                setSelectedCustomer(null);
+            }
+            toast.success(t('all.alerts.delete_success'));
+        } catch (error) {
+            toast.error(error.message || t('all.errors.delete_failed'));
         }
     };
 
@@ -295,6 +320,13 @@ const AllCustomers = () => {
                                             >
                                                 <Eye size={16} />
                                             </button>
+                                            <button
+                                                onClick={() => handleDelete(c)}
+                                                className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all"
+                                                title={t('all.actions.delete')}
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
                                             <div className="relative group/actions">
                                                 <button className="p-2 text-slate-400 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-all">
                                                     <MoreHorizontal size={16} />
@@ -310,6 +342,9 @@ const AllCustomers = () => {
                                                     <button onClick={() => handleStatusToggle(c)} className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-left text-xs font-bold transition-all ${c.isActive ? 'text-rose-600 hover:bg-rose-50' : 'text-emerald-600 hover:bg-emerald-50'}`}>
                                                         {c.isActive ? <Ban size={14} /> : <CheckCircle size={14} />}
                                                         {c.isActive ? t('all.actions.block_user') : t('all.actions.unblock_user')}
+                                                    </button>
+                                                    <button onClick={() => handleDelete(c)} className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-left text-xs font-bold text-rose-600 hover:bg-rose-50 transition-all">
+                                                        <Trash2 size={14} /> {t('all.actions.delete')}
                                                     </button>
                                                 </div>
                                             </div>

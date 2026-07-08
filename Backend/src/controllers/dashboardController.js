@@ -56,8 +56,8 @@ export const getDashboardStats = async (req, res) => {
       Order.countDocuments({ ...query, createdAt: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) } }),
       // Prev Total Orders
       Order.countDocuments({ ...query, createdAt: { $gte: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000), $lt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) } }),
-      // Pending Orders
-      Order.countDocuments({ ...query, status: 'pending' }),
+      // Pending Orders (Current 30 Days - aligned with totalOrders window)
+      Order.countDocuments({ ...query, status: 'pending', createdAt: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) } }),
       // Total Products
       role === 'Admin' ? Product.countDocuments() : Product.countDocuments({ 'branchStocks.branchId': branchObjectId }),
       // Users (Scoped to branch customers if not Admin)

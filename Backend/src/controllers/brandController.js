@@ -82,6 +82,8 @@ export const createBrand = async (req, res) => {
 // @access  Private (Admin/Vendor)
 export const getBrands = async (req, res) => {
   try {
+    const { search, page, limit } = req.query;
+    const hasPagination = page !== undefined || limit !== undefined;
     let query = {};
     if (req.vendor) {
       // Return Admin brands (no vendor field) OR brands belonging to this vendor
@@ -93,6 +95,32 @@ export const getBrands = async (req, res) => {
         ]
       };
     }
+
+    if (search && String(search).trim()) {
+      const rx = { $regex: String(search).trim(), $options: 'i' };
+      const searchOr = [{ name: rx }, { category: rx }];
+      if (query.$or) {
+        query = { $and: [{ $or: query.$or }, { $or: searchOr }] };
+      } else {
+        query.$or = searchOr;
+      }
+    }
+
+    if (hasPagination) {
+      const pageNumber = Math.max(parseInt(page, 10) || 1, 1);
+      const limitNumber = Math.min(Math.max(parseInt(limit, 10) || 10, 1), 100);
+      const total = await Brand.countDocuments(query);
+      const totalPages = Math.ceil(total / limitNumber) || 1;
+      const brands = await Brand.find(query)
+        .sort('-createdAt')
+        .skip((pageNumber - 1) * limitNumber)
+        .limit(limitNumber);
+      return res.json({
+        brands: brands.map(serializeBrand),
+        pagination: { total, page: pageNumber, limit: limitNumber, totalPages }
+      });
+    }
+
     const brands = await Brand.find(query).sort('-createdAt');
     res.json(brands.map(serializeBrand));
   } catch (error) {

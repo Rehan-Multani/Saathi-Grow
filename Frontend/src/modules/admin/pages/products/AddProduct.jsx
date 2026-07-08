@@ -356,13 +356,46 @@ const AddProduct = () => {
         setGalleryFiles(prev => prev.filter((_, i) => i !== index));
     }, []);
 
-    const addTag = useCallback(() => {
-        const tag = tagInput.trim();
-        if (tag && !formData.tags.includes(tag)) {
-            setFormData(prev => ({ ...prev, tags: [...prev.tags, tag] }));
-            setTagInput('');
+    const commitTagsFromInput = useCallback((rawValue, { keepRemainder = false } = {}) => {
+        const value = String(rawValue ?? '');
+        if (!value.trim() && !value.includes(',')) return;
+
+        if (keepRemainder) {
+            const parts = value.split(',');
+            const remainder = parts.pop() ?? '';
+            const newTags = parts.map((t) => t.trim()).filter(Boolean);
+            if (newTags.length > 0) {
+                setFormData((prev) => ({
+                    ...prev,
+                    tags: [...new Set([...prev.tags, ...newTags])]
+                }));
+            }
+            setTagInput(remainder);
+            return;
         }
-    }, [tagInput, formData.tags]);
+
+        const newTags = value.split(',').map((t) => t.trim()).filter(Boolean);
+        if (newTags.length > 0) {
+            setFormData((prev) => ({
+                ...prev,
+                tags: [...new Set([...prev.tags, ...newTags])]
+            }));
+        }
+        setTagInput('');
+    }, []);
+
+    const handleTagInputChange = useCallback((e) => {
+        const value = e.target.value;
+        if (value.includes(',')) {
+            commitTagsFromInput(value, { keepRemainder: true });
+        } else {
+            setTagInput(value);
+        }
+    }, [commitTagsFromInput]);
+
+    const addTag = useCallback(() => {
+        commitTagsFromInput(tagInput, { keepRemainder: false });
+    }, [tagInput, commitTagsFromInput]);
 
     const handleAISuggestion = useCallback(async (type) => {
         if (!formData.name) return toast.warning('Name required');
@@ -565,11 +598,17 @@ const AddProduct = () => {
                                     ))}
                                     <input 
                                         type="text" 
-                                        placeholder="Add custom tag..." 
+                                        placeholder="Add tags, separate with comma..." 
                                         value={tagInput} 
-                                        onChange={e => setTagInput(e.target.value)} 
-                                        onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addTag())} 
-                                        className="!bg-transparent !border-none !outline-none !shadow-none !ring-0 focus:!ring-0 text-xs flex-1 min-w-[150px] py-1" 
+                                        onChange={handleTagInputChange}
+                                        onKeyDown={e => {
+                                            if (e.key === 'Enter' || e.key === ',') {
+                                                e.preventDefault();
+                                                addTag();
+                                            }
+                                        }}
+                                        onBlur={() => { if (tagInput.trim()) addTag(); }}
+                                        className="plain-input text-xs flex-1 min-w-[150px] py-1" 
                                     />
                                 </div>
                             </div>

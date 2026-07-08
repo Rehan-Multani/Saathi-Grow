@@ -351,6 +351,18 @@ export const getProducts = async (req, res) => {
       if (inactiveVendors.length > 0) {
         query.vendor = { $nin: inactiveVendors };
       }
+
+      // Hide branch products that are not available on any active branch
+      const activeBranches = await Branch.find({ isActive: true }).distinct('_id');
+      query.$and = query.$and || [];
+      query.$and.push({
+        $or: [
+          { vendor: { $exists: true, $ne: null } },
+          ...(activeBranches.length > 0
+            ? [{ 'branchStocks.branchId': { $in: activeBranches } }]
+            : [{ _id: null }]) // no active branches => hide all branch-only products
+        ]
+      });
     }
 
     // Campaign filtering
@@ -458,6 +470,7 @@ export const getProducts = async (req, res) => {
       query.$and.push({
         $or: [
           { name: { $regex: safeSearchRegex } },
+          { sku: { $regex: safeSearchRegex } },
           { description: { $regex: safeSearchRegex } },
           { tags: { $in: [safeSearchRegex] } }
         ]
@@ -1539,6 +1552,40 @@ export const deleteProduct = async (req, res) => {
   }
 };
 
+// @desc    Bulk delete products
+// @route   DELETE /api/admin/products/bulk
+// @access  Private (Admin)
+export const bulkDeleteProducts = async (req, res) => {
+  try {
+    const { ids } = req.body;
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ message: 'No product ids provided' });
+    }
+
+    const objectIds = ids.filter((id) => mongoose.Types.ObjectId.isValid(id));
+    if (objectIds.length === 0) {
+      return res.status(400).json({ message: 'No valid product ids provided' });
+    }
+
+    const query = { _id: { $in: objectIds } };
+
+    // Non-admins cannot delete vendor-owned products
+    if (req.admin?.role !== 'Admin') {
+      query.$or = [{ vendor: null }, { vendor: { $exists: false } }];
+    }
+
+    const result = await Product.deleteMany(query);
+
+    res.json({
+      message: `${result.deletedCount} product(s) deleted successfully`,
+      deletedCount: result.deletedCount
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // @desc    Get inventory analytical stats
 // @route   GET /api/admin/products/inventory/stats
 // @access  Private (Admin/Staff)
@@ -2088,12 +2135,73 @@ export const getLowStockAlerts = async (req, res) => {
 };
 
 // ─── Helper: Parse Excel Buffer ───────────────────────────────────────────────
+// ─── Helper: Normalize Excel header keys ─────────────────────────────────────
+const BULK_HEADER_ALIASES = {
+  name: ['name', 'product', 'productname', 'product_name', 'item', 'itemname', 'item_name'],
+  category: ['category', 'cat', 'categoryname', 'category_name'],
+  subcategory: ['subcategory', 'sub_category', 'subcat'],
+  brandname: ['brandname', 'brand', 'brand_name'],
+  baseprice: ['baseprice', 'base_price', 'price', 'sellingprice', 'selling_price', 'sp'],
+  mrp: ['mrp', 'maxretailprice', 'max_retail_price', 'retailprice'],
+  unittype: ['unittype', 'unit_type', 'unit', 'uom'],
+  unitvalue: ['unitvalue', 'unit_value', 'size', 'packsize', 'pack_size'],
+  description: ['description', 'desc', 'details'],
+  tags: ['tags', 'tag', 'keywords'],
+  sku: ['sku', 'code', 'productsku', 'product_sku', 'itemcode', 'item_code'],
+  stock: ['stock', 'qty', 'quantity', 'inventory', 'stockqty', 'stock_qty'],
+  status: ['status', 'productstatus', 'product_status'],
+  image: ['image', 'imageurl', 'image_url', 'img', 'photo'],
+  isveg: ['isveg', 'is_veg', 'veg'],
+};
+
+const normalizeHeaderKey = (key) =>
+  String(key || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[\s_\-./]+/g, '');
+
+const canonicalBulkKey = (rawKey) => {
+  const normalized = normalizeHeaderKey(rawKey);
+  for (const [canonical, aliases] of Object.entries(BULK_HEADER_ALIASES)) {
+    if (aliases.includes(normalized) || canonical === normalized) return canonical === 'subcategory' ? 'subCategory'
+      : canonical === 'brandname' ? 'brandName'
+      : canonical === 'baseprice' ? 'basePrice'
+      : canonical === 'unittype' ? 'unitType'
+      : canonical === 'unitvalue' ? 'unitValue'
+      : canonical === 'isveg' ? 'isVeg'
+      : canonical;
+  }
+  return null;
+};
+
+const normalizeBulkRow = (rawRow) => {
+  const row = {};
+  for (const [key, value] of Object.entries(rawRow || {})) {
+    const canonical = canonicalBulkKey(key);
+    if (!canonical) continue;
+    // Prefer first non-empty value if duplicate headers map to same field
+    if (row[canonical] === undefined || row[canonical] === null || row[canonical] === '') {
+      row[canonical] = typeof value === 'string' ? value.trim() : value;
+    }
+  }
+  return row;
+};
+
+const isBlankBulkRow = (row) => {
+  const keys = ['name', 'category', 'basePrice', 'mrp', 'sku', 'description', 'brandName'];
+  return keys.every((k) => row[k] === undefined || row[k] === null || row[k] === '');
+};
+
+const hasValue = (v) => v !== undefined && v !== null && String(v).trim() !== '';
+
+// ─── Helper: Parse Excel Buffer ───────────────────────────────────────────────
 const parseExcelBuffer = (buffer) => {
   try {
     const workbook = XLSX.read(buffer, { type: 'buffer' });
     const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
-    return XLSX.utils.sheet_to_json(worksheet);
+    const rawRows = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+    return rawRows.map(normalizeBulkRow);
   } catch (err) {
     console.error('Excel parse error:', err);
     return [];
@@ -2123,31 +2231,41 @@ export const bulkUploadProducts = async (req, res) => {
       const rowNum = i + 2; // 1-indexed, +1 for header
 
       try {
-        // Validate required fields
-        if (!row.name || !row.category || !row.basePrice || !row.mrp) {
-          errors.push(`Row ${rowNum}: Missing required fields (name, category, basePrice, mrp)`);
+        // Skip completely empty Excel rows (no error toast spam)
+        if (isBlankBulkRow(row)) {
+          continue;
+        }
+
+        // Validate required fields (0 is a valid price)
+        const missing = [];
+        if (!hasValue(row.name)) missing.push('name');
+        if (!hasValue(row.category)) missing.push('category');
+        if (!hasValue(row.basePrice) && row.basePrice !== 0) missing.push('basePrice');
+        if (!hasValue(row.mrp) && row.mrp !== 0) missing.push('mrp');
+        if (missing.length) {
+          errors.push(`Row ${rowNum}: Missing required fields (${missing.join(', ')})`);
           skipped++;
           continue;
         }
 
-        const sku = row.sku || `SAATHI-${row.name.substring(0, 3).toUpperCase().replace(/[^A-Z0-9]/g, 'X')}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
+        const sku = row.sku || `SAATHI-${String(row.name).substring(0, 3).toUpperCase().replace(/[^A-Z0-9]/g, 'X')}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
 
         const productData = {
-          name: row.name,
-          category: row.category,
+          name: String(row.name).trim(),
+          category: String(row.category).trim(),
           subCategory: row.subCategory || '',
           brandName: row.brandName || '',
           basePrice: Number(row.basePrice) || 0,
           mrp: Number(row.mrp) || Number(row.basePrice) || 0,
           unitType: (() => {
-            const raw = (row.unitType || 'pcs').toLowerCase().trim();
+            const raw = (row.unitType || 'pcs').toString().toLowerCase().trim();
             const map = { 'g': 'gm', 'gram': 'gm', 'grams': 'gm', 'litre': 'ltr', 'liter': 'ltr', 'liters': 'ltr', 'litres': 'ltr', 'piece': 'pcs', 'pieces': 'pcs', 'packet': 'pkt', 'packets': 'pkt' };
             return map[raw] || raw;
           })(),
           unitValue: Number(row.unitValue) || 1,
           description: row.description || `${row.name} - Quality product`,
-          tags: row.tags ? row.tags.split('|').map(t => t.trim()).filter(Boolean) : [],
-          sku,
+          tags: row.tags ? String(row.tags).split(/[|,]/).map(t => t.trim()).filter(Boolean) : [],
+          sku: String(sku).trim(),
           stock: Number(row.stock) || 0,
           status: (() => {
             const raw = (row.status || 'Active').toString().toLowerCase().trim();
@@ -2161,14 +2279,14 @@ export const bulkUploadProducts = async (req, res) => {
             };
             return statusMap[raw] || 'Active';
           })(),
-          isVeg: row.isVeg === 'false' ? false : true,
+          isVeg: row.isVeg === 'false' || row.isVeg === false ? false : true,
           branchStocks: [],
           isAllBranches: false,
           createdBy: req.admin._id,
         };
 
         // Try to find existing product by SKU
-        const existing = await Product.findOne({ sku });
+        const existing = await Product.findOne({ sku: productData.sku });
 
         if (existing) {
           await Product.findByIdAndUpdate(existing._id, {
@@ -2187,19 +2305,30 @@ export const bulkUploadProducts = async (req, res) => {
           updated++;
         } else {
           // Check if product with same name exists
-          const nameExists = await Product.findOne({ name: new RegExp(`^${row.name.trim()}$`, 'i'), sku: { $ne: sku } });
+          const nameExists = await Product.findOne({ name: new RegExp(`^${productData.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i'), sku: { $ne: productData.sku } });
           if (nameExists) {
-            errors.push(`Row ${rowNum}: Product "${row.name}" already exists with different SKU`);
+            errors.push(`Row ${rowNum}: Product "${productData.name}" already exists with different SKU`);
             skipped++;
             continue;
           }
 
-          const qrCodeDataUrl = await QRCode.toDataURL(sku, { margin: 1 }).catch(() => '');
-          await Product.create({ ...productData, qrCode: qrCodeDataUrl });
+          const qrCodeDataUrl = await QRCode.toDataURL(productData.sku, { margin: 1 }).catch(() => '');
+          // Image is optional for bulk Excel upload
+          const imageUrl = (row.image || '').toString().trim();
+          await Product.create({
+            ...productData,
+            image: imageUrl,
+            qrCode: qrCodeDataUrl,
+          });
           created++;
         }
       } catch (rowErr) {
-        errors.push(`Row ${rowNum}: ${rowErr.message}`);
+        // Flatten mongoose ValidationError into a short message
+        let msg = rowErr.message;
+        if (rowErr.name === 'ValidationError' && rowErr.errors) {
+          msg = Object.values(rowErr.errors).map((e) => e.message).join('; ');
+        }
+        errors.push(`Row ${rowNum}: ${msg}`);
         skipped++;
       }
     }

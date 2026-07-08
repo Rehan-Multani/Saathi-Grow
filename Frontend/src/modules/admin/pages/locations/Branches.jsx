@@ -34,7 +34,7 @@ const Branches = () => {
         try {
             const { branches: branchList, pagination: paginationData } = await getBranches(
                 adminUser.token,
-                { page, limit, search: searchTerm },
+                { page, limit, search: searchTerm, includeInactive: true },
                 { paginated: true }
             );
             setBranches(Array.isArray(branchList) ? branchList : []);
@@ -82,6 +82,9 @@ const Branches = () => {
     };
 
     const handleDelete = async (id, name) => {
+        const prevBodyOverflow = document.body.style.overflow;
+        const prevHtmlOverflow = document.documentElement.style.overflow;
+
         Swal.fire({
             title: t('messages.delete_confirm_title'),
             text: t('messages.delete_confirm_msg', { name }),
@@ -90,8 +93,22 @@ const Branches = () => {
             confirmButtonColor: '#ef4444',
             cancelButtonColor: '#94a3b8',
             confirmButtonText: 'Yes, Delete',
-            cancelButtonText: 'Cancel'
+            cancelButtonText: 'Cancel',
+            allowOutsideClick: false,
+            heightAuto: false,
+            scrollbarPadding: false,
+            didOpen: () => {
+                document.body.style.overflow = 'hidden';
+                document.documentElement.style.overflow = 'hidden';
+            },
+            willClose: () => {
+                document.body.style.overflow = prevBodyOverflow || '';
+                document.documentElement.style.overflow = prevHtmlOverflow || '';
+            }
         }).then(async (result) => {
+            document.body.style.overflow = prevBodyOverflow || '';
+            document.documentElement.style.overflow = prevHtmlOverflow || '';
+
             if (result.isConfirmed) {
                 try {
                     await deleteBranch(adminUser.token, id);
@@ -108,6 +125,18 @@ const Branches = () => {
                 }
             }
         });
+    };
+
+    const handleToggleStatus = async (branch) => {
+        const nextStatus = !branch.isActive;
+        try {
+            setBranches(prev => prev.map(b => b._id === branch._id ? { ...b, isActive: nextStatus } : b));
+            await updateBranch(adminUser.token, branch._id, { isActive: nextStatus });
+            toast.success(nextStatus ? 'Branch activated' : 'Branch inactivated — its products are hidden from customers');
+        } catch (error) {
+            setBranches(prev => prev.map(b => b._id === branch._id ? { ...b, isActive: branch.isActive } : b));
+            toast.error(error.message || t('messages.update_error'));
+        }
     };
 
     return (
@@ -208,11 +237,17 @@ const Branches = () => {
                                             </div>
                                         </td>
                                         <td className="px-4 py-4 text-center">
-                                            <span className={`inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold border uppercase tracking-tight ${
-                                                b.isActive ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-rose-50 text-rose-600 border-rose-100'
-                                            }`}>
+                                            <button
+                                                type="button"
+                                                onClick={() => handleToggleStatus(b)}
+                                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${b.isActive ? 'bg-emerald-500' : 'bg-slate-300'}`}
+                                                title={b.isActive ? 'Set Inactive' : 'Set Active'}
+                                            >
+                                                <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${b.isActive ? 'translate-x-6' : 'translate-x-1'}`} />
+                                            </button>
+                                            <div className={`mt-1 text-[9px] font-bold uppercase tracking-tight ${b.isActive ? 'text-emerald-600' : 'text-slate-400'}`}>
                                                 {b.isActive ? t('status.active') : t('status.inactive')}
-                                            </span>
+                                            </div>
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <div className="flex justify-end gap-1.5">

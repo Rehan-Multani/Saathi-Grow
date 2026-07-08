@@ -5,6 +5,7 @@ import {
   createUser,
   updateUser,
   deleteUser,
+  bulkDeleteUsers,
   sendEmailToUser,
   sendMessageToUser
 } from '../controllers/userManagementController.js';
@@ -18,6 +19,8 @@ router.use(protectAdmin);
 router.route('/')
   .get(requirePermission('VIEW_CUSTOMERS'), getAllUsers)
   .post(restrictTo('Admin', 'Store Manager', 'Staff'), upload.single('image'), createUser);
+
+router.delete('/bulk', restrictTo('Admin', 'Store Manager'), bulkDeleteUsers);
 
 router.route('/:id/email')
   .post(restrictTo('Admin', 'Store Manager', 'Staff'), sendEmailToUser);

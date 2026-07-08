@@ -331,13 +331,13 @@ const AddBranch = () => {
                             {loading ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
                             {t('form.submit_add')}
                         </button>
-                    </div>
 
-                    <div className="p-4 bg-blue-50 border border-blue-100 rounded-2xl flex items-start gap-3">
-                        <Info className="text-blue-500 mt-1 shrink-0" size={16} />
-                        <p className="text-[10px] text-blue-700 font-medium leading-normal">
-                            Note: All branch codes must be unique system-wide to ensure proper data tracking.
-                        </p>
+                        <div className="p-4 bg-blue-50 border border-blue-100 rounded-2xl flex items-start gap-3">
+                            <Info className="text-blue-500 mt-1 shrink-0" size={16} />
+                            <p className="text-[10px] text-blue-700 font-medium leading-normal">
+                                Note: All branch codes must be unique system-wide to ensure proper data tracking.
+                            </p>
+                        </div>
                     </div>
                 </div>
             </form>

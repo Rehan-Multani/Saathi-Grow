@@ -86,6 +86,20 @@ export const deleteCustomer = async (token, id) => {
   return data;
 };
 
+export const bulkDeleteCustomers = async (token, ids = []) => {
+  const response = await fetch(`${API_URL}/bulk`, {
+    method: 'DELETE',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ ids })
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Failed to delete customers');
+  return data;
+};
+
 export const sendEmailToCustomer = async (token, id, payload) => {
   const response = await fetch(`${API_URL}/${id}/email`, {
     method: 'POST',

@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Save, X, Upload, Palette, Image as ImageIcon, Camera, RefreshCw } from 'lucide-react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Save, X, Upload, Image as ImageIcon, Camera, RefreshCw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
 
@@ -19,21 +19,28 @@ const CategoryEditModal = ({ show, onHide, category, onSave }) => {
         slug: '',
         status: 'Active',
         description: '',
+        tags: [],
         bgColor: '#DBEAFE'
     });
+    const [tagInput, setTagInput] = useState('');
 
     const [imagePreview, setImagePreview] = useState(null);
     const [imageFile, setImageFile] = useState(null);
 
     useEffect(() => {
         if (category && show) {
+            const existingTags = Array.isArray(category.tags)
+                ? category.tags
+                : (category.tags ? String(category.tags).split(',').map((tag) => tag.trim()).filter(Boolean) : []);
             setFormData({
                 name: category.name || '',
                 slug: category.slug || '',
                 status: category.status || 'Active',
                 description: category.description || '',
+                tags: existingTags,
                 bgColor: category.bgColor || '#DBEAFE'
             });
+            setTagInput('');
             setImagePreview(category.image || null);
             setImageFile(null);
         }
@@ -57,6 +64,47 @@ const CategoryEditModal = ({ show, onHide, category, onSave }) => {
         }
     };
 
+    const commitTagsFromInput = useCallback((rawValue, { keepRemainder = false } = {}) => {
+        const value = String(rawValue ?? '');
+        if (!value.trim() && !value.includes(',')) return;
+
+        if (keepRemainder) {
+            const parts = value.split(',');
+            const remainder = parts.pop() ?? '';
+            const newTags = parts.map((tag) => tag.trim()).filter(Boolean);
+            if (newTags.length > 0) {
+                setFormData((prev) => ({
+                    ...prev,
+                    tags: [...new Set([...prev.tags, ...newTags])]
+                }));
+            }
+            setTagInput(remainder);
+            return;
+        }
+
+        const newTags = value.split(',').map((tag) => tag.trim()).filter(Boolean);
+        if (newTags.length > 0) {
+            setFormData((prev) => ({
+                ...prev,
+                tags: [...new Set([...prev.tags, ...newTags])]
+            }));
+        }
+        setTagInput('');
+    }, []);
+
+    const handleTagInputChange = useCallback((e) => {
+        const value = e.target.value;
+        if (value.includes(',')) {
+            commitTagsFromInput(value, { keepRemainder: true });
+        } else {
+            setTagInput(value);
+        }
+    }, [commitTagsFromInput]);
+
+    const addTag = useCallback(() => {
+        commitTagsFromInput(tagInput, { keepRemainder: false });
+    }, [tagInput, commitTagsFromInput]);
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
@@ -66,6 +114,7 @@ const CategoryEditModal = ({ show, onHide, category, onSave }) => {
             data.append('slug', formData.slug);
             data.append('status', formData.status);
             data.append('description', formData.description);
+            data.append('tags', formData.tags.join(','));
             data.append('bgColor', formData.bgColor);
             if (imageFile) data.append('image', imageFile);
             await onSave(data);
@@ -116,12 +165,43 @@ const CategoryEditModal = ({ show, onHide, category, onSave }) => {
                                 <label className="text-sm font-semibold text-slate-700">{t('form.desc_label')}</label>
                                 <textarea name="description" value={formData.description} onChange={handleChange} rows={4} className="form-input-simple" placeholder={t('form.desc_placeholder')} />
                             </div>
+
+                            <div className="space-y-2">
+                                <label className="text-sm font-semibold text-slate-700">{t('form.tags_label')}</label>
+                                <div className="flex flex-wrap gap-2 p-3 bg-slate-50 border border-slate-200 rounded-2xl min-h-[46px]">
+                                    {formData.tags.map((tag) => (
+                                        <span key={tag} className="flex items-center gap-1.5 px-3 py-1 bg-white border border-slate-200 rounded-full text-[11px] font-medium text-slate-600">
+                                            {tag}
+                                            <X
+                                                size={12}
+                                                className="cursor-pointer hover:text-red-500"
+                                                onClick={() => setFormData((prev) => ({ ...prev, tags: prev.tags.filter((item) => item !== tag) }))}
+                                            />
+                                        </span>
+                                    ))}
+                                    <input
+                                        type="text"
+                                        placeholder={t('form.tags_placeholder')}
+                                        value={tagInput}
+                                        onChange={handleTagInputChange}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' || e.key === ',') {
+                                                e.preventDefault();
+                                                addTag();
+                                            }
+                                        }}
+                                        onBlur={() => { if (tagInput.trim()) addTag(); }}
+                                        className="plain-input text-xs flex-1 min-w-[120px] py-1"
+                                    />
+                                </div>
+                                <p className="text-[10px] text-slate-400 italic">{t('form.tags_hint')}</p>
+                            </div>
                         </div>
 
                         <div className="space-y-8">
                             <div className="space-y-4">
                                 <label className="text-sm font-semibold text-slate-700 block text-center">{t('form.image')}</label>
-                                <div 
+                                <div
                                     className="relative group aspect-square bg-slate-50 border-2 border-dashed border-slate-200 rounded-3xl overflow-hidden flex items-center justify-center cursor-pointer hover:border-blue-400 transition-all"
                                     onClick={() => fileInputRef.current.click()}
                                     style={{ backgroundColor: formData.bgColor }}
@@ -152,19 +232,19 @@ const CategoryEditModal = ({ show, onHide, category, onSave }) => {
                                             type="button"
                                             onClick={() => setFormData(p => ({ ...p, bgColor: color }))}
                                             className="w-6 h-6 rounded-full border border-white shadow-sm ring-1 ring-slate-100 transition-transform active:scale-90"
-                                            style={{ 
+                                            style={{
                                                 backgroundColor: color,
                                                 ringColor: formData.bgColor === color ? color : 'transparent',
                                                 ringWidth: formData.bgColor === color ? '2px' : '0px'
                                             }}
                                         />
                                     ))}
-                                    <input 
-                                        type="color" 
-                                        name="bgColor" 
-                                        value={formData.bgColor} 
-                                        onChange={handleChange} 
-                                        className="w-6 h-6 rounded-full border-none p-0 bg-transparent cursor-pointer" 
+                                    <input
+                                        type="color"
+                                        name="bgColor"
+                                        value={formData.bgColor}
+                                        onChange={handleChange}
+                                        className="w-6 h-6 rounded-full border-none p-0 bg-transparent cursor-pointer"
                                     />
                                 </div>
                             </div>

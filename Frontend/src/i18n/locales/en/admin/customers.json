@@ -23,18 +23,23 @@
       "send_email": "Send Email",
       "send_message": "Send Message",
       "block_user": "Block User",
-      "unblock_user": "Unblock User"
+      "unblock_user": "Unblock User",
+      "delete": "Delete"
     },
     "alerts": {
       "block_success": "Customer blocked successfully",
       "unblock_success": "Customer unblocked successfully",
       "sent_success": "{{type}} sent successfully!",
-      "delivered_success": "{{type}} delivered to {{name}}"
+      "delivered_success": "{{type}} delivered to {{name}}",
+      "delete_confirm_title": "Delete customer?",
+      "delete_confirm_text": "Are you sure you want to delete {{name}}? This cannot be undone.",
+      "delete_success": "Customer deleted successfully"
     },
     "errors": {
       "fetch_failed": "Failed to load customers",
       "fetch_profile": "Failed to load profile",
-      "update_failed": "Failed to update profile"
+      "update_failed": "Failed to update profile",
+      "delete_failed": "Failed to delete customer"
     },
     "pagination": {
       "showing": "Showing",
@@ -51,7 +56,22 @@
       "customer": "Customer",
       "manifest": "Products",
       "amount": "Amount",
-      "status": "Status"
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "actions": {
+      "delete_account": "Delete Account"
+    },
+    "selection": {
+      "selected": "{{count}} selected",
+      "clear": "Clear",
+      "delete_accounts": "Delete Accounts"
+    },
+    "alerts": {
+      "no_account": "No customer account linked to this order",
+      "bulk_delete_confirm_title": "Delete selected accounts?",
+      "bulk_delete_confirm_text": "Are you sure you want to delete {{count}} customer account(s)? This cannot be undone.",
+      "bulk_delete_success": "{{count}} account(s) deleted"
     },
     "filters": {
       "all": "All Status",

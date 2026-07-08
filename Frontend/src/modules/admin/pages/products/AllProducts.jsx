@@ -6,7 +6,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import ProductEditModal from '../../../../common/components/products/ProductEditModal';
 import RestockModal from '../../../../common/components/products/RestockModal';
 import { useAdminAuth } from '../../context/AdminAuthContext';
-import { getProducts, deleteProduct, updateProduct } from '../../../../common/api/productApi';
+import { getProducts, deleteProduct, bulkDeleteProducts, updateProduct } from '../../../../common/api/productApi';
 import { getCategories } from '../../api/categoryApi';
 import { getBrands } from '../../api/brandApi';
 import { showDeleteConfirmation, showSuccessAlert, showErrorAlert } from '../../../../common/utils/alertUtils';
@@ -64,6 +64,7 @@ const AllProducts = () => {
     const [showBulkModal, setShowBulkModal] = useState(false);
     const [bulkFile, setBulkFile] = useState(null);
     const [bulkLoading, setBulkLoading] = useState(false);
+    const [selectedIds, setSelectedIds] = useState([]);
 
     const downloadExcelTemplate = () => {
         const headers = [
@@ -94,10 +95,34 @@ const AllProducts = () => {
                 formData,
                 { headers: { Authorization: `Bearer ${adminUser.token}`, 'Content-Type': 'multipart/form-data' } }
             );
-            const msg = `✅ ${data.created || 0} created, ${data.updated || 0} updated${data.skipped > 0 ? `, ${data.skipped} skipped` : ''}`;
-            toast.success(msg, { autoClose: 5000 });
-            if (data.errors?.length > 0) {
-                data.errors.forEach(e => toast.warning(e, { autoClose: 8000 }));
+            const created = data.created || 0;
+            const updated = data.updated || 0;
+            const skipped = data.skipped || 0;
+            const errors = data.errors || [];
+            const summary = `${created} created, ${updated} updated${skipped > 0 ? `, ${skipped} skipped` : ''}`;
+
+            if (created + updated > 0) {
+                toast.success(summary, { autoClose: 5000 });
+            } else if (skipped > 0) {
+                toast.warning(summary, { autoClose: 5000 });
+            } else {
+                toast.info(summary, { autoClose: 5000 });
+            }
+
+            // One combined toast instead of one per row
+            if (errors.length > 0) {
+                const preview = errors.slice(0, 5);
+                const remaining = errors.length - preview.length;
+                toast.warning(
+                    <div className="text-sm">
+                        <p className="font-bold mb-1">{errors.length} issue{errors.length > 1 ? 's' : ''}</p>
+                        <ul className="list-disc pl-4 space-y-0.5 max-h-40 overflow-y-auto">
+                            {preview.map((e, i) => <li key={i}>{e}</li>)}
+                        </ul>
+                        {remaining > 0 && <p className="mt-1 text-xs opacity-80">…and {remaining} more</p>}
+                    </div>,
+                    { autoClose: 12000 }
+                );
             }
             setShowBulkModal(false);
             setBulkFile(null);
@@ -181,7 +206,41 @@ const AllProducts = () => {
             try {
                 await deleteProduct(adminUser.token, id);
                 setProducts(products.filter(p => p._id !== id));
+                setSelectedIds((prev) => prev.filter((x) => x !== id));
                 showSuccessAlert(t('messages.delete_success'));
+            } catch (error) {
+                showErrorAlert('Error', error.message);
+            }
+        }
+    };
+
+    const toggleSelect = (id) => {
+        setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+    };
+
+    const allSelected = products.length > 0 && products.every((p) => selectedIds.includes(p._id));
+
+    const toggleSelectAll = () => {
+        if (allSelected) {
+            const currentIds = products.map((p) => p._id);
+            setSelectedIds((prev) => prev.filter((id) => !currentIds.includes(id)));
+        } else {
+            setSelectedIds((prev) => Array.from(new Set([...prev, ...products.map((p) => p._id)])));
+        }
+    };
+
+    const handleBulkDelete = async () => {
+        if (selectedIds.length === 0) return;
+        const result = await showDeleteConfirmation(
+            t('messages.bulk_delete_confirm_title'),
+            t('messages.bulk_delete_confirm_text', { count: selectedIds.length })
+        );
+        if (result.isConfirmed) {
+            try {
+                const data = await bulkDeleteProducts(adminUser.token, selectedIds);
+                toast.success(t('messages.bulk_delete_success', { count: data.deletedCount ?? selectedIds.length }));
+                setSelectedIds([]);
+                fetchData();
             } catch (error) {
                 showErrorAlert('Error', error.message);
             }
@@ -200,6 +259,27 @@ const AllProducts = () => {
     };
 
     const activeFiltersCount = [selectedCategory, selectedBrand].filter(Boolean).length;
+
+    const getPageNumbers = () => {
+        const pages = [];
+        const maxButtons = 5;
+        if (totalPages <= maxButtons) {
+            for (let i = 1; i <= totalPages; i++) pages.push(i);
+            return pages;
+        }
+        let start = Math.max(1, page - 2);
+        let end = Math.min(totalPages, start + maxButtons - 1);
+        start = Math.max(1, end - maxButtons + 1);
+        if (start > 1) pages.push(1, start > 2 ? '...' : 2);
+        for (let i = start; i <= end; i++) {
+            if (!pages.includes(i)) pages.push(i);
+        }
+        if (end < totalPages) pages.push(end < totalPages - 1 ? '...' : totalPages - 1, totalPages);
+        return [...new Set(pages)];
+    };
+
+    const startItem = totalProducts === 0 ? 0 : (page - 1) * limit + 1;
+    const endItem = Math.min(page * limit, totalProducts);
 
     return (
         <div className="container-fluid py-8 bg-slate-50/30 min-h-screen">
@@ -279,12 +359,38 @@ const AllProducts = () => {
                 </div>
             </div>
 
+            {selectedIds.length > 0 && (
+                <div className="bg-blue-600 text-white rounded-xl px-4 py-3 mb-4 flex items-center justify-between shadow-sm">
+                    <div className="flex items-center gap-3">
+                        <span className="text-sm font-bold">{t('selection.selected', { count: selectedIds.length })}</span>
+                        <button onClick={() => setSelectedIds([])} className="text-xs font-medium text-blue-100 hover:text-white underline">
+                            {t('selection.clear')}
+                        </button>
+                    </div>
+                    <button
+                        onClick={handleBulkDelete}
+                        className="flex items-center gap-2 px-4 py-2 bg-white text-red-600 rounded-lg text-sm font-bold hover:bg-red-50 transition-colors"
+                    >
+                        <Trash2 size={16} /> {t('selection.delete')}
+                    </button>
+                </div>
+            )}
+
             {/* Simple Table Content */}
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead className="bg-slate-50 border-b border-slate-200">
                             <tr>
+                                <th className="px-6 py-4 w-10">
+                                    <input
+                                        type="checkbox"
+                                        checked={allSelected}
+                                        onChange={toggleSelectAll}
+                                        className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer accent-blue-600"
+                                        aria-label="Select all products on this page"
+                                    />
+                                </th>
                                 <th className="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider">{t('table.product')}</th>
                                 <th className="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider text-center">{t('table.category')}</th>
                                 <th className="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider text-center">{t('table.price')}</th>
@@ -297,14 +403,23 @@ const AllProducts = () => {
                         <tbody className="divide-y divide-slate-100">
                             {loading ? (
                                 <tr>
-                                    <td colSpan="7" className="py-20 text-center">
+                                    <td colSpan="8" className="py-20 text-center">
                                         <div className="saathi-spinner mx-auto mb-4"></div>
                                         <p className="text-slate-400 text-sm">{t('meta.syncing')}</p>
                                     </td>
                                 </tr>
                             ) : products.length > 0 ? (
                                 products.map((p) => (
-                                    <tr key={p._id} className="hover:bg-slate-50/50 transition-colors">
+                                    <tr key={p._id} className={`hover:bg-slate-50/50 transition-colors ${selectedIds.includes(p._id) ? 'bg-blue-50/40' : ''}`}>
+                                        <td className="px-6 py-4">
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedIds.includes(p._id)}
+                                                onChange={() => toggleSelect(p._id)}
+                                                className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer accent-blue-600"
+                                                aria-label={`Select ${p.name}`}
+                                            />
+                                        </td>
                                         <td className="px-6 py-4">
                                             <Link to={`/admin/products/${p._id}`} className="flex items-center gap-4 group/item">
                                                 <div className="w-10 h-10 bg-slate-50 rounded-lg flex items-center justify-center p-1 border group-hover/item:border-blue-400 transition-all shadow-sm">
@@ -397,7 +512,7 @@ const AllProducts = () => {
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan="7" className="py-20 text-center">
+                                    <td colSpan="8" className="py-20 text-center">
                                         <p className="text-slate-400 text-sm font-medium">{t('meta.no_products')}</p>
                                     </td>
                                 </tr>
@@ -406,14 +521,52 @@ const AllProducts = () => {
                     </table>
                 </div>
 
-                {/* Simple Pagination */}
-                {!loading && totalPages > 1 && (
-                    <div className="px-6 py-4 bg-white border-t border-slate-100 flex items-center justify-between">
-                        <span className="text-xs text-slate-500 font-medium">{t('meta.page_of', { current: page, total: totalPages })}</span>
-                        <div className="flex gap-2">
-                            <button onClick={() => updateParams({ page: page - 1 })} disabled={page === 1} className="p-1.5 border border-slate-200 rounded-lg text-slate-400 disabled:opacity-30"><ChevronLeft size={18} /></button>
-                            <button onClick={() => updateParams({ page: page + 1 })} disabled={page === totalPages} className="p-1.5 border border-slate-200 rounded-lg text-slate-400 disabled:opacity-30"><ChevronRight size={18} /></button>
-                        </div>
+                {/* Pagination */}
+                {!loading && totalProducts > 0 && (
+                    <div className="px-6 py-4 bg-white border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+                        <span className="text-xs text-slate-500 font-medium">
+                            {t('meta.showing_range', {
+                                start: startItem,
+                                end: endItem,
+                                total: totalProducts,
+                                defaultValue: `Showing ${startItem}–${endItem} of ${totalProducts}`
+                            })}
+                        </span>
+                        {totalPages > 1 && (
+                            <div className="flex items-center gap-1.5">
+                                <button
+                                    onClick={() => updateParams({ page: page - 1 })}
+                                    disabled={page === 1}
+                                    className="p-1.5 border border-slate-200 rounded-lg text-slate-400 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                                >
+                                    <ChevronLeft size={18} />
+                                </button>
+                                {getPageNumbers().map((p, i) => (
+                                    p === '...' ? (
+                                        <span key={`dots-${i}`} className="px-2 text-slate-400 text-sm">…</span>
+                                    ) : (
+                                        <button
+                                            key={p}
+                                            onClick={() => updateParams({ page: p })}
+                                            className={`min-w-[34px] h-[34px] px-2 rounded-lg text-sm font-semibold transition-all ${
+                                                p === page
+                                                    ? 'bg-blue-600 text-white shadow-sm shadow-blue-100'
+                                                    : 'border border-slate-200 text-slate-600 hover:bg-slate-50'
+                                            }`}
+                                        >
+                                            {p}
+                                        </button>
+                                    )
+                                ))}
+                                <button
+                                    onClick={() => updateParams({ page: page + 1 })}
+                                    disabled={page === totalPages}
+                                    className="p-1.5 border border-slate-200 rounded-lg text-slate-400 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                                >
+                                    <ChevronRight size={18} />
+                                </button>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
@@ -468,6 +621,7 @@ const AllProducts = () => {
                                     ))}
                                 </div>
                                 <p className="text-[10px] text-rose-500 font-semibold mt-2">* Required fields</p>
+                                <p className="text-[10px] text-slate-500 mt-1.5">Product image is <span className="font-bold">optional</span> for bulk upload — add images later from Edit Product.</p>
                             </div>
 
                             {/* Step 2: Upload File */}

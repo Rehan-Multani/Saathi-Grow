@@ -33,43 +33,36 @@ const AllCategories = () => {
 
     const [page, setPage] = useState(1);
     const limit = 10;
+    const [pagination, setPagination] = useState({ total: 0, totalPages: 1, page: 1, limit });
 
     const fetchCategories = useCallback(async () => {
         if (!adminUser?.token) return;
         setLoading(true);
         try {
-            const data = await getCategories(adminUser.token);
-            
-            // Robust extraction logic to handle various response structures
-            const extractData = (payload, key) => {
-                if (Array.isArray(payload)) return payload;
-                if (payload && typeof payload === 'object') {
-                    if (Array.isArray(payload[key])) return payload[key];
-                    if (Array.isArray(payload.data)) return payload.data;
-                    if (payload.data && Array.isArray(payload.data[key])) return payload.data[key];
-                }
-                return [];
+            const data = await getCategories(adminUser.token, { page, limit, search: searchTerm });
+            const nextCategories = Array.isArray(data?.categories) ? data.categories : (Array.isArray(data) ? data : []);
+            const nextPagination = data?.pagination || {
+                total: nextCategories.length,
+                totalPages: Math.ceil(nextCategories.length / limit) || 1,
+                page,
+                limit
             };
-
-            setCategories(extractData(data, 'categories'));
+            setCategories(nextCategories);
+            setPagination(nextPagination);
         } catch (error) {
             console.error('Failed to fetch categories:', error);
             // toast.error(t('messages.load_failed'));
         } finally {
             setLoading(false);
         }
-    }, [adminUser.token, t]);
+    }, [adminUser.token, page, searchTerm, t]);
 
     useEffect(() => {
         fetchCategories();
     }, [fetchCategories]);
 
-    const filtered = categories.filter(c =>
-        c.name.toLowerCase().includes(searchTerm.trim().toLowerCase())
-    );
-
-    const totalPages = Math.ceil(filtered.length / limit) || 1;
-    const paginatedItems = filtered.slice((page - 1) * limit, page * limit);
+    const totalFiltered = pagination.total || 0;
+    const totalPages = pagination.totalPages || 1;
 
     useEffect(() => { setPage(1); }, [searchTerm]);
 
@@ -95,7 +88,7 @@ const AllCategories = () => {
         if (result.isConfirmed) {
             try {
                 await deleteCategory(adminUser.token, id);
-                setCategories(categories.filter(c => c._id !== id));
+                fetchCategories();
                 showSuccessAlert(t('messages.delete_success'));
             } catch (error) {
                 showErrorAlert('Error', error.message);
@@ -159,8 +152,8 @@ const AllCategories = () => {
                                         </div>
                                     </td>
                                 </tr>
-                            ) : paginatedItems.length > 0 ? (
-                                paginatedItems.map((c) => (
+                            ) : categories.length > 0 ? (
+                                categories.map((c) => (
                                     <tr key={c._id} className="hover:bg-slate-50/20 transition-colors group">
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-4">
@@ -235,38 +228,40 @@ const AllCategories = () => {
                 </div>
 
                 {/* Pagination */}
-                {!loading && totalPages > 1 && (
+                {!loading && totalFiltered > 0 && (
                     <div className="px-6 py-4 bg-slate-50/50 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
                         <div className="text-xs font-medium text-slate-500 italic">
-                            {t('pagination.showing')} {((page - 1) * limit) + 1}-{Math.min(page * limit, filtered.length)} of {filtered.length} entries
+                            {t('pagination.showing')} {((page - 1) * limit) + 1}-{Math.min(page * limit, totalFiltered)} of {totalFiltered} entries
                         </div>
-                        <div className="flex items-center gap-2">
-                            <button
-                                onClick={() => setPage(p => Math.max(1, p - 1))}
-                                disabled={page === 1}
-                                className={`p-2 rounded-lg border transition-all ${page === 1 ? 'text-slate-200 border-slate-100' : 'bg-white border-slate-200 text-slate-600 hover:border-blue-500 hover:text-blue-600 shadow-sm'}`}
-                            >
-                                <ChevronLeft size={16} />
-                            </button>
-                            <div className="flex gap-1">
-                                {[...Array(totalPages)].map((_, i) => (
-                                    <button
-                                        key={i}
-                                        onClick={() => setPage(i + 1)}
-                                        className={`w-9 h-9 text-xs font-bold rounded-lg transition-all ${page === (i + 1) ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100 border border-slate-100'}`}
-                                    >
-                                        {i + 1}
-                                    </button>
-                                ))}
+                        {totalPages > 1 && (
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                                    disabled={page === 1}
+                                    className={`p-2 rounded-lg border transition-all ${page === 1 ? 'text-slate-200 border-slate-100' : 'bg-white border-slate-200 text-slate-600 hover:border-blue-500 hover:text-blue-600 shadow-sm'}`}
+                                >
+                                    <ChevronLeft size={16} />
+                                </button>
+                                <div className="flex gap-1">
+                                    {[...Array(totalPages)].map((_, i) => (
+                                        <button
+                                            key={i}
+                                            onClick={() => setPage(i + 1)}
+                                            className={`w-9 h-9 text-xs font-bold rounded-lg transition-all ${page === (i + 1) ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100 border border-slate-100'}`}
+                                        >
+                                            {i + 1}
+                                        </button>
+                                    ))}
+                                </div>
+                                <button
+                                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                                    disabled={page === totalPages}
+                                    className={`p-2 rounded-lg border transition-all ${page === totalPages ? 'text-slate-200 border-slate-100' : 'bg-white border-slate-200 text-slate-600 hover:border-blue-500 hover:text-blue-600 shadow-sm'}`}
+                                >
+                                    <ChevronRight size={16} />
+                                </button>
                             </div>
-                            <button
-                                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                                disabled={page === totalPages}
-                                className={`p-2 rounded-lg border transition-all ${page === totalPages ? 'text-slate-200 border-slate-100' : 'bg-white border-slate-200 text-slate-600 hover:border-blue-500 hover:text-blue-600 shadow-sm'}`}
-                            >
-                                <ChevronRight size={16} />
-                            </button>
-                        </div>
+                        )}
                     </div>
                 )}
             </div>

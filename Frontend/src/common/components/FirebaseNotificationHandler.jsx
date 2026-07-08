@@ -13,6 +13,11 @@ import Swal from 'sweetalert2';
  * @param {boolean} isApp - Whether the app is running in a Flutter wrap.
  */
 const FirebaseNotificationHandler = ({ token, role, isApp = false, showToast = false }) => {
+  const resolveNotificationLink = (payloadData = {}) => {
+    if (payloadData?.link) return payloadData.link;
+    if (payloadData?.orderId && role === 'user') return `/orders/${payloadData.orderId}`;
+    return '/notifications';
+  };
   
   useEffect(() => {
     const setupNotifications = async () => {
@@ -63,13 +68,21 @@ const FirebaseNotificationHandler = ({ token, role, isApp = false, showToast = f
       // Trigger native desktop notification in foreground if permission is granted
       if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
         try {
-          new Notification(title, {
+          const nativeNotification = new Notification(title, {
             body: body,
             icon: '/favicon.png',
             badge: '/favicon.png',
             tag: payload.data?.runId || payload.data?.orderId || undefined,
             requireInteraction: ['assignment', 'run_assignment', 'return_batch'].includes(payload.data?.type)
           });
+          nativeNotification.onclick = () => {
+            const target = resolveNotificationLink(payload.data || {});
+            if (target.startsWith('http')) {
+              window.location.href = target;
+              return;
+            }
+            window.location.href = `${window.location.origin}${target}`;
+          };
         } catch (e) {
           console.error('Error displaying native foreground notification:', e);
         }

@@ -1,12 +1,10 @@
-import React, { useState } from 'react';
-import { Save, X, Upload, Palette, Image as ImageIcon, Sparkles, ArrowLeft, RefreshCw, Check, Layers } from 'lucide-react';
+import React, { useState, useCallback } from 'react';
+import { Save, X, Upload, Palette, Image as ImageIcon, ArrowLeft, RefreshCw, Check, Layers } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { createCategory } from '../../api/categoryApi';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
-import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
-import { pageInfoData } from '../../../../common/data/pageInfoData';
 
 const PRESET_COLORS = [
     '#FEE2E2', '#FEF3C7', '#D1FAE5', '#DBEAFE',
@@ -26,8 +24,10 @@ const AddCategory = () => {
         slug: '',
         status: 'Active',
         description: '',
+        tags: [],
         bgColor: '#DBEAFE'
     });
+    const [tagInput, setTagInput] = useState('');
 
     const [imagePreview, setImagePreview] = useState(null);
     const [imageFile, setImageFile] = useState(null);
@@ -49,6 +49,47 @@ const AddCategory = () => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
+    const commitTagsFromInput = useCallback((rawValue, { keepRemainder = false } = {}) => {
+        const value = String(rawValue ?? '');
+        if (!value.trim() && !value.includes(',')) return;
+
+        if (keepRemainder) {
+            const parts = value.split(',');
+            const remainder = parts.pop() ?? '';
+            const newTags = parts.map((tag) => tag.trim()).filter(Boolean);
+            if (newTags.length > 0) {
+                setFormData((prev) => ({
+                    ...prev,
+                    tags: [...new Set([...prev.tags, ...newTags])]
+                }));
+            }
+            setTagInput(remainder);
+            return;
+        }
+
+        const newTags = value.split(',').map((tag) => tag.trim()).filter(Boolean);
+        if (newTags.length > 0) {
+            setFormData((prev) => ({
+                ...prev,
+                tags: [...new Set([...prev.tags, ...newTags])]
+            }));
+        }
+        setTagInput('');
+    }, []);
+
+    const handleTagInputChange = useCallback((e) => {
+        const value = e.target.value;
+        if (value.includes(',')) {
+            commitTagsFromInput(value, { keepRemainder: true });
+        } else {
+            setTagInput(value);
+        }
+    }, [commitTagsFromInput]);
+
+    const addTag = useCallback(() => {
+        commitTagsFromInput(tagInput, { keepRemainder: false });
+    }, [tagInput, commitTagsFromInput]);
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!formData.name) return toast.error(t('messages.name_required'));
@@ -60,6 +101,7 @@ const AddCategory = () => {
             data.append('slug', formData.slug);
             data.append('status', formData.status);
             data.append('description', formData.description);
+            data.append('tags', formData.tags.join(','));
             data.append('bgColor', formData.bgColor);
             if (imageFile) data.append('image', imageFile);
 
@@ -90,8 +132,8 @@ const AddCategory = () => {
                     </div>
                 </div>
                 <div className="flex items-center gap-2 w-full md:w-auto">
-                    <button 
-                        onClick={() => navigate('/admin/categories')} 
+                    <button
+                        onClick={() => navigate('/admin/categories')}
                         className="flex-1 md:flex-none px-5 py-2.5 bg-white border border-slate-200 text-slate-500 rounded-xl text-xs font-bold hover:bg-slate-50 transition-all active:scale-95 shadow-sm"
                     >
                         {t('form.cancel')}
@@ -113,12 +155,12 @@ const AddCategory = () => {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-1.5 md:col-span-2">
                                 <label className="text-[11px] font-bold text-slate-500 ml-1 uppercase">{t('form.name_label')} <span className="text-rose-500">*</span></label>
-                                <input 
-                                    type="text" 
-                                    name="name" 
-                                    value={formData.name} 
-                                    onChange={handleChange} 
-                                    required 
+                                <input
+                                    type="text"
+                                    name="name"
+                                    value={formData.name}
+                                    onChange={handleChange}
+                                    required
                                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 focus:bg-white transition-all text-sm font-bold text-slate-700"
                                     placeholder={t('form.name_placeholder')}
                                 />
@@ -128,11 +170,11 @@ const AddCategory = () => {
                                 <label className="text-[11px] font-bold text-slate-500 ml-1 uppercase">{t('form.slug_label')}</label>
                                 <div className="relative">
                                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 font-bold text-xs">/</span>
-                                    <input 
-                                        type="text" 
-                                        name="slug" 
-                                        value={formData.slug} 
-                                        onChange={handleChange} 
+                                    <input
+                                        type="text"
+                                        name="slug"
+                                        value={formData.slug}
+                                        onChange={handleChange}
                                         className="w-full pl-8 pr-4 py-2 bg-slate-100/50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 transition-all text-xs font-bold text-slate-400"
                                         placeholder={t('form.slug_placeholder')}
                                     />
@@ -142,14 +184,45 @@ const AddCategory = () => {
 
                             <div className="space-y-1.5 md:col-span-2">
                                 <label className="text-[11px] font-bold text-slate-500 ml-1 uppercase">{t('form.desc_label')}</label>
-                                <textarea 
-                                    name="description" 
-                                    value={formData.description} 
-                                    onChange={handleChange} 
-                                    rows={4} 
+                                <textarea
+                                    name="description"
+                                    value={formData.description}
+                                    onChange={handleChange}
+                                    rows={4}
                                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 focus:bg-white transition-all text-xs font-medium resize-none"
                                     placeholder={t('form.desc_placeholder')}
                                 />
+                            </div>
+
+                            <div className="space-y-1.5 md:col-span-2">
+                                <label className="text-[11px] font-bold text-slate-500 ml-1 uppercase">{t('form.tags_label')}</label>
+                                <div className="flex flex-wrap gap-2 p-3 bg-slate-50 border border-slate-200 rounded-xl min-h-[46px]">
+                                    {formData.tags.map((tag) => (
+                                        <span key={tag} className="flex items-center gap-2 px-3 py-1 bg-white border border-slate-200 rounded-full text-xs font-medium text-slate-600">
+                                            {tag}
+                                            <X
+                                                size={14}
+                                                className="cursor-pointer text-slate-400 hover:text-red-500"
+                                                onClick={() => setFormData((prev) => ({ ...prev, tags: prev.tags.filter((item) => item !== tag) }))}
+                                            />
+                                        </span>
+                                    ))}
+                                    <input
+                                        type="text"
+                                        placeholder={t('form.tags_placeholder')}
+                                        value={tagInput}
+                                        onChange={handleTagInputChange}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' || e.key === ',') {
+                                                e.preventDefault();
+                                                addTag();
+                                            }
+                                        }}
+                                        onBlur={() => { if (tagInput.trim()) addTag(); }}
+                                        className="plain-input text-xs flex-1 min-w-[150px] py-1"
+                                    />
+                                </div>
+                                <p className="text-[9px] text-slate-400 font-bold uppercase italic px-1">{t('form.tags_hint')}</p>
                             </div>
                         </div>
                     </div>
@@ -177,12 +250,12 @@ const AddCategory = () => {
                                     </button>
                                 ))}
                                 <div className="w-10 h-10 relative rounded-xl border-2 border-slate-100 overflow-hidden group shadow-sm">
-                                    <input 
-                                        type="color" 
-                                        name="bgColor" 
-                                        value={formData.bgColor} 
-                                        onChange={handleChange} 
-                                        className="absolute inset-0 w-full h-full cursor-pointer scale-150" 
+                                    <input
+                                        type="color"
+                                        name="bgColor"
+                                        value={formData.bgColor}
+                                        onChange={handleChange}
+                                        className="absolute inset-0 w-full h-full cursor-pointer scale-150"
                                     />
                                 </div>
                             </div>
@@ -204,7 +277,7 @@ const AddCategory = () => {
                             <h3 className="text-sm font-bold text-slate-900 border-b-2 border-emerald-500 inline-block">3. {t('form.image')}</h3>
                         </div>
 
-                        <div 
+                        <div
                             className="relative group w-full aspect-square bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl overflow-hidden flex items-center justify-center cursor-pointer hover:border-blue-400 transition-all"
                             style={{ backgroundColor: formData.bgColor }}
                         >
@@ -240,10 +313,10 @@ const AddCategory = () => {
 
                             <div className="space-y-1.5">
                                 <label className="text-[11px] font-bold text-slate-500 ml-1 uppercase">{t('form.visibility')}</label>
-                                <select 
-                                    name="status" 
-                                    value={formData.status} 
-                                    onChange={handleChange} 
+                                <select
+                                    name="status"
+                                    value={formData.status}
+                                    onChange={handleChange}
                                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 transition-all text-xs font-bold text-slate-700"
                                 >
                                     <option value="Active">{t('status.active')}</option>

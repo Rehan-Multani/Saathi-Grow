@@ -109,8 +109,8 @@ const productSchema = new mongoose.Schema({
     default: ''
   },
   image: {
-    type: String, // Cloudinary URL
-    required: [true, 'Product image is compulsory']
+    type: String, // Cloudinary URL (optional for bulk upload; required on Add Product UI)
+    default: ''
   },
   status: {
     type: String,

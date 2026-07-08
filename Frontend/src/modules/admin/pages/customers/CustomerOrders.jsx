@@ -1,10 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Search, Filter, Calendar, ChevronLeft, ChevronRight, XCircle, Clock, Loader2, Package, User as UserIcon } from 'lucide-react';
+import { Search, Calendar, ChevronLeft, ChevronRight, XCircle, Loader2, Package, User as UserIcon, Trash2 } from 'lucide-react';
 import { getAllOrdersAdmin } from '../../api/orderApi';
+import * as customerApi from '../../../../common/api/customerManagementApi';
+import { showDeleteConfirmation } from '../../../../common/utils/alertUtils';
+import { useAdminAuth } from '../../context/AdminAuthContext';
 import { toast } from 'react-toastify';
 import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
 import { pageInfoData } from '../../../../common/data/pageInfoData';
+
+const getOrderUserId = (order) => order?.user?._id || (typeof order?.user === 'string' ? order.user : null);
 
 const OrderStatusBadge = ({ status }) => {
     const { t } = useTranslation('admin_customers');
@@ -30,12 +35,16 @@ const OrderStatusBadge = ({ status }) => {
 
 const CustomerOrders = () => {
     const { t } = useTranslation('admin_customers');
+    const { adminUser } = useAdminAuth();
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
     const [page, setPage] = useState(1);
     const [pagination, setPagination] = useState({ total: 0, totalPages: 1 });
+    const [deletingId, setDeletingId] = useState(null);
+    const [selectedIds, setSelectedIds] = useState([]);
+    const [bulkDeleting, setBulkDeleting] = useState(false);
     const limit = 10;
 
     const fetchOrders = useCallback(async () => {
@@ -75,6 +84,86 @@ const CustomerOrders = () => {
         setSearchTerm('');
         setStatusFilter('all');
         setPage(1);
+    };
+
+    const selectableOrders = orders.filter((o) => Boolean(getOrderUserId(o)));
+    const allSelected = selectableOrders.length > 0 && selectableOrders.every((o) => selectedIds.includes(o._id));
+
+    const toggleSelect = (id) => {
+        setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+    };
+
+    const toggleSelectAll = () => {
+        if (allSelected) {
+            const currentIds = selectableOrders.map((o) => o._id);
+            setSelectedIds((prev) => prev.filter((id) => !currentIds.includes(id)));
+        } else {
+            setSelectedIds((prev) => Array.from(new Set([...prev, ...selectableOrders.map((o) => o._id)])));
+        }
+    };
+
+    const handleDeleteAccount = async (order) => {
+        const userId = getOrderUserId(order);
+        if (!userId) {
+            toast.warning(t('orders.alerts.no_account'));
+            return;
+        }
+
+        const customerName = order.user?.name || t('all.anonymous');
+        const result = await showDeleteConfirmation(
+            t('all.alerts.delete_confirm_title'),
+            t('all.alerts.delete_confirm_text', { name: customerName })
+        );
+        if (!result.isConfirmed) return;
+
+        try {
+            setDeletingId(String(userId));
+            await customerApi.deleteCustomer(adminUser.token, userId);
+            toast.success(t('all.alerts.delete_success'));
+            setSelectedIds((prev) => prev.filter((id) => {
+                const matched = orders.find((o) => o._id === id);
+                return String(getOrderUserId(matched)) !== String(userId);
+            }));
+            fetchOrders();
+        } catch (error) {
+            toast.error(error.message || t('all.errors.delete_failed'));
+        } finally {
+            setDeletingId(null);
+        }
+    };
+
+    const handleBulkDeleteAccounts = async () => {
+        if (selectedIds.length === 0) return;
+
+        const selectedOrders = orders.filter((o) => selectedIds.includes(o._id));
+        const userIds = Array.from(new Set(
+            selectedOrders.map(getOrderUserId).filter(Boolean).map(String)
+        ));
+
+        if (userIds.length === 0) {
+            toast.warning(t('orders.alerts.no_account'));
+            return;
+        }
+
+        const result = await showDeleteConfirmation(
+            t('orders.alerts.bulk_delete_confirm_title'),
+            t('orders.alerts.bulk_delete_confirm_text', { count: userIds.length })
+        );
+        if (!result.isConfirmed) return;
+
+        try {
+            setBulkDeleting(true);
+            const data = await customerApi.bulkDeleteCustomers(adminUser.token, userIds);
+            toast.success(t('orders.alerts.bulk_delete_success', {
+                count: data.deletedCount ?? userIds.length
+            }));
+            setSelectedIds([]);
+            fetchOrders();
+        } catch (error) {
+            toast.error(error.message || t('all.errors.delete_failed'));
+        } finally {
+            setBulkDeleting(false);
+        }
     };
 
     return (
@@ -127,31 +216,79 @@ const CustomerOrders = () => {
                 </div>
             </div>
 
+            {selectedIds.length > 0 && (
+                <div className="bg-blue-600 text-white rounded-xl px-4 py-3 mb-4 flex items-center justify-between shadow-sm">
+                    <div className="flex items-center gap-3">
+                        <span className="text-sm font-bold">
+                            {t('orders.selection.selected', { count: selectedIds.length })}
+                        </span>
+                        <button
+                            onClick={() => setSelectedIds([])}
+                            className="text-xs font-medium text-blue-100 hover:text-white underline"
+                        >
+                            {t('orders.selection.clear')}
+                        </button>
+                    </div>
+                    <button
+                        onClick={handleBulkDeleteAccounts}
+                        disabled={bulkDeleting}
+                        className="flex items-center gap-2 px-4 py-2 bg-white text-red-600 rounded-lg text-sm font-bold hover:bg-red-50 transition-colors disabled:opacity-60"
+                    >
+                        {bulkDeleting ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+                        {t('orders.selection.delete_accounts')}
+                    </button>
+                </div>
+            )}
+
             {/* Table */}
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-6">
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm text-left">
                         <thead>
                             <tr className="bg-slate-50/50 border-b border-slate-100">
+                                <th className="px-6 py-4 w-10">
+                                    <input
+                                        type="checkbox"
+                                        checked={allSelected}
+                                        onChange={toggleSelectAll}
+                                        disabled={selectableOrders.length === 0}
+                                        className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer accent-blue-600 disabled:opacity-40"
+                                        aria-label="Select all orders with customer accounts"
+                                    />
+                                </th>
                                 <th className="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase">{t('orders.table.order')}</th>
                                 <th className="px-4 py-4 text-[11px] font-bold text-slate-500 uppercase">{t('orders.table.customer')}</th>
                                 <th className="px-4 py-4 text-[11px] font-bold text-slate-500 uppercase">{t('orders.table.manifest')}</th>
                                 <th className="px-4 py-4 text-[11px] font-bold text-slate-500 uppercase text-center">{t('orders.table.amount')}</th>
                                 <th className="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase text-center">{t('orders.table.status')}</th>
+                                <th className="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase text-right">{t('orders.table.actions')}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
                             {loading && orders.length === 0 ? (
                                 <tr>
-                                    <td colSpan="5" className="py-20 text-center">
+                                    <td colSpan="7" className="py-20 text-center">
                                         <div className="flex flex-col items-center gap-3">
                                             <Loader2 size={32} className="text-blue-500 animate-spin" />
                                             <span className="text-xs font-medium text-slate-400 font-sans tracking-normal">Loading orders...</span>
                                         </div>
                                     </td>
                                 </tr>
-                            ) : orders.length > 0 ? orders.map((o) => (
-                                <tr key={o._id} className="group hover:bg-slate-50/30 transition-all">
+                            ) : orders.length > 0 ? orders.map((o) => {
+                                const userId = getOrderUserId(o);
+                                const isDeleting = deletingId && userId && deletingId === String(userId);
+                                return (
+                                <tr key={o._id} className={`group hover:bg-slate-50/30 transition-all ${selectedIds.includes(o._id) ? 'bg-blue-50/40' : ''}`}>
+                                    <td className="px-6 py-5">
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedIds.includes(o._id)}
+                                            onChange={() => toggleSelect(o._id)}
+                                            disabled={!userId}
+                                            className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer accent-blue-600 disabled:opacity-40 disabled:cursor-not-allowed"
+                                            aria-label={`Select order ${o.orderId}`}
+                                        />
+                                    </td>
                                     <td className="px-6 py-5">
                                         <div className="flex flex-col">
                                             <span className="text-xs font-bold text-blue-600 mb-1">#{o.orderId}</span>
@@ -188,10 +325,24 @@ const CustomerOrders = () => {
                                     <td className="px-6 py-5 text-center">
                                         <OrderStatusBadge status={o.status} />
                                     </td>
+                                    <td className="px-6 py-5">
+                                        <div className="flex justify-end">
+                                            <button
+                                                onClick={() => handleDeleteAccount(o)}
+                                                disabled={!userId || isDeleting || bulkDeleting}
+                                                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold text-rose-600 bg-rose-50 border border-rose-100 rounded-lg hover:bg-rose-100 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                                                title={t('orders.actions.delete_account')}
+                                            >
+                                                {isDeleting ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                                                {t('orders.actions.delete_account')}
+                                            </button>
+                                        </div>
+                                    </td>
                                 </tr>
-                            )) : (
+                                );
+                            }) : (
                                 <tr>
-                                    <td colSpan="5" className="py-20 text-center">
+                                    <td colSpan="7" className="py-20 text-center">
                                         <div className="flex flex-col items-center gap-2 text-slate-400 opacity-60">
                                             <XCircle size={40} className="text-slate-300" strokeWidth={1.5} />
                                             <span className="text-xs font-semibold">No orders found</span>

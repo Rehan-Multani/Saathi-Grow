@@ -18,6 +18,7 @@ import { getDeliveryDetail, updateDeliveryStatus, getRouteDirections } from '../
 import { useLocation } from '../../user/context/LocationContext';
 import { toast } from 'react-toastify';
 import useLocationTracking from '../hooks/useLocationTracking';
+import { useTheme } from '../../user/context/ThemeContext';
 import './live-tracking.css';
 import { ASSET_URLS } from '../../../constants/assetUrls';
 
@@ -30,20 +31,33 @@ const mapContainerStyle = {
     height: '100%'
 };
 
-const mapOptions = {
+const lightMapStyles = [
+    { "featureType": "water", "elementType": "geometry", "stylers": [{ "color": "#e9e9e9" }, { "lightness": 17 }] },
+    { "featureType": "landscape", "elementType": "geometry", "stylers": [{ "color": "#f5f5f5" }, { "lightness": 20 }] },
+    { "featureType": "road.highway", "elementType": "geometry.fill", "stylers": [{ "color": "#ffffff" }, { "lightness": 17 }] },
+    { "featureType": "poi", "elementType": "geometry", "stylers": [{ "color": "#f5f5f5" }, { "lightness": 21 }] }
+];
+
+const darkMapStyles = [
+    { "elementType": "geometry", "stylers": [{ "color": "#1d1d1d" }] },
+    { "elementType": "labels.text.fill", "stylers": [{ "color": "#8a8a8a" }] },
+    { "elementType": "labels.text.stroke", "stylers": [{ "color": "#1d1d1d" }] },
+    { "featureType": "road", "elementType": "geometry", "stylers": [{ "color": "#2c2c2c" }] },
+    { "featureType": "road", "elementType": "geometry.stroke", "stylers": [{ "color": "#212121" }] },
+    { "featureType": "water", "elementType": "geometry", "stylers": [{ "color": "#000000" }] },
+    { "featureType": "poi", "elementType": "geometry", "stylers": [{ "color": "#242424" }] },
+    { "featureType": "landscape", "elementType": "geometry", "stylers": [{ "color": "#1a1a1a" }] }
+];
+
+const buildMapOptions = (isDarkMode) => ({
     disableDefaultUI: true,
     zoomControl: false,
-    styles: [
-        { "featureType": "water", "elementType": "geometry", "stylers": [{ "color": "#e9e9e9" }, { "lightness": 17 }] },
-        { "featureType": "landscape", "elementType": "geometry", "stylers": [{ "color": "#f5f5f5" }, { "lightness": 20 }] },
-        { "featureType": "road.highway", "elementType": "geometry.fill", "stylers": [{ "color": "#ffffff" }, { "lightness": 17 }] },
-        { "featureType": "poi", "elementType": "geometry", "stylers": [{ "color": "#f5f5f5" }, { "lightness": 21 }] }
-    ],
+    styles: isDarkMode ? darkMapStyles : lightMapStyles,
     gestureHandling: 'greedy',
     tilt: 45,
     heading: 0,
     mapId: '90f87356964870ad'
-};
+});
 
 const getDistance = (pos1, pos2) => {
     if (!pos1 || !pos2) return 0;
@@ -106,6 +120,7 @@ const MapController = ({ map, center, destination, routeCoords, isFOLLOWING }) =
 const LiveTracking = () => {
     const navigate = useNavigate();
     const { id } = useParams();
+    const { isDarkMode } = useTheme();
     const { token, profile, fetchProfile } = useDeliveryStore();
     const [run, setRun] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -118,6 +133,7 @@ const LiveTracking = () => {
     const [codCollected, setCodCollected] = useState({});
     const [map, setMap] = useState(null);
     const { mapLoaded } = useLocation();
+    const mapOptions = useMemo(() => buildMapOptions(isDarkMode), [isDarkMode]);
 
     const [sheetHeight, setSheetHeight] = useState(window.innerHeight * 0.65);
     useEffect(() => {
@@ -133,6 +149,12 @@ const LiveTracking = () => {
 
     const onLoad = useCallback(m => setMap(m), []);
     const onUnmount = useCallback(() => setMap(null), []);
+
+    useEffect(() => {
+        if (map) {
+            map.setOptions(mapOptions);
+        }
+    }, [map, mapOptions]);
 
     useLocationTracking(token, run?.status !== 'completed' && run?.status !== undefined, run?._id);
 
@@ -236,13 +258,13 @@ const LiveTracking = () => {
         }
     }, [partnerPos, routeCoordinates, map, isFOLLOWING]);
 
-    if (isLoading || !mapLoaded) return <div className="h-screen flex flex-col items-center justify-center bg-slate-50 text-slate-900"><Loader2 className="animate-spin text-emerald-500 mb-4" size={48} /><p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-40">Syncing Pilot...</p></div>;
+    if (isLoading || !mapLoaded) return <div className="h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-zinc-950 text-slate-900 dark:text-white"><Loader2 className="animate-spin text-emerald-500 mb-4" size={48} /><p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-40">Syncing Pilot...</p></div>;
 
     const isReturn = run.runType === 'return';
     const allStopsDone = run.orders.every(o => isReturn ? o.status === 'picked_up' : (o.status === 'delivered' || o.status === 'failed'));
 
     return (
-        <div className="fixed inset-0 w-full h-full z-[100] bg-slate-50 text-slate-900 font-sans overflow-hidden flex flex-col">
+        <div className="fixed inset-0 w-full h-full z-[100] bg-slate-50 dark:bg-zinc-950 text-slate-900 dark:text-white font-sans overflow-hidden flex flex-col">
             <div className={`flex-1 w-full h-full relative transition-all duration-500 ${isExpanded ? 'opacity-40 scale-105' : 'opacity-100'}`}>
                 <GoogleMap
                     mapContainerStyle={mapContainerStyle}
@@ -292,21 +314,21 @@ const LiveTracking = () => {
 
             {/* Overlays - Mission Style */}
             <div className="absolute top-6 left-4 right-4 z-[1000] flex justify-between items-center">
-                <button onClick={() => navigate(-1)} className="w-10 h-10 flex items-center justify-center bg-blue-600 text-white shadow-xl active:scale-95 transition-all rounded-none border border-slate-200">
+                <button onClick={() => navigate(-1)} className="w-10 h-10 flex items-center justify-center bg-blue-600 text-white shadow-xl active:scale-95 transition-all rounded-none border border-slate-200 dark:border-white/10">
                     <ChevronLeft size={20} strokeWidth={3} />
                 </button>
 
                 <div className="flex flex-col items-center justify-center flex-1 mx-2">
-                    <div className="bg-white w-[110px] h-[44px] rounded-[100px] shadow-2xl flex items-center justify-center relative px-4 border border-slate-200">
+                    <div className="bg-white dark:bg-[#2d2d2d] w-[110px] h-[44px] rounded-[100px] shadow-2xl flex items-center justify-center relative px-4 border border-slate-200 dark:border-white/5">
                         <div className={`absolute left-3 w-1.5 h-3.5 ${isReturn ? 'bg-emerald-500 shadow-[0_0_8px_#10b981]' : 'bg-[#00c982] shadow-[0_0_8px_#00c982]'} rounded-full animate-pulse`}></div>
                         <div className="flex flex-col items-center">
-                            <span className="text-[9px] font-black uppercase tracking-[0.15em] text-slate-900 leading-none mb-0.5">{isReturn ? 'Return' : 'Delivery'}</span>
-                            <span className="text-[9px] font-black uppercase tracking-[0.15em] text-slate-900 leading-none">Mission</span>
+                            <span className="text-[9px] font-black uppercase tracking-[0.15em] text-slate-900 dark:text-white leading-none mb-0.5">{isReturn ? 'Return' : 'Delivery'}</span>
+                            <span className="text-[9px] font-black uppercase tracking-[0.15em] text-slate-900 dark:text-white leading-none">Mission</span>
                         </div>
                     </div>
                     <div className="mt-1">
-                        <div className="bg-gray-400/40 backdrop-blur-md px-4 py-0.5 rounded-full flex items-center justify-center">
-                            <span className="text-[7.5px] font-black text-[#2d2d2d] uppercase tracking-widest leading-none">#{run.runId}</span>
+                        <div className="bg-gray-400/40 dark:bg-white/20 backdrop-blur-md px-4 py-0.5 rounded-full flex items-center justify-center">
+                            <span className="text-[7.5px] font-black text-[#2d2d2d] dark:text-white uppercase tracking-widest leading-none">#{run.runId}</span>
                         </div>
                     </div>
                 </div>
@@ -336,14 +358,14 @@ const LiveTracking = () => {
                 }}
                 style={{ height: '65vh' }}
             >
-                <div className="bg-white rounded-t-[2.5rem] shadow-2xl border-t border-slate-200 w-full h-full flex flex-col relative overflow-hidden">
+                <div className="bg-white dark:bg-[#1a1a1a] rounded-t-[2.5rem] shadow-2xl border-t border-slate-200 dark:border-white/5 w-full h-full flex flex-col relative overflow-hidden">
                     <div 
                         className="w-full h-10 flex items-center justify-center cursor-pointer flex-shrink-0" 
                         onPointerDown={(e) => dragControls.start(e)}
                         onClick={() => setIsExpanded(!isExpanded)}
                         style={{ touchAction: 'none' }}
                     >
-                        <div className="w-12 h-1 bg-slate-200 rounded-full" />
+                        <div className="w-12 h-1 bg-slate-200 dark:bg-white/10 rounded-full" />
                     </div>
 
                     <div className="px-6 pb-6 pt-2 flex-1 flex flex-col min-h-0 overflow-hidden">
@@ -352,12 +374,12 @@ const LiveTracking = () => {
                                 <p className="text-[#00c982] font-black text-[9px] uppercase tracking-[0.2em] mb-1">
                                     PHASE: {run.status.replace(/_/g, ' ')}
                                 </p>
-                                <h2 className="text-xl font-black text-slate-900 tracking-tight leading-none capitalize">
+                                <h2 className="text-xl font-black text-slate-900 dark:text-white tracking-tight leading-none capitalize">
                                     {run.status === 'assigned' ? 'New Batch' : run.status === 'in_progress' ? 'On Mission' : 'Finishing'}
                                 </h2>
                             </div>
                             {run.status === 'assigned' ? (
-                                <button onClick={() => handleAction('start')} className="px-5 py-2.5 bg-slate-900 text-white rounded-xl font-black text-[9px] uppercase tracking-widest shadow-xl flex items-center justify-center gap-2 active:scale-95 transition-all"><span>Start Mission</span><ArrowRight size={12} strokeWidth={3} /></button>
+                                <button onClick={() => handleAction('start')} className="px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-black text-[9px] uppercase tracking-widest shadow-xl flex items-center justify-center gap-2 active:scale-95 transition-all"><span>Start Mission</span><ArrowRight size={12} strokeWidth={3} /></button>
                             ) : allStopsDone && (
                                 <button onClick={() => handleAction('complete')} className="px-5 py-2.5 bg-emerald-500 text-white rounded-xl font-black text-[9px] uppercase tracking-widest shadow-xl shadow-emerald-500/20 active:scale-95 transition-all">{isReturn ? 'Finalize Returns' : 'Complete Batch'}</button>
                             )}
@@ -369,28 +391,28 @@ const LiveTracking = () => {
                                 const isDone = isReturn ? stop.status === 'picked_up' : stop.status === 'delivered';
                                 
                                 return (
-                                    <div key={stop._id} className={`p-4 rounded-2xl transition-all duration-300 ${isActive ? 'bg-slate-50 shadow-xl border border-slate-200' : 'opacity-20'}`}>
+                                    <div key={stop._id} className={`p-4 rounded-2xl transition-all duration-300 ${isActive ? 'bg-slate-50 dark:bg-white/5 shadow-xl border border-slate-200 dark:border-white/10' : 'opacity-20'}`}>
                                         <div className="flex justify-between items-start mb-3">
                                             <div className="flex items-center gap-3">
-                                                <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${isDone ? 'bg-emerald-500/20 text-emerald-500' : 'bg-slate-100 text-slate-500'}`}>
+                                                <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${isDone ? 'bg-emerald-500/20 text-emerald-500' : 'bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-gray-400'}`}>
                                                     {isDone ? <Check size={18} strokeWidth={3} /> : <span className="font-black text-sm">{i + 1}</span>}
                                                 </div>
                                                 <div>
-                                                    <h4 className="font-black text-sm text-slate-900">{stop.order?.user?.name}</h4>
-                                                    <p className="text-[10px] text-slate-500 font-bold">{stop.order?.user?.phone}</p>
+                                                    <h4 className="font-black text-sm text-slate-900 dark:text-white">{stop.order?.user?.name}</h4>
+                                                    <p className="text-[10px] text-slate-500 dark:text-gray-400 font-bold">{stop.order?.user?.phone}</p>
                                                 </div>
                                             </div>
                                             <div className="text-right flex flex-col items-end">
-                                                <p className="font-black text-[13px] text-slate-800 tracking-tight leading-none">₹{stop.order?.totalAmount}</p>
+                                                <p className="font-black text-[13px] text-slate-800 dark:text-white tracking-tight leading-none">₹{stop.order?.totalAmount}</p>
                                                 {stop.order?.paymentMethod === 'cod' ? (
                                                     <span className="text-[8px] bg-amber-500 text-white px-1.5 py-0.5 rounded font-black uppercase mt-1.5">COD: Collect Cash</span>
                                                 ) : (
                                                     <span className="text-[8px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded font-black uppercase mt-1.5">PREPAID</span>
                                                 )}
-                                                <p className="text-[7.5px] font-black uppercase tracking-wider text-slate-500 mt-1.5">{stop.status.replace(/_/g, ' ')}</p>
+                                                <p className="text-[7.5px] font-black uppercase tracking-wider text-slate-500 dark:text-gray-400 mt-1.5">{stop.status.replace(/_/g, ' ')}</p>
                                             </div>
                                         </div>
-                                        <div className="flex items-start gap-2 text-slate-500 mb-4 bg-slate-100 p-2.5 rounded-xl">
+                                        <div className="flex items-start gap-2 text-slate-500 dark:text-gray-400 mb-4 bg-slate-100 dark:bg-white/5 p-2.5 rounded-xl">
                                             <MapPin size={12} className="mt-0.5 flex-shrink-0 text-emerald-500" />
                                             <p className="text-[10px] font-bold leading-relaxed">{stop.order?.shippingAddress?.street}, {stop.order?.shippingAddress?.city}</p>
                                         </div>
@@ -414,12 +436,12 @@ const LiveTracking = () => {
                                                                 <div className="flex-1 flex flex-col gap-2">
                                                                     {stop.order?.paymentMethod === 'cod' && <p className="text-center text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-[-4px]">COD Collected ✓</p>}
                                                                     <input type="text" maxLength={4} placeholder="Enter OTP Code" className="otp-input-field" value={otpInput} onChange={e => setOtpInput(e.target.value)} />
-                                                                    <button onClick={() => handleAction('stop', stop.order._id, 'delivered', otpInput)} disabled={!otpInput} className="w-full h-11 bg-slate-900 text-white rounded-xl font-black text-[10px] uppercase tracking-widest active:scale-95 disabled:opacity-30 transition-all">Verify & Deliver</button>
+                                                                    <button onClick={() => handleAction('stop', stop.order._id, 'delivered', otpInput)} disabled={!otpInput} className="w-full h-11 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-black text-[10px] uppercase tracking-widest active:scale-95 disabled:opacity-30 transition-all">Verify & Deliver</button>
                                                                 </div>
                                                             )
                                                     )
                                                 )}
-                                                <a href={`tel:${stop.order?.user?.phone}`} className="h-10 w-10 bg-slate-100 border border-slate-200 rounded-xl text-slate-500 flex items-center justify-center active:scale-95"><Phone size={16} /></a>
+                                                <a href={`tel:${stop.order?.user?.phone}`} className="h-10 w-10 bg-slate-100 dark:bg-white/10 border border-slate-200 dark:border-white/10 rounded-xl text-slate-500 dark:text-gray-300 flex items-center justify-center active:scale-95"><Phone size={16} /></a>
                                             </div>
                                         )}
                                     </div>

@@ -23,18 +23,23 @@
       "send_email": "ईमेल भेजें",
       "send_message": "संदेश भेजें",
       "block_user": "ब्लॉक करें",
-      "unblock_user": "अनब्लॉक करें"
+      "unblock_user": "अनब्लॉक करें",
+      "delete": "हटाएं"
     },
     "alerts": {
       "block_success": "ग्राहक को सफलतापूर्वक ब्लॉक किया गया",
       "unblock_success": "ग्राहक को सफलतापूर्वक अनब्लॉक किया गया",
       "sent_success": "{{type}} सफलतापूर्वक भेजा गया!",
-      "delivered_success": "{{type}} {{name}} को भेज दिया गया"
+      "delivered_success": "{{type}} {{name}} को भेज दिया गया",
+      "delete_confirm_title": "ग्राहक हटाएं?",
+      "delete_confirm_text": "क्या आप वाकई {{name}} को हटाना चाहते हैं? यह पूर्ववत नहीं हो सकता।",
+      "delete_success": "ग्राहक सफलतापूर्वक हटा दिया गया"
     },
     "errors": {
       "fetch_failed": "ग्राहक लोड करने में विफल",
       "fetch_profile": "प्रोफ़ाइल लोड करने में विफल",
-      "update_failed": "अपडेट करने में विफल"
+      "update_failed": "अपडेट करने में विफल",
+      "delete_failed": "ग्राहक हटाने में विफल"
     },
     "pagination": {
       "showing": "दिखा रहा है",
@@ -51,7 +56,22 @@
       "customer": "ग्राहक",
       "manifest": "उत्पाद (Products)",
       "amount": "राशि",
-      "status": "स्थिति"
+      "status": "स्थिति",
+      "actions": "कार्रवाई"
+    },
+    "actions": {
+      "delete_account": "अकाउंट हटाएं"
+    },
+    "selection": {
+      "selected": "{{count}} चयनित",
+      "clear": "साफ़ करें",
+      "delete_accounts": "अकाउंट हटाएं"
+    },
+    "alerts": {
+      "no_account": "इस ऑर्डर से कोई ग्राहक अकाउंट जुड़ा नहीं है",
+      "bulk_delete_confirm_title": "चयनित अकाउंट हटाएं?",
+      "bulk_delete_confirm_text": "क्या आप वाकई {{count}} ग्राहक अकाउंट हटाना चाहते हैं? यह पूर्ववत नहीं हो सकता।",
+      "bulk_delete_success": "{{count}} अकाउंट हटाए गए"
     },
     "filters": {
       "all": "सभी स्थिति",

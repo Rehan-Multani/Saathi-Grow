@@ -65,7 +65,15 @@
     "update_success": "Product updated successfully",
     "managed_by_vendor": "This product is managed by vendor",
     "delete_confirm_title": "Delete product?",
-    "delete_confirm_text": "Are you sure you want to delete {{name}}?"
+    "delete_confirm_text": "Are you sure you want to delete {{name}}?",
+    "bulk_delete_confirm_title": "Delete selected products?",
+    "bulk_delete_confirm_text": "Are you sure you want to delete {{count}} selected product(s)? This cannot be undone.",
+    "bulk_delete_success": "{{count}} product(s) deleted"
+  },
+  "selection": {
+    "selected": "{{count}} selected",
+    "clear": "Clear",
+    "delete": "Delete"
   },
   "filters": {
     "options": "Filter Options",
@@ -77,7 +85,8 @@
     "sku_count": "{{count}} Products Found",
     "syncing": "Syncing...",
     "no_products": "No products found",
-    "page_of": "Page {{current}} of {{total}}"
+    "page_of": "Page {{current}} of {{total}}",
+    "showing_range": "Showing {{start}}–{{end}} of {{total}}"
   },
   "restock": {
     "title": "Update Stock",

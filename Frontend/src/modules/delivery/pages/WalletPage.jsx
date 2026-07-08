@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import {
     Wallet,
@@ -7,48 +7,16 @@ import {
     ChevronRight,
     HelpCircle,
     Check,
-    FileDown,
     ShieldAlert,
     Clock,
     UserCheck,
     ArrowUpFromLine
 } from 'lucide-react';
-import { toast } from 'react-toastify';
 import useDelivery from '../hooks/useDelivery';
-import useDeliveryStore from '../store/deliveryStore';
 import { formatCurrency } from '../../vendor/utils/formatDate';
-import { downloadCSV } from '../../../common/utils/formatUtils';
 
 const WalletPage = () => {
-    const token = useDeliveryStore(state => state.token);
     const { wallet, transactions = [], stats, profile, walletPagination, refreshWallet } = useDelivery();
-
-    const handleExport = async () => {
-        if (!transactions || transactions.length === 0) {
-            toast.warn("No data available to download");
-            return;
-        }
-        const toastId = toast.loading("Processing tactical audit...");
-        try {
-            const csvContent = "Date,Order ID,Type,Amount,Status\n" +
-                transactions.map(tx => {
-                    const dateStr = tx.createdAt ? new Date(tx.createdAt).toLocaleDateString() : 'N/A';
-                    const orderId = tx.order?.orderId || 'N/A';
-                    const type = tx.type || 'N/A';
-                    const amount = tx.amount || 0;
-                    const status = tx.status || 'N/A';
-                    return `" ${dateStr}","${orderId}","${type}","${amount}","${status}"`;
-                }).join("\n");
-
-            const bomCsvContent = "\uFEFF" + csvContent;
-            const fileName = `cash_audit_${new Date().toISOString().split('T')[0]}.csv`;
-            downloadCSV(bomCsvContent, fileName);
-            toast.update(toastId, { render: "Audit Log Downloaded", type: "success", isLoading: false, autoClose: 2000 });
-        } catch (error) {
-            console.error("Export failed:", error);
-            toast.update(toastId, { render: "Export Failed", type: "error", isLoading: false, autoClose: 2000 });
-        }
-    };
 
     const cashLiability = wallet?.balance || 0;
     const liabilityLimit = 10000;
@@ -67,13 +35,6 @@ const WalletPage = () => {
                     </h1>
                     <p className="text-[8px] text-slate-400 font-bold uppercase tracking-widest leading-none mt-1">Personnel Liability & Collection Control</p>
                 </div>
-                <button 
-                    onClick={handleExport}
-                    className="flex items-center justify-center gap-2 px-4 py-2 bg-white dark:bg-zinc-900 border border-slate-100 dark:border-zinc-800 !rounded-full text-[9px] font-black uppercase tracking-widest text-slate-900 dark:text-white hover:shadow-md dark:hover:shadow-none transition-all active:scale-95 w-fit"
-                >
-                    <FileDown size={14} />
-                    Audit Export
-                </button>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

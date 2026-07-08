@@ -5,6 +5,7 @@ import {
   getProductById,
   updateProduct,
   deleteProduct,
+  bulkDeleteProducts,
   getAISuggestions,
   adjustInventory,
   getInventoryLogs,
@@ -37,6 +38,7 @@ router.post('/inventory/bulk-adjust', protectAdmin, requirePermission('MANAGE_IN
 router.post('/ai-suggestions', protectStoreManager, getAISuggestions);
 router.get('/inventory-logs', protectAdmin, requirePermission('MANAGE_INVENTORY'), getAllInventoryLogs);
 router.post('/bulk-upload', protectAdmin, requirePermission('MANAGE_PRODUCTS'), csvUpload.single('file'), bulkUploadProducts);
+router.delete('/bulk', protectAdmin, requirePermission('MANAGE_PRODUCTS'), restrictTo('Admin', 'Store Manager'), bulkDeleteProducts);
 
 // Public/General Routes
 router.get('/', optionalProtectStoreManager, getProducts);

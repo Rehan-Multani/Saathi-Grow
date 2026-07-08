@@ -4,12 +4,15 @@ import { API_BASE_URL } from '../../../config/apiConfig';
 const API_URL = `${API_BASE_URL}/admin/subcategories`;
 
 export const getSubCategories = async (token, params = {}) => {
-  const { categoryId, categoryName, status } = params;
+  const { categoryId, categoryName, status, search, page, limit } = params;
   let url = API_URL;
   const queryParams = new URLSearchParams();
   if (categoryId) queryParams.append('categoryId', categoryId);
   if (categoryName) queryParams.append('categoryName', categoryName);
   if (status) queryParams.append('status', status);
+  if (search) queryParams.append('search', search);
+  if (page) queryParams.append('page', page);
+  if (limit) queryParams.append('limit', limit);
   if (queryParams.toString()) url += `?${queryParams.toString()}`;
 
   const response = await axios.get(url, {

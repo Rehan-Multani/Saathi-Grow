@@ -2,8 +2,10 @@
 
 const BRANDS_API_BASE_URL = `${API_BASE_URL}/admin/brands`;
 
-export const getBrands = async (token) => {
-  const response = await fetch(`${BRANDS_API_BASE_URL}`, {
+export const getBrands = async (token, params = {}) => {
+  const queryParams = new URLSearchParams(params).toString();
+  const queryString = queryParams ? `?${queryParams}` : '';
+  const response = await fetch(`${BRANDS_API_BASE_URL}${queryString}`, {
     method: 'GET',
     headers: {
       'Authorization': `Bearer ${token}`,

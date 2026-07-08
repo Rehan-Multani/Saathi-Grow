@@ -6,19 +6,13 @@ import {
     ChevronRight,
     CheckCircle2,
     XCircle,
-    Download,
     Package,
-    ArrowUpDown,
-    Filter,
-    FileText,
     ChevronLeft
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import useDelivery from '../hooks/useDelivery';
 import { formatCurrency } from '../../vendor/utils/formatDate';
-import { downloadCSV } from '../../../common/utils/formatUtils';
-import { API_BASE_URL } from '../../../config/apiConfig';
 
 
 const DeliveryHistory = () => {
@@ -67,50 +61,6 @@ const DeliveryHistory = () => {
         ) : all;
     }, [history, searchQuery]);
 
-    const handleDownloadReport = async () => {
-        if (!historicalOrders || historicalOrders.length === 0) {
-            toast.warn("No data available to download");
-            return;
-        }
-        const id = toast.loading("Generating delivery history report...");
-        try {
-            const fileName = `delivery_history_${new Date().toISOString().split('T')[0]}.csv`;
-
-            // Build a direct backend export URL for Flutter bridge (native download manager)
-            let directExportUrl = null;
-            if (token) {
-                let base = API_BASE_URL || '/api';
-                if (!base.startsWith('http')) {
-                    const origin = window.location.origin;
-                    base = base.startsWith('/') ? `${origin}${base}` : `${origin}/${base}`;
-                }
-                const dateParam = dateFilter ? `&date=${dateFilter}` : '';
-                directExportUrl = `${base}/delivery/history/export?token=${encodeURIComponent(token)}${dateParam}`;
-            }
-
-            // Build local CSV string (used by proxy POST and desktop fallbacks)
-            const csvContent = "Order ID,Date,Customer,Location,Status,Amount\n" +
-                historicalOrders.map(o => {
-                    const cust = String(o.customer || '').replace(/"/g, '""');
-                    const loc = String(o.location || '').replace(/"/g, '""');
-                    return `"${o.id}"," ${o.date}","${cust}","${loc}","${o.status}","${o.amount}"`;
-                }).join("\n");
-
-            const bomCsvContent = "\uFEFF" + csvContent;
-
-            // downloadCSV auto-picks the right strategy:
-            //   1. Flutter bridge  → sends directExportUrl to Flutter's native download manager
-            //   2. Proxy POST      → server streams back the file (mobile browser fallback)
-            //   3. Data URI        → standard desktop download
-            downloadCSV(bomCsvContent, fileName, directExportUrl);
-
-            toast.update(id, { render: "Report downloaded successfully", type: "success", isLoading: false, autoClose: 2000 });
-        } catch (error) {
-            console.error("Export failed:", error);
-            toast.update(id, { render: "Export Failed", type: "error", isLoading: false, autoClose: 2000 });
-        }
-    };
-
     const handleDateSelect = () => {
         toast.info(
             <div className="flex flex-col gap-2">
@@ -135,14 +85,6 @@ const DeliveryHistory = () => {
                     <h1 className="text-lg font-black tracking-tight text-slate-900 dark:text-white leading-none">History</h1>
                     <p className="text-[8px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Logistics & Archival</p>
                 </div>
-                
-                <button
-                    onClick={handleDownloadReport}
-                    className="w-9 h-9 flex items-center justify-center bg-[#028A0F] text-white !rounded-full shadow-lg shadow-[#028A0F]/20 hover:bg-[#035a0a] transition-all active:scale-95"
-                    title="Download Report"
-                >
-                    <Download size={16} />
-                </button>
             </div>
 
             {/* Filters Row */}

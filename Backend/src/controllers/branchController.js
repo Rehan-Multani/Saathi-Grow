@@ -66,7 +66,8 @@ export const getBranches = async (req, res) => {
     const pageNumber = Math.max(parseInt(req.query.page, 10) || 1, 1);
     const limitNumber = Math.min(Math.max(parseInt(req.query.limit, 10) || 20, 1), 100);
     const search = (req.query.search || '').trim();
-    const query = { isActive: { $ne: false } }; // Only active branches by default
+    const includeInactive = req.query.includeInactive === 'true';
+    const query = includeInactive ? {} : { isActive: { $ne: false } };
 
     if (search) {
       query.$or = [
@@ -78,7 +79,7 @@ export const getBranches = async (req, res) => {
       ];
     }
 
-    const branchesQuery = Branch.find(query);
+    const branchesQuery = Branch.find(query).sort('-createdAt');
 
     if (hasPagination) {
       const total = await Branch.countDocuments(query);

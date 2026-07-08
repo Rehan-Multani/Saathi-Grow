@@ -52,19 +52,41 @@ export const createSubCategory = async (req, res) => {
 // @access  Public (Optional filtering)
 export const getSubCategories = async (req, res) => {
   try {
-    const { categoryId, categoryName, category, status } = req.query;
+    const { categoryId, categoryName, category, status, search, page, limit } = req.query;
+    const hasPagination = page !== undefined || limit !== undefined;
     let query = {};
-    
+
     // Support categoryId, categoryName, or category (alias for name)
     if (categoryId) query.category = categoryId;
-    
+
     const effectiveCategoryName = categoryName || category;
     if (effectiveCategoryName) {
       // Use exact match for category name to avoid cross-pollination of subcategories
       query.categoryName = { $regex: new RegExp('^' + escapeRegExp(effectiveCategoryName) + '$', 'i') };
     }
-    
+
     if (status) query.status = status;
+
+    if (search && String(search).trim()) {
+      const rx = { $regex: escapeRegExp(String(search).trim()), $options: 'i' };
+      query.$or = [{ name: rx }, { categoryName: rx }];
+    }
+
+    if (hasPagination) {
+      const pageNumber = Math.max(parseInt(page, 10) || 1, 1);
+      const limitNumber = Math.min(Math.max(parseInt(limit, 10) || 10, 1), 100);
+      const total = await SubCategory.countDocuments(query);
+      const totalPages = Math.ceil(total / limitNumber) || 1;
+      const subCategories = await SubCategory.find(query)
+        .populate('category', 'name slug')
+        .sort('name')
+        .skip((pageNumber - 1) * limitNumber)
+        .limit(limitNumber);
+      return res.json({
+        subCategories,
+        pagination: { total, page: pageNumber, limit: limitNumber, totalPages }
+      });
+    }
 
     const subCategories = await SubCategory.find(query)
       .populate('category', 'name slug')

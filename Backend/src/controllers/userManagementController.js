@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import User from '../models/User.js';
 import Order from '../models/Order.js';
 import Notification from '../models/Notification.js';
@@ -266,6 +267,43 @@ export const deleteUser = async (req, res) => {
     res.json({ success: true, message: 'User deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: 'Error deleting user' });
+  }
+};
+
+// @desc    Bulk delete users
+// @route   DELETE /api/admin/users/bulk
+// @access  Private (Admin)
+export const bulkDeleteUsers = async (req, res) => {
+  try {
+    const { ids } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ message: 'No user ids provided' });
+    }
+
+    const objectIds = ids
+      .map((id) => String(id || '').trim())
+      .filter((id) => mongoose.Types.ObjectId.isValid(id));
+    if (objectIds.length === 0) {
+      return res.status(400).json({ message: 'No valid user ids provided' });
+    }
+
+    const users = await User.find({ _id: { $in: objectIds } }).select('profileImagePublicId');
+    for (const user of users) {
+      if (user.profileImagePublicId) {
+        try {
+          await cloudinary.uploader.destroy(user.profileImagePublicId);
+        } catch (_) { /* ignore image cleanup failures */ }
+      }
+    }
+
+    const result = await User.deleteMany({ _id: { $in: objectIds } });
+    res.json({
+      success: true,
+      message: `${result.deletedCount} user(s) deleted successfully`,
+      deletedCount: result.deletedCount
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Error deleting users' });
   }
 };
 
