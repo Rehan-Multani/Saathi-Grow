@@ -15,9 +15,9 @@ const buildQuery = (params = {}) => {
 
 // Helper to get token based on portal
 const getAuthDetails = () => {
-  const admin = localStorage.getItem('sathiGro_admin');
-  const manager = localStorage.getItem('sathiGro_manager') || localStorage.getItem('saathigro_manager');
-  const staff = localStorage.getItem('sathiGro_staff') || localStorage.getItem('saathigro_staff');
+  const admin = localStorage.getItem('saathigro_admin');
+  const manager = localStorage.getItem('saathigro_manager') || localStorage.getItem('saathigro_manager');
+  const staff = localStorage.getItem('saathigro_staff') || localStorage.getItem('saathigro_staff');
   if (admin) return JSON.parse(admin);
   if (staff) return JSON.parse(staff);
   if (manager) return JSON.parse(manager);

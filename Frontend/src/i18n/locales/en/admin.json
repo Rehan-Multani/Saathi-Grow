@@ -100,7 +100,7 @@
   },
   "login": {
     "title": "Admin Login",
-    "subtitle": "Sign in to manage SathiGro",
+    "subtitle": "Sign in to manage saathigro",
     "email": "Email Address",
     "password": "Password",
     "remember_me": "Remember me",

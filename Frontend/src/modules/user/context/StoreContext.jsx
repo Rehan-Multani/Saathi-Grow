@@ -9,7 +9,7 @@ export const useStore = () => useContext(StoreContext);
 export const StoreProvider = ({ children }) => {
   const { location } = useLocation();
   const [activeStore, setActiveStore] = useState(() => {
-    const saved = localStorage.getItem('sathiGro_activeStore');
+    const saved = localStorage.getItem('saathigro_activeStore');
     return saved ? JSON.parse(saved) : null;
   });
   const [nearbyStores, setNearbyStores] = useState([]);
@@ -57,9 +57,9 @@ export const StoreProvider = ({ children }) => {
   // Persist active store selection
   useEffect(() => {
     if (activeStore) {
-      localStorage.setItem('sathiGro_activeStore', JSON.stringify(activeStore));
+      localStorage.setItem('saathigro_activeStore', JSON.stringify(activeStore));
     } else {
-      localStorage.removeItem('sathiGro_activeStore');
+      localStorage.removeItem('saathigro_activeStore');
     }
   }, [activeStore]);
 

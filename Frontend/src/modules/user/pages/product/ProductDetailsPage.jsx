@@ -182,7 +182,7 @@ const ProductDetailsPage = () => {
             const requestType = isStoreOutOfRange ? 'OUT_OF_ZONE' : 'OUT_OF_STOCK';
 
             // Get user location from local storage (matched with LocationContext)
-            const savedLocation = JSON.parse(localStorage.getItem('sathiGro_location') || '{}');
+            const savedLocation = JSON.parse(localStorage.getItem('saathigro_location') || '{}');
             const coordinates = savedLocation.coordinates || [0, 0];
             const address = savedLocation.address || 'Unknown Address';
 

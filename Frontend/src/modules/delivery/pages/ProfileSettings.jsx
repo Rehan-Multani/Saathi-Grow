@@ -618,7 +618,7 @@ const ProfileSettings = () => {
 
             {/* Footer - Compact Minimalist */}
             <div className="py-6 text-center">
-                <p className="text-[8px] text-slate-300 font-bold uppercase tracking-[0.3em] dark:text-zinc-700">Sathigro ops • v1.2.4</p>
+                <p className="text-[8px] text-slate-300 font-bold uppercase tracking-[0.3em] dark:text-zinc-700">saathigro ops • v1.2.4</p>
             </div>
 
             <ImageSourceModal 

@@ -18,20 +18,20 @@ const getAuthDetails = () => {
   const path = window.location.pathname;
 
   if (path.startsWith('/admin')) {
-    const admin = localStorage.getItem('sathiGro_admin');
+    const admin = localStorage.getItem('saathigro_admin');
     if (admin) return JSON.parse(admin);
   } else if (path.startsWith('/staff')) {
-    const staff = localStorage.getItem('saathigro_staff') || localStorage.getItem('sathiGro_staff');
+    const staff = localStorage.getItem('saathigro_staff') || localStorage.getItem('saathigro_staff');
     if (staff) return JSON.parse(staff);
   } else if (path.startsWith('/store-manager')) {
-    const manager = localStorage.getItem('sathiGro_manager') || localStorage.getItem('saathigro_manager');
+    const manager = localStorage.getItem('saathigro_manager') || localStorage.getItem('saathigro_manager');
     if (manager) return JSON.parse(manager);
   }
 
   // Fallback
-  const admin = localStorage.getItem('sathiGro_admin');
-  const staff = localStorage.getItem('saathigro_staff') || localStorage.getItem('sathiGro_staff');
-  const manager = localStorage.getItem('sathiGro_manager') || localStorage.getItem('saathigro_manager');
+  const admin = localStorage.getItem('saathigro_admin');
+  const staff = localStorage.getItem('saathigro_staff') || localStorage.getItem('saathigro_staff');
+  const manager = localStorage.getItem('saathigro_manager') || localStorage.getItem('saathigro_manager');
 
   if (admin) return JSON.parse(admin);
   if (staff) return JSON.parse(staff);
@@ -65,7 +65,7 @@ export const getOrderDetails = async (id) => {
   if (!auth) return null;
 
   const path = window.location.pathname;
-  const isAdminToken = !!(localStorage.getItem('sathiGro_admin') || localStorage.getItem('sathiGro_staff') || localStorage.getItem('saathigro_staff'));
+  const isAdminToken = !!(localStorage.getItem('saathigro_admin') || localStorage.getItem('saathigro_staff') || localStorage.getItem('saathigro_staff'));
   
   const isAdminRequest = isAdminToken || 
     path.startsWith('/admin') ||

@@ -13,7 +13,7 @@ const PublicUserSupport = () => {
     const [settings, setSettings] = useState({
         supportPhone: '+91 911 110 5005',
         whatsappNumber: '919111105005',
-        supportEmail: 'support@sathigro.com'
+        supportEmail: 'support@saathigro.com'
     });
 
     useEffect(() => {
@@ -27,7 +27,7 @@ const PublicUserSupport = () => {
                 setSettings({
                     supportPhone: settingsData.supportPhone || '+91 911 110 5005',
                     whatsappNumber: settingsData.whatsappNumber || '919111105005',
-                    supportEmail: settingsData.supportEmail || 'support@sathigro.com'
+                    supportEmail: settingsData.supportEmail || 'support@saathigro.com'
                 });
                 setFaqs(faqsData || []);
             } catch (error) {

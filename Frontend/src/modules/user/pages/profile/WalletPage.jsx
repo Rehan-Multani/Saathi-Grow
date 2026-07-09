@@ -123,7 +123,7 @@ const WalletPage = () => {
                 <div className="mt-12 mb-10 px-6 md:px-0 flex flex-col items-center">
                     <ShieldCheck size={28} className="text-[#0c831f] opacity-20 mb-3" />
                     <p className="!text-[10px] md:!text-sm text-gray-400 font-bold text-center leading-relaxed tracking-tight max-w-[280px] md:max-w-none uppercase">
-                        sathiGro uses bank-grade security for all your transactions.
+                        saathigro uses bank-grade security for all your transactions.
                     </p>
                 </div>
             </div>

@@ -13,7 +13,7 @@ const HelpPage = () => {
     const [settings, setSettings] = useState({
         supportPhone: '+91 911 110 5005',
         whatsappNumber: '919111105005',
-        supportEmail: 'support@sathigro.com'
+        supportEmail: 'support@saathigro.com'
     });
 
     useEffect(() => {
@@ -27,7 +27,7 @@ const HelpPage = () => {
                 setSettings({
                     supportPhone: settingsData.supportPhone || '+91 911 110 5005',
                     whatsappNumber: settingsData.whatsappNumber || '919111105005',
-                    supportEmail: settingsData.supportEmail || 'support@sathigro.com'
+                    supportEmail: settingsData.supportEmail || 'support@saathigro.com'
                 });
                 setFaqs(faqsData || []);
             } catch (error) {
@@ -40,7 +40,7 @@ const HelpPage = () => {
     }, []);
 
     const handleChat = () => {
-        window.open(`https://wa.me/${settings.whatsappNumber}?text=Hello sathiGro Support, I need help with my order.`, "_blank");
+        window.open(`https://wa.me/${settings.whatsappNumber}?text=Hello saathigro Support, I need help with my order.`, "_blank");
     };
 
     return (
@@ -150,7 +150,7 @@ const HelpPage = () => {
                     <h4 className="text-[14px] md:text-3xl font-black text-gray-900 dark:text-gray-100 mb-2 md:mb-4 tracking-tight">Need more personal help?</h4>
                     <p className="text-[10px] md:text-[13px] text-gray-500 mb-6 md:mb-10 font-bold uppercase tracking-[0.2em] opacity-80">Drop us a line at {settings.supportEmail}</p>
                     <a
-                        href={`mailto:${settings.supportEmail}?subject=Support Request - sathiGro`}
+                        href={`mailto:${settings.supportEmail}?subject=Support Request - saathigro`}
                         className="w-full md:w-auto md:px-16 md:py-5 inline-flex items-center justify-center bg-[#0c831f] text-white py-4 rounded-xl md:rounded-[20px] font-black text-[12px] md:text-sm shadow-lg shadow-green-500/20 active:scale-[0.98] transition-all uppercase tracking-[0.2em] hover:bg-[#0a6b19]"
                     >
                         Send Inquiry

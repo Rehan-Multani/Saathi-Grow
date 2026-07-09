@@ -1,4 +1,5 @@
 import React, { memo, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useCart } from '../../context/CartContext';
 import { ASSET_URLS } from '../../../../constants/assetUrls';
 const categoryPlaceholder = ASSET_URLS.placeholder;
@@ -264,7 +265,7 @@ const ProductCard = memo(({ product, isCompact = false, customTheme, imgPadding,
         </div>
       </div>
 
-      {showVariantModal && (
+      {showVariantModal && createPortal(
         <div className="fixed inset-0 z-[10020] flex items-end sm:items-center justify-center p-0 sm:p-4">
           <div className="absolute inset-0 bg-black/50" onClick={() => setShowVariantModal(false)} />
           <div className="relative bg-white dark:bg-[#111111] w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl p-5 border border-gray-100 dark:border-white/10">
@@ -300,7 +301,8 @@ const ProductCard = memo(({ product, isCompact = false, customTheme, imgPadding,
               Close
             </button>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
 

@@ -9,7 +9,7 @@ const PrivacyPolicy = () => {
 **Effective Date:** January 1, 2024
 
 **1. Introduction**
-Welcome to SathiGro. We are committed to protecting your personal information and your right to privacy.
+Welcome to saathigro. We are committed to protecting your personal information and your right to privacy.
 
 **2. Information We Collect**
 We collect personal information that you voluntarily provide to us when you register on the Services, express an interest in obtaining information about us or our products and Services, when you participate in activities on the Services or otherwise when you contact us.

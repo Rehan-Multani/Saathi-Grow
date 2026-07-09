@@ -1,7 +1,7 @@
 import { API_BASE_URL } from '../../../config/apiConfig';
 
 const getAuthHeaders = () => {
-  const savedAdmin = localStorage.getItem('sathiGro_admin');
+  const savedAdmin = localStorage.getItem('saathigro_admin');
   const adminData = savedAdmin ? JSON.parse(savedAdmin) : null;
   const token = adminData?.token;
 

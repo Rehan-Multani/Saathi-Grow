@@ -51,7 +51,7 @@ const FullPageLoader = () => {
                         transition={{ delay: 0.2 }}
                         className="text-[14px] font-black tracking-[0.3em] text-[#CCFF00] uppercase"
                     >
-                        SATHIGRO
+                        saathigro
                     </motion.span>
                     
                     {/* Loading Progress Bar */}

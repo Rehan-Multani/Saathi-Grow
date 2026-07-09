@@ -54,7 +54,7 @@ import CashSettlement from '../../admin/pages/delivery/CashSettlement';
 
 const VendorLayout = () => {
     const location = useLocation();
-    const vendorToken = localStorage.getItem('sathiGro_vendor_token');
+    const vendorToken = localStorage.getItem('saathigro_vendor_token');
     return (
         <div className="min-h-screen bg-gray-50 font-sans text-gray-900 vendor-portal-root animate-page-entry">
             <FirebaseNotificationHandler token={vendorToken} role="vendor" />

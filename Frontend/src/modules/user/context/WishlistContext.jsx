@@ -12,7 +12,7 @@ export const useWishlist = () => useContext(WishlistContext);
 export const WishlistProvider = ({ children }) => {
     const [wishlist, setWishlist] = useState(() => {
         try {
-            const savedWishlist = localStorage.getItem('sathiGro_wishlist');
+            const savedWishlist = localStorage.getItem('saathigro_wishlist');
             return savedWishlist ? JSON.parse(savedWishlist) : [];
         } catch (error) {
             console.error('Error loading wishlist from localStorage:', error);

@@ -66,7 +66,7 @@ const AdminLogin = () => {
                 {/* Header */}
                 <div className="text-center mb-8">
                     <h2 className="text-3xl font-bold text-gray-900">Admin Portal</h2>
-                    <p className="text-sm text-gray-400 mt-1">Sign in to manage SathiGro</p>
+                    <p className="text-sm text-gray-400 mt-1">Sign in to manage saathigro</p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-5">
@@ -182,7 +182,7 @@ const AdminLogin = () => {
                 </div>
 
                 <p className="text-center text-[10px] font-bold text-gray-300 uppercase tracking-widest mt-6">
-                    &copy; 2026 SATHIGRO. ALL RIGHTS RESERVED.
+                    &copy; 2026 saathigro. ALL RIGHTS RESERVED.
                 </p>
             </div>
 

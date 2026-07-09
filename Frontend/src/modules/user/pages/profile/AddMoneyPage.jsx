@@ -52,7 +52,7 @@ const AddMoneyPage = () => {
                 key: import.meta.env.VITE_RAZORPAY_KEY_ID,
                 amount: orderData.amount,
                 currency: orderData.currency,
-                name: "sathiGro Wallet",
+                name: "saathigro Wallet",
                 description: `Topup for ${user.phone}`,
                 order_id: orderData.razorpayOrderId,
                 handler: async (response) => {
@@ -110,7 +110,7 @@ const AddMoneyPage = () => {
                     <CheckCircle size={40} strokeWidth={3} />
                 </div>
                 <h2 className="text-2xl font-black text-gray-900 dark:text-gray-100 mb-2 uppercase tracking-tight">Success!</h2>
-                <p className="text-gray-500 dark:text-gray-400 font-bold max-w-[280px]">Your amount has been added to sathiGro Wallet successfully.</p>
+                <p className="text-gray-500 dark:text-gray-400 font-bold max-w-[280px]">Your amount has been added to saathigro Wallet successfully.</p>
             </div>
         );
     }

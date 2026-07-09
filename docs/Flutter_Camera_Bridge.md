@@ -1,6 +1,6 @@
 # Flutter WebView Camera Bridge Documentation
 
-This document describes the bridge implementation between the **sathiGro React Frontend** (WebView) and the **Flutter App (APK)** to resolve camera access issues and enable high-quality image uploads for order returns and profile updates.
+This document describes the bridge implementation between the **saathigro React Frontend** (WebView) and the **Flutter App (APK)** to resolve camera access issues and enable high-quality image uploads for order returns and profile updates.
 
 ## 1. Overview
 Standard `input type="file"` often fails or provides a poor UX within mobile WebViews. This bridge delegates the camera/gallery action to the native Flutter layer, which then passes the image back to React as a Base64 string.

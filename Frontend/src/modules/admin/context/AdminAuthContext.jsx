@@ -9,7 +9,7 @@ export const useAdminAuth = () => useContext(AdminAuthContext);
 
 export const AdminAuthProvider = ({ children }) => {
     const [adminUser, setAdminUser] = useState(() => {
-        const saved = localStorage.getItem('sathiGro_admin');
+        const saved = localStorage.getItem('saathigro_admin');
         const parsed = saved ? JSON.parse(saved) : null;
         return parsed;
     });
@@ -46,11 +46,11 @@ export const AdminAuthProvider = ({ children }) => {
 
     const adminLogout = useCallback(() => {
         setAdminUser(null);
-        localStorage.removeItem('sathiGro_admin');
+        localStorage.removeItem('saathigro_admin');
     }, []);
 
     const refreshAdminProfile = useCallback(async () => {
-        const saved = localStorage.getItem('sathiGro_admin');
+        const saved = localStorage.getItem('saathigro_admin');
         const user = saved ? JSON.parse(saved) : null;
 
         if (!user?.token) return;
@@ -62,7 +62,7 @@ export const AdminAuthProvider = ({ children }) => {
             // Only update if data has actually changed to prevent redundant re-renders
             if (JSON.stringify(updatedUser) !== JSON.stringify(user)) {
                 setAdminUser(updatedUser);
-                localStorage.setItem('sathiGro_admin', JSON.stringify(updatedUser));
+                localStorage.setItem('saathigro_admin', JSON.stringify(updatedUser));
             }
         } catch (error) {
             console.error('Failed to refresh admin profile:', error);
@@ -85,7 +85,7 @@ export const AdminAuthProvider = ({ children }) => {
                 throw new Error('Access denied. You do not have an administrative role.');
             }
             setAdminUser(data);
-            localStorage.setItem('sathiGro_admin', JSON.stringify(data));
+            localStorage.setItem('saathigro_admin', JSON.stringify(data));
             return data;
         } catch (error) {
             throw error;
@@ -95,7 +95,7 @@ export const AdminAuthProvider = ({ children }) => {
     }, []);
 
     const adminUpdateProfile = useCallback(async (profileData) => {
-        const saved = localStorage.getItem('sathiGro_admin');
+        const saved = localStorage.getItem('saathigro_admin');
         const user = saved ? JSON.parse(saved) : null;
 
         if (!user?.token) throw new Error('Not authenticated');
@@ -105,7 +105,7 @@ export const AdminAuthProvider = ({ children }) => {
             const data = await updateAdminApi(user.token, profileData);
             const updatedUser = { ...data, token: user.token };
             setAdminUser(updatedUser);
-            localStorage.setItem('sathiGro_admin', JSON.stringify(updatedUser));
+            localStorage.setItem('saathigro_admin', JSON.stringify(updatedUser));
             return updatedUser;
         } catch (error) {
             throw error;

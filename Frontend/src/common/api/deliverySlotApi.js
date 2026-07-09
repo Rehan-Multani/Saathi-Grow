@@ -5,7 +5,7 @@ const API_URL = `${API_BASE_URL}`;
 
 // Helper to get the admin token from localStorage (same pattern as adminDeliveryApi.js)
 const getToken = () => {
-  const admin = localStorage.getItem('sathiGro_admin');
+  const admin = localStorage.getItem('saathigro_admin');
   const manager = localStorage.getItem('saathigro_manager');
   if (admin) return JSON.parse(admin)?.token;
   if (manager) return JSON.parse(manager)?.token;

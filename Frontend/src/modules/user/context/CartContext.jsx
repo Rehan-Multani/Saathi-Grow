@@ -51,20 +51,20 @@ export const CartProvider = ({ children }) => {
                         quantity: p.quantity
                     }));
                     // Clear stale localStorage cart and use server version
-                    localStorage.removeItem('sathiGro_cart');
+                    localStorage.removeItem('saathigro_cart');
                     setCart(formatted);
                 } catch (err) {
                     console.error('Failed to fetch user cart:', err);
                     // Fallback to localStorage only if server fetch completely fails
                     try {
-                        const saved = localStorage.getItem('sathiGro_cart');
+                        const saved = localStorage.getItem('saathigro_cart');
                         if (saved) setCart(JSON.parse(saved));
                     } catch { }
                 }
             } else {
                 // Not authenticated: restore guest cart from localStorage
                 try {
-                    const saved = localStorage.getItem('sathiGro_cart');
+                    const saved = localStorage.getItem('saathigro_cart');
                     setCart(saved ? JSON.parse(saved) : []);
                 } catch {
                     setCart([]);
@@ -81,7 +81,7 @@ export const CartProvider = ({ children }) => {
         if (prevStoreIdRef.current && activeStore?.id && prevStoreIdRef.current !== activeStore.id) {
             if (cart.length > 0) {
                 setCart([]);
-                localStorage.removeItem('sathiGro_cart');
+                localStorage.removeItem('saathigro_cart');
                 toast.info("Your cart was cleared as the nearest store changed.", { toastId: 'cart-cleared-store-change' });
             }
         }
@@ -93,7 +93,7 @@ export const CartProvider = ({ children }) => {
     useEffect(() => {
         if (!cartReady) return; // don't sync until cart has been fetched/initialized
 
-        localStorage.setItem('sathiGro_cart', JSON.stringify(cart));
+        localStorage.setItem('saathigro_cart', JSON.stringify(cart));
 
         let timeoutId;
         if (token) {
@@ -186,7 +186,7 @@ export const CartProvider = ({ children }) => {
 
     const clearCart = async () => {
         setCart([]);
-        localStorage.removeItem('sathiGro_cart');
+        localStorage.removeItem('saathigro_cart');
         // Also wipe on server so items don't come back on next login
         if (token) {
             try {

@@ -9,7 +9,7 @@ const TermsConditions = () => {
 **Effective Date:** January 1, 2024
 
 **1. Agreement to Terms**
-These Terms of Use constitute a legally binding agreement made between you, whether personally or on behalf of an entity ("you") and SathiGro ("we," "us" or "our"), concerning your access to and use of the SathiGro website as well as any other media form, media channel, mobile website or mobile application related, linked, or otherwise connected thereto (collectively, the "Site").
+These Terms of Use constitute a legally binding agreement made between you, whether personally or on behalf of an entity ("you") and saathigro ("we," "us" or "our"), concerning your access to and use of the saathigro website as well as any other media form, media channel, mobile website or mobile application related, linked, or otherwise connected thereto (collectively, the "Site").
 
 **2. Intellectual Property Rights**
 Unless otherwise indicated, the Site is our proprietary property and all source code, databases, functionality, software, website designs, audio, video, text, photographs, and graphics on the Site (collectively, the "Content") and the trademarks, service marks, and logos contained therein (the "Marks") are owned or controlled by us or licensed to us, and are protected by copyright and trademark laws.

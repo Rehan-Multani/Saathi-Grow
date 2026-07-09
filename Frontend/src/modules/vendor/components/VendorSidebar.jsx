@@ -85,7 +85,7 @@ const VendorSidebar = () => {
                 {/* Brand */}
                 <div className="h-16 flex items-center px-6 pl-14 md:pl-6 border-b border-gray-100">
                     <NavLink to="/vendor/dashboard" className="flex items-center gap-3">
-                        <img src={logo} alt="SathiGro" className="h-9 w-auto" />
+                        <img src={logo} alt="saathigro" className="h-9 w-auto" />
                     </NavLink>
                 </div>
 
@@ -151,7 +151,7 @@ const VendorSidebar = () => {
                         <LogOut size={18} />
                         Logout
                     </button>
-                    <p className="mt-4 text-[10px] text-gray-400 text-center">v1.2.0 ₹ sathiGro Vendor</p>
+                    <p className="mt-4 text-[10px] text-gray-400 text-center">v1.2.0 ₹ saathigro Vendor</p>
                 </div>
             </div>
 

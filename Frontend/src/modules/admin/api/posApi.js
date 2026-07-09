@@ -11,21 +11,21 @@ const getAuthToken = () => {
     const vendor = localStorage.getItem('vendorUser');
     if (vendor) try { return JSON.parse(vendor).token; } catch (e) { }
   } else if (path.startsWith('/staff')) {
-    const staff = localStorage.getItem('sathiGro_staff') || localStorage.getItem('saathigro_staff');
+    const staff = localStorage.getItem('saathigro_staff') || localStorage.getItem('saathigro_staff');
     if (staff) try { return JSON.parse(staff).token; } catch (e) { }
   } else if (path.startsWith('/store-manager')) {
-    const manager = localStorage.getItem('sathiGro_manager') || localStorage.getItem('saathigro_manager');
+    const manager = localStorage.getItem('saathigro_manager') || localStorage.getItem('saathigro_manager');
     if (manager) try { return JSON.parse(manager).token; } catch (e) { }
   } else if (path.startsWith('/admin')) {
-    const admin = localStorage.getItem('sathiGro_admin');
+    const admin = localStorage.getItem('saathigro_admin');
     if (admin) try { return JSON.parse(admin).token; } catch (e) { }
   }
 
   // Fallback if not matched by path
-  const admin = localStorage.getItem('sathiGro_admin');
+  const admin = localStorage.getItem('saathigro_admin');
   const vendor = localStorage.getItem('vendorUser');
-  const staff = localStorage.getItem('sathiGro_staff') || localStorage.getItem('saathigro_staff');
-  const manager = localStorage.getItem('sathiGro_manager') || localStorage.getItem('saathigro_manager');
+  const staff = localStorage.getItem('saathigro_staff') || localStorage.getItem('saathigro_staff');
+  const manager = localStorage.getItem('saathigro_manager') || localStorage.getItem('saathigro_manager');
 
   if (admin) try { return JSON.parse(admin).token; } catch (e) { }
   if (vendor) try { return JSON.parse(vendor).token; } catch (e) { }

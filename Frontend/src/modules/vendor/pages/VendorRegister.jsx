@@ -157,7 +157,7 @@ const VendorRegister = () => {
                 <div className="p-6 md:p-10">
                     <div className="text-center mb-8">
                         <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">Register Your Store</h1>
-                        <p className="text-gray-500 text-sm mt-1">Join sathiGro and start selling online.</p>
+                        <p className="text-gray-500 text-sm mt-1">Join saathigro and start selling online.</p>
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-4">

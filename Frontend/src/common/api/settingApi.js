@@ -5,10 +5,10 @@ const API_URL = `${API_BASE_URL}/settings`;
 
 const readTokenFromStorage = () => {
   const keys = [
-    'sathiGro_admin',
-    'sathiGro_staff',
+    'saathigro_admin',
     'saathigro_staff',
-    'sathiGro_manager',
+    'saathigro_staff',
+    'saathigro_manager',
     'saathigro_manager'
   ];
 

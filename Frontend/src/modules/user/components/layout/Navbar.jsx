@@ -137,7 +137,7 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen, customTheme }) => {
           <Link to="/" className="active:scale-95 transition-transform">
             <img
               src={logo}
-              alt="sathiGro"
+              alt="saathigro"
               onError={(e) => { e.target.onerror = null; e.target.src = ASSET_URLS.logoCloudinary; }}
               className="h-8 w-auto object-contain"
               style={isDarkMode ? { filter: 'brightness(0) invert(1)' } : {}}
@@ -209,7 +209,7 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen, customTheme }) => {
               <Link to="/" className="flex-shrink-0 flex items-center group">
                 <img
                   src={logo}
-                  alt="sathiGro Logo"
+                  alt="saathigro Logo"
                   className="h-10 w-auto object-contain hover:scale-105 transition-transform"
                   style={isDarkMode ? { filter: 'brightness(0) invert(1)' } : {}}
                 />

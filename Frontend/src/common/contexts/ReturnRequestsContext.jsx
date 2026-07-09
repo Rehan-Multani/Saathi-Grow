@@ -20,7 +20,7 @@ export const ReturnRequestsProvider = ({ children }) => {
     // Get Auth Token from localStorage (generic helper)
     const getAuthToken = () => {
         try {
-            const a = localStorage.getItem('sathiGro_admin') || localStorage.getItem('saathigro_admin') || localStorage.getItem('saathigro_vendor');
+            const a = localStorage.getItem('saathigro_admin') || localStorage.getItem('saathigro_admin') || localStorage.getItem('saathigro_vendor');
             return a ? JSON.parse(a).token : null;
         } catch { return null; }
     };

@@ -17,11 +17,11 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(() => {
-        const savedUser = localStorage.getItem('sathiGro_user');
+        const savedUser = localStorage.getItem('saathigro_user');
         return savedUser ? JSON.parse(savedUser) : null;
     });
 
-    const [token, setToken] = useState(localStorage.getItem('sathiGro_token') || null);
+    const [token, setToken] = useState(localStorage.getItem('saathigro_token') || null);
     const [loading, setLoading] = useState(true); // Initial loading true to check auth
     const [showLoginModal, setShowLoginModal] = useState(false);
     const [loginView, setLoginView] = useState('login'); // 'login' or 'register'
@@ -30,11 +30,11 @@ export const AuthProvider = ({ children }) => {
     // Handle Persistence
     useEffect(() => {
         if (token) {
-            localStorage.setItem('sathiGro_user', JSON.stringify(user));
-            localStorage.setItem('sathiGro_token', token);
+            localStorage.setItem('saathigro_user', JSON.stringify(user));
+            localStorage.setItem('saathigro_token', token);
         } else {
-            localStorage.removeItem('sathiGro_user');
-            localStorage.removeItem('sathiGro_token');
+            localStorage.removeItem('saathigro_user');
+            localStorage.removeItem('saathigro_token');
         }
     }, [user, token]);
 
@@ -132,7 +132,7 @@ export const AuthProvider = ({ children }) => {
     const logout = useCallback(() => {
         setUser(null);
         setToken(null);
-        localStorage.removeItem('sathiGro_cart'); // clear stale cart data on logout
+        localStorage.removeItem('saathigro_cart'); // clear stale cart data on logout
         toast.info('Logged out');
     }, []);
 

@@ -210,7 +210,7 @@ const LocationModal = () => {
             ></div>
 
             {/* Modal Box */}
-            <div className="bg-gradient-to-br from-[#f0faf1] to-[#ffffff] dark:from-[#111111] dark:to-[#080808] w-full max-w-[500px] relative z-10 overflow-visible animate-in slide-in-from-top-3 fade-in duration-300 pointer-events-auto rounded-[32px] shadow-[0_30px_70px_rgba(0,0,0,0.25)] border border-white/50 dark:border-white/5 p-5 md:p-6 h-auto max-h-[82vh] flex flex-col">
+            <div className="bg-gradient-to-br from-[#f0faf1] to-[#ffffff] dark:from-[#111111] dark:to-[#080808] w-full max-w-[500px] relative z-10 overflow-hidden animate-in slide-in-from-top-3 fade-in duration-300 pointer-events-auto rounded-[32px] shadow-[0_30px_70px_rgba(0,0,0,0.25)] border border-white/50 dark:border-white/5 p-5 md:p-6 h-auto max-h-[82vh] flex flex-col">
                 <button
                     onClick={closeLocationModal}
                     className="absolute top-4 right-4 p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-full transition-colors md:flex"
@@ -218,7 +218,7 @@ const LocationModal = () => {
                     <X size={20} className="text-gray-400" />
                 </button>
 
-                <div className="flex flex-col h-full overflow-visible">
+                <div className="flex flex-col h-full min-h-0">
                     <h2 className="text-base md:text-lg font-black text-gray-900 dark:text-gray-100 mb-6 text-left tracking-tight">Select Delivery Location</h2>
 
                     {/* blinkit-style input row */}
@@ -270,7 +270,7 @@ const LocationModal = () => {
                     </div>
 
                     {/* Content Area - Scrollable */}
-                    <div className="flex-1 overflow-y-auto overflow-x-hidden pr-1 scrollbar-hide">
+                    <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden pr-1 scrollbar-hide">
                         {/* Saved Addresses Section */}
                         {searchText.length === 0 && savedAddresses.length > 0 && (
                             <div className="mb-6">

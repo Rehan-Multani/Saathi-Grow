@@ -29,7 +29,7 @@ export const LocationProvider = ({ children }) => {
     };
 
     const [location, setLocation] = useState(() => {
-        const saved = localStorage.getItem('sathiGro_location');
+        const saved = localStorage.getItem('saathigro_location');
         return saved ? JSON.parse(saved) : { address: 'Select Location', city: '', coordinates: null };
     });
 
@@ -149,7 +149,7 @@ export const LocationProvider = ({ children }) => {
     }, [token]);
 
     useEffect(() => {
-        localStorage.setItem('sathiGro_location', JSON.stringify(location));
+        localStorage.setItem('saathigro_location', JSON.stringify(location));
     }, [location]);
 
     useEffect(() => {

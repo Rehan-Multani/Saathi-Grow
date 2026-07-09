@@ -15,7 +15,7 @@
             return {
                 title: "Saathi Signature",
                 subtitle: "Our Premium Collection",
-                description: "Experience the finest quality with sathiGro's exclusive signature range.",
+                description: "Experience the finest quality with saathigro's exclusive signature range.",
                 themeColor: "#15803d", // Brand Green (green-700)
                 bgColor: "#f0fdf4", // Light Green (green-50)
                 accentColor: "#dcfce7", // green-100

@@ -13,6 +13,7 @@ import FloatingCartStrip from '../components/cart/FloatingCartStrip';
 import MobileFooter from '../components/layout/MobileFooter';
 import SearchOverlay from '../components/search/SearchOverlay';
 import { useTheme } from '../context/ThemeContext';
+import { useLocation as useUserLocation } from '../context/LocationContext';
 import { ShopProvider, useShop, useShopUI } from '../context/ShopContext';
 import { useStore } from '../context/StoreContext';
 // import StoreSelector from '../components/location/StoreSelector';
@@ -183,8 +184,13 @@ const UserLayout = () => {
     const { token, isWebView, loading, refreshProfile } = useAuth();
     const { refreshShopData } = useShop();
     const { activeStore, isStoreOutOfRange, isStoreInactive, loading: storeLoading } = useStore();
+    const { location: userLocation, openLocationModal } = useUserLocation();
 
     const isPublicPath = ['/login', '/register', '/logout-confirmation', '/privacy-policy', '/support/user', '/support/delivery'].includes(location.pathname) || location.pathname.startsWith('/legal/');
+    const hasSelectedLocation = !!(
+        userLocation?.coordinates?.length === 2 ||
+        (userLocation?.address && userLocation.address !== 'Select Location')
+    );
 
     const isShoppingRoute = useMemo(() => {
         const shoppingPrefixes = [
@@ -204,6 +210,12 @@ const UserLayout = () => {
             .filter((p) => p !== '/')
             .some((p) => location.pathname.startsWith(p));
     }, [location.pathname]);
+
+    React.useEffect(() => {
+        if (!loading && isShoppingRoute && !hasSelectedLocation) {
+            openLocationModal();
+        }
+    }, [loading, isShoppingRoute, hasSelectedLocation, openLocationModal]);
 
     const handleRefresh = async () => {
         try {
@@ -249,7 +261,11 @@ const UserLayout = () => {
         return <Navigate to="/login" replace />;
     }
 
-    const shouldShowServiceUnavailable = isShoppingRoute && !storeLoading && (!activeStore || isStoreOutOfRange || isStoreInactive);
+    const shouldShowServiceUnavailable =
+        isShoppingRoute &&
+        hasSelectedLocation &&
+        !storeLoading &&
+        (!activeStore || isStoreOutOfRange || isStoreInactive);
     const serviceUnavailableTitle = isStoreInactive ? 'Service Temporarily Unavailable' : 'Coming Soon to Your Area';
     const serviceUnavailableMessage = isStoreInactive
         ? 'Service is temporarily unavailable for your selected location. Please try again shortly or change your address.'

@@ -7,13 +7,13 @@ export const useStoreManagerAuth = () => useContext(StoreManagerAuthContext);
 
 export const StoreManagerAuthProvider = ({ children }) => {
   const [managerUser, setManagerUser] = useState(() => {
-    const saved = localStorage.getItem('sathiGro_manager');
+    const saved = localStorage.getItem('saathigro_manager');
     return saved ? JSON.parse(saved) : null;
   });
 
   const managerLogout = useCallback(() => {
     setManagerUser(null);
-    localStorage.removeItem('sathiGro_manager');
+    localStorage.removeItem('saathigro_manager');
   }, []);
 
   const refreshProfile = useCallback(async () => {
@@ -23,7 +23,7 @@ export const StoreManagerAuthProvider = ({ children }) => {
       const data = await getProfile(managerUser.token);
       const updatedUser = { ...data, token: managerUser.token };
       setManagerUser(updatedUser);
-      localStorage.setItem('sathiGro_manager', JSON.stringify(updatedUser));
+      localStorage.setItem('saathigro_manager', JSON.stringify(updatedUser));
     } catch (error) {
       console.error('Failed to refresh manager profile:', error);
       if (error.response?.status === 401) {
@@ -45,7 +45,7 @@ export const StoreManagerAuthProvider = ({ children }) => {
         throw new Error('Access denied. This portal is only for Store Managers.');
       }
       setManagerUser(data);
-      localStorage.setItem('sathiGro_manager', JSON.stringify(data));
+      localStorage.setItem('saathigro_manager', JSON.stringify(data));
       return data;
     } catch (error) {
       throw error;
@@ -58,7 +58,7 @@ export const StoreManagerAuthProvider = ({ children }) => {
     const data = await updateApi(managerUser.token, profileData);
     const updatedUser = { ...data, token: managerUser.token };
     setManagerUser(updatedUser);
-    localStorage.setItem('sathiGro_manager', JSON.stringify(updatedUser));
+    localStorage.setItem('saathigro_manager', JSON.stringify(updatedUser));
     return updatedUser;
   }, [managerUser?.token]);
 

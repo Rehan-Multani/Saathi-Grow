@@ -82,6 +82,7 @@ const CheckoutPage = () => {
         const hasDetailFields = Boolean((loc.state || '').trim() || (loc.zipCode || '').trim());
         return !hasDetailFields && address && city && address === city && fullAddress === `${city}, india`;
     };
+    const cityOnlySelected = isCityOnlySelection(globalLocation);
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -233,6 +234,11 @@ const CheckoutPage = () => {
         if (cart.length === 0) return;
         if (!globalLocation.address) {
             toast.error("Please select a valid delivery address first.");
+            return;
+        }
+
+        if (cityOnlySelected) {
+            toast.error("Please select exact area from location suggestions for accurate delivery.");
             return;
         }
 
@@ -465,6 +471,13 @@ const CheckoutPage = () => {
                         <p className="text-[11px] text-gray-800 dark:text-gray-200 font-bold leading-relaxed mb-3">
                             {globalLocation.fullAddress || globalLocation.address || "Select Address"}
                         </p>
+                        {cityOnlySelected && (
+                            <div className="mb-3 rounded-xl border border-amber-200 bg-amber-50 dark:bg-amber-500/10 dark:border-amber-500/30 px-3 py-2">
+                                <p className="text-[10px] font-bold text-amber-700 dark:text-amber-300 leading-snug">
+                                    Exact delivery area choose karein (search suggestions se) taaki nearby store products sahi dikh sakein.
+                                </p>
+                            </div>
+                        )}
 
                         <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                             <div className="sm:col-span-2">
@@ -599,7 +612,7 @@ const CheckoutPage = () => {
                             <div className="flex items-center gap-3">
                                 <div className={`w-4 h-4 rounded-full border-[4px] bg-white ${paymentMethod === 'wallet' ? 'border-[#0c831f]' : 'border-gray-300'}`}></div>
                                 <div className="flex flex-col">
-                                    <span className={`text-[11px] font-black capitalize tracking-tight ${paymentMethod === 'wallet' ? 'text-gray-900 dark:text-white' : 'text-gray-500'}`}>sathiGro Wallet</span>
+                                    <span className={`text-[11px] font-black capitalize tracking-tight ${paymentMethod === 'wallet' ? 'text-gray-900 dark:text-white' : 'text-gray-500'}`}>saathigro Wallet</span>
                                     <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest leading-none mt-1">Available: ₹{walletBalance.toFixed(2)}</span>
                                 </div>
                             </div>

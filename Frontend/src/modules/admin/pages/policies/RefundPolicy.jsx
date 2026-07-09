@@ -9,7 +9,7 @@ const RefundPolicy = () => {
 **Last Updated:** February 14, 2024
 
 **1. General**
-Thank you for shopping at SathiGro. If, for any reason, You are not completely satisfied with a purchase We invite You to review our policy on refunds and returns.
+Thank you for shopping at saathigro. If, for any reason, You are not completely satisfied with a purchase We invite You to review our policy on refunds and returns.
 
 **2. Returns**
 We do not accept returns on perishable goods (such as fresh fruits, vegetables, dairy, etc.). For non-perishable items, you have 15 days to return an item from the date you received it.

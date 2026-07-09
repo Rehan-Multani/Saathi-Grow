@@ -146,7 +146,7 @@ const SecurityPage = () => {
 
                 {/* Tips */}
                 <div className="mx-6 p-4 bg-[#eefaf1] rounded-2xl border border-[#0c831f]/10 text-center mb-10 md:mb-0">
-                    <p className="text-[10px] md:text-[11px] text-[#0c831f] font-bold leading-relaxed">sathiGro will never ask for your password or OTP via call or email. Stay safe! 🛡️</p>
+                    <p className="text-[10px] md:text-[11px] text-[#0c831f] font-bold leading-relaxed">saathigro will never ask for your password or OTP via call or email. Stay safe! 🛡️</p>
                 </div>
             </div>
 

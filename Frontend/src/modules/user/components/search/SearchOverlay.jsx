@@ -219,7 +219,7 @@ const SearchOverlay = () => {
                         <Link to="/" onClick={handleClose} className="hidden md:flex items-center group flex-shrink-0">
                             <img
                                 src={logo}
-                                alt="sathiGro Logo"
+                                alt="saathigro Logo"
                                 className={`h-8 w-auto object-contain transition-all duration-300 hover:scale-105 ${isDarkMode ? 'filter brightness-0 invert' : ''}`}
                             />
                         </Link>

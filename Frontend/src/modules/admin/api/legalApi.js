@@ -1,7 +1,7 @@
 import { API_BASE_URL } from '../../../config/apiConfig';
 
 const getHeaders = () => {
-  const admin = JSON.parse(localStorage.getItem('sathiGro_admin'));
+  const admin = JSON.parse(localStorage.getItem('saathigro_admin'));
   return {
     'Content-Type': 'application/json',
     'Authorization': `Bearer ${admin?.token}`

@@ -32,7 +32,7 @@ const Footer = ({ customTheme }) => {
           {/* Brand Section */}
           <div className="flex flex-col items-start text-left min-w-fit">
             <Link to="/" className="mb-2 sm:mb-4 inline-block bg-white/5 p-2 rounded-xl backdrop-blur-sm">
-              <img src={logo} alt="sathiGro" className="h-8 sm:h-12 object-contain" />
+              <img src={logo} alt="saathigro" className="h-8 sm:h-12 object-contain" />
             </Link>
             <p className="text-gray-400 text-xs leading-relaxed max-w-[100px] hidden lg:block">
               Fresh groceries delivered to your home in minutes.
@@ -125,12 +125,12 @@ const Footer = ({ customTheme }) => {
         {/* Copyright Bar */}
         <div className="pt-2 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-1">
           <p className="text-gray-500 text-[8px] md:text-xs font-medium">
-             {new Date().getFullYear()} sathiGro Technologies Pvt. Ltd. All rights reserved.
+             {new Date().getFullYear()} saathigro Technologies Pvt. Ltd. All rights reserved.
           </p>
           <div className="flex items-center gap-1 text-gray-500 text-[10px] md:text-xs font-medium">
             <span>Built with</span>
             <span className="text-red-500">❤️</span>
-            <span>for sathiGro Users</span>
+            <span>for saathigro Users</span>
           </div>
         </div>
       </div>

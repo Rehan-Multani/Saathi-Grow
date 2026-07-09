@@ -154,7 +154,7 @@ const ProfilePage = () => {
         })),
         { icon: MapPin, label: "Saved Addresses", subtitle: "Manage your delivery locations", path: "/saved-addresses" },
         { icon: Heart, label: "My Wishlist", subtitle: "Your favorite items", path: "/wishlist" },
-        { icon: CreditCard, label: "sathiGro Wallet", subtitle: `₹${Number(user?.walletBalance || 0).toFixed(2)} Balance available`, path: "/wallet" },
+        { icon: CreditCard, label: "saathigro Wallet", subtitle: `₹${Number(user?.walletBalance || 0).toFixed(2)} Balance available`, path: "/wallet" },
         { icon: HelpCircle, label: "FAQs & Help Center", subtitle: "Find answers and guides", path: "/help" },
         { icon: MessageCircle, label: "Raise a Complaint", subtitle: "Raise a ticket for any issue", path: "/support/raise-ticket" },
         { icon: Shield, label: "Legal & Policies", subtitle: "Terms, Privacy and more", path: "/settings" }
@@ -224,7 +224,7 @@ const ProfilePage = () => {
                                     <Edit2 size={14} />
                                 </button>
                             </div>
-                            <p className="!text-[12px] md:!text-xs text-gray-400 font-bold tracking-widest mt-1.5 md:mt-2">{user?.email || (user?.phone ? `+91 ${user.phone}` : "member@sathiGro.com")}</p>
+                            <p className="!text-[12px] md:!text-xs text-gray-400 font-bold tracking-widest mt-1.5 md:mt-2">{user?.email || (user?.phone ? `+91 ${user.phone}` : "member@saathigro.com")}</p>
                         </div>
 
                         <div className="grid grid-cols-2 gap-4 py-2 md:py-3 border-y border-gray-100 dark:border-white/5 max-w-lg mx-auto md:max-w-none md:mx-0 bg-transparent md:bg-transparent">
@@ -329,7 +329,7 @@ const ProfilePage = () => {
 
                         {/* Support Info */}
                         <div className="bg-gray-50 dark:bg-zinc-900/50 md:bg-[#eefaf1] md:dark:bg-zinc-900/30 md:rounded-2xl p-4 md:p-2 border-none md:border border-[#0c831f]/10 dark:border-white/5 text-center max-w-none mx-auto md:max-w-none md:mx-0 mt-3 md:mt-2">
-                            <p className="text-[10px] md:text-sm text-gray-400 dark:text-zinc-500 md:text-[#0c831f] dark:md:text-[#0c831f] font-bold">sathiGro App v1.0.0</p>
+                            <p className="text-[10px] md:text-sm text-gray-400 dark:text-zinc-500 md:text-[#0c831f] dark:md:text-[#0c831f] font-bold">saathigro App v1.0.0</p>
                         </div>
                     </div>
                 </div>

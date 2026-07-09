@@ -29,7 +29,7 @@ const BulkUpload = () => {
         const worksheet = XLSX.utils.aoa_to_sheet([headers, ...exampleData]);
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "Products");
-        XLSX.writeFile(workbook, 'sathiGro_product_template.xlsx');
+        XLSX.writeFile(workbook, 'saathigro_product_template.xlsx');
     };
 
     return (
