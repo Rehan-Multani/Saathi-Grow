@@ -100,6 +100,13 @@ const validateSlotAvailability = async (deliverySlotId, isImmediate) => {
   return true;
 };
 
+const resolveItemVariant = (product, item) => {
+  const variantValue = item?.selectedVariant?.value;
+  if (!variantValue) return null;
+  const variants = product?.variants || [];
+  return variants.find((v) => v?.value === variantValue) || null;
+};
+
 const validateStockAvailability = async (items, storeId, storeType) => {
   if (!items || items.length === 0) return true;
 
@@ -110,10 +117,11 @@ const validateStockAvailability = async (items, storeId, storeType) => {
     const product = await Product.findById(productId);
     if (!product) throw new Error(`Product not found: ${productId}`);
 
-    let availableStock = 0;
+    const selectedVariant = resolveItemVariant(product, item);
+    let availableStock = selectedVariant?.stock ?? 0;
     let threshold = 10; // Default threshold
 
-    if (storeType === 'branch') {
+    if (!selectedVariant && storeType === 'branch') {
       const branchStock = product.branchStocks?.find(bs => (bs.branchId?._id || bs.branchId)?.toString() === storeId?.toString());
       
       if (!branchStock) {
@@ -131,14 +139,14 @@ const validateStockAvailability = async (items, storeId, storeType) => {
         availableStock = branchStock.stock || 0;
         threshold = branchStock.lowStockThreshold || 10;
       }
-    } else if (storeType === 'vendor') {
+    } else if (!selectedVariant && storeType === 'vendor') {
       // For vendor, check if product belongs to this vendor
       if (product.vendor?.toString() !== storeId?.toString()) {
         throw new Error(`Product ${product.name} is not available at the selected vendor.`);
       }
       availableStock = product.stock || 0;
       threshold = product.lowStockThreshold || 10;
-    } else {
+    } else if (!selectedVariant) {
       // Global fallback (if no store context, though unlikely in Store-First)
       availableStock = product.stock || 0;
       threshold = product.lowStockThreshold || 10;
@@ -165,7 +173,8 @@ export const computeBillDetails = async (items, options = {}) => {
     const product = await Product.findById(productId);
     if (!product) throw new Error(`Product mapping failed for identifier: ${productId}`);
 
-    const verifiedPrice = product.basePrice || product.price || 0;
+    const selectedVariant = resolveItemVariant(product, item);
+    const verifiedPrice = selectedVariant?.price ?? product.basePrice ?? product.price ?? 0;
     subTotal += verifiedPrice * item.quantity;
   }
 

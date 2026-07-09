@@ -44,6 +44,8 @@ const LocationModal = () => {
                 let street = "";
                 let area = "";
                 let city = "";
+                let state = "";
+                let zipCode = "";
                 
                 place.address_components.forEach(component => {
                     if (component.types.includes("sublocality_level_1") || component.types.includes("route")) {
@@ -55,6 +57,12 @@ const LocationModal = () => {
                     if (component.types.includes("locality")) {
                         city = component.long_name;
                     }
+                    if (component.types.includes("administrative_area_level_1")) {
+                        state = component.long_name;
+                    }
+                    if (component.types.includes("postal_code")) {
+                        zipCode = component.long_name;
+                    }
                 });
 
                 const displayArea = street || area || place.address_components[0]?.long_name || "Unknown Area";
@@ -62,6 +70,8 @@ const LocationModal = () => {
                 updateLocation({
                     address: displayArea,
                     city: city || "Indore",
+                    state,
+                    zipCode,
                     coordinates: [lng, lat],
                     fullAddress: place.formatted_address
                 }, true);
@@ -81,6 +91,8 @@ const LocationModal = () => {
                     updateLocation({
                         address: geoData?.street || geoData?.address || 'Detected Location',
                         city: geoData?.city || 'Indore',
+                        state: geoData?.state || '',
+                        zipCode: geoData?.zipCode || '',
                         coordinates: coords,
                         fullAddress: geoData?.address
                     }, true);
@@ -108,6 +120,9 @@ const LocationModal = () => {
         updateLocation({
             address: addr.address,
             city: addr.city,
+            state: addr.state || '',
+            zipCode: addr.zipCode || '',
+            fullAddress: addr.fullAddress || [addr.address, addr.city, addr.state, addr.zipCode].filter(Boolean).join(', '),
             coordinates: addr.coordinates,
             label: addr.type || addr.label
         }, true);
@@ -126,6 +141,9 @@ const LocationModal = () => {
         updateLocation({
             address: city,
             city: city,
+            state: '',
+            zipCode: '',
+            fullAddress: `${city}, India`,
             coordinates: cityCoords[city] || [75.8577, 22.7196] // Default to Indore if unknown
         }, true);
     };
@@ -205,7 +223,9 @@ const LocationModal = () => {
                                                             <span className="px-1.5 py-0.5 bg-[#0c831f]/10 text-[#0c831f] text-[8px] font-bold rounded">DEFAULT</span>
                                                         )}
                                                     </div>
-                                                    <p className="text-[10px] text-gray-500 dark:text-gray-400 line-clamp-1 font-medium">{addr.address}, {addr.city}</p>
+                                                    <p className="text-[10px] text-gray-500 dark:text-gray-400 font-medium leading-snug">
+                                                        {addr.fullAddress || [addr.address, addr.city, addr.state, addr.zipCode].filter(Boolean).join(', ')}
+                                                    </p>
                                                 </div>
                                             </div>
                                         </button>

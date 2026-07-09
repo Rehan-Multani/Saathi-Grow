@@ -76,6 +76,28 @@ const userSchema = new mongoose.Schema({
             ref: 'Product',
             required: true
         },
+        selectedVariant: {
+            type: {
+                type: String,
+                default: ''
+            },
+            value: {
+                type: String,
+                default: ''
+            }
+        },
+        price: {
+            type: Number,
+            default: null
+        },
+        displayName: {
+            type: String,
+            default: ''
+        },
+        weight: {
+            type: String,
+            default: ''
+        },
         quantity: {
             type: Number,
             required: true,

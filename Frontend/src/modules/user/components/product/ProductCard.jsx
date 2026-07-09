@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import React, { memo, useMemo, useState } from 'react';
 import { useCart } from '../../context/CartContext';
 import { ASSET_URLS } from '../../../../constants/assetUrls';
 const categoryPlaceholder = ASSET_URLS.placeholder;
@@ -18,6 +18,12 @@ const ProductCard = memo(({ product, isCompact = false, customTheme, imgPadding,
   const { activeStore, nearbyStores, setActiveStore, isStoreOutOfRange, isStoreInactive } = useStore();
 
   const productId = product.id || product._id;
+  const hasVariants = Array.isArray(product.variants) && product.variants.some((v) => v?.value);
+  const availableVariants = useMemo(
+    () => (product.variants || []).filter((v) => v?.value),
+    [product.variants]
+  );
+  const [showVariantModal, setShowVariantModal] = useState(false);
 
   const cartItem = cart.find(item => item.id === productId);
   const quantity = cartItem ? cartItem.quantity : 0;
@@ -68,6 +74,11 @@ const ProductCard = memo(({ product, isCompact = false, customTheme, imgPadding,
     e.preventDefault();
     e.stopPropagation();
     protectAction(() => {
+      if (hasVariants) {
+        setShowVariantModal(true);
+        return;
+      }
+
       if (effectiveStore && activeStore?.id?.toString() !== effectiveStore.id?.toString()) {
         console.log("[ProductCard] Switching active store to:", effectiveStore.name);
         setActiveStore(effectiveStore);
@@ -87,6 +98,32 @@ const ProductCard = memo(({ product, isCompact = false, customTheme, imgPadding,
           maxAllowed: availableStock
         });
       }
+    });
+  };
+
+  const handleVariantAdd = (variant) => {
+    if (!variant || (variant.stock ?? 0) <= 0) return;
+    protectAction(() => {
+      const variantId = `${productId}::${variant.value}`;
+      const payload = {
+        ...product,
+        id: variantId,
+        productId,
+        name: `${product.name} (${variant.value})`,
+        weight: variant.value,
+        price: variant.price ?? product.price ?? 0,
+        isDeliverable,
+        availableStock: variant.stock,
+        maxAllowed: variant.stock,
+        selectedVariant: {
+          type: variant.type || '',
+          value: variant.value,
+          price: variant.price,
+          stock: variant.stock
+        }
+      };
+      addToCart(payload);
+      setShowVariantModal(false);
     });
   };
 
@@ -188,7 +225,7 @@ const ProductCard = memo(({ product, isCompact = false, customTheme, imgPadding,
             <span className="text-[14px] sm:text-[19px] font-bold text-gray-900 dark:text-white tracking-tighter leading-tight">₹{product.price}</span>
           </div>
 
-          {quantity > 0 ? (
+          {!hasVariants && quantity > 0 ? (
             <div
               className={`flex items-center text-white !rounded-full shadow-lg ${(isLargeButton || isLowestPrice || isValentine || isSaathiSignature) ? ((isLowestPrice || isValentine || isSaathiSignature) ? 'h-[24px] sm:h-[30px] min-w-[65px] sm:min-w-[70px]' : 'h-[28px] sm:h-[36px] min-w-[75px] sm:min-w-[85px]') : (isCompact ? 'h-[21px] sm:h-[30px] min-w-[50px] sm:min-w-[70px]' : 'h-[25px] sm:h-[36px] min-w-[60px] sm:min-w-[85px]')} border quantity-selector ${isBtnDisabled ? 'cursor-not-allowed bg-gray-400' : ''}`}
               style={{
@@ -221,11 +258,50 @@ const ProductCard = memo(({ product, isCompact = false, customTheme, imgPadding,
               className={`${(isLargeButton || isLowestPrice || isValentine || isSaathiSignature) ? ((isValentine || isSaathiSignature) ? 'px-3 sm:px-3 h-[24px] sm:h-[30px] text-[9px]' : isLowestPrice ? 'px-3 sm:px-3 h-[24px] sm:h-[30px] text-[10px]' : 'px-4 sm:px-4 h-[28px] sm:h-[34px] text-[10px]') : (isCompact ? 'px-2 sm:px-3 h-[20px] sm:h-[30px] text-[10px]' : 'px-3 sm:px-4 h-[24px] sm:h-[34px] text-[10px]')} py-1 text-white border border-transparent transition-all sm:text-[12px] font-bold !rounded-full uppercase tracking-wider shadow-sm flex items-center justify-center ${isBtnDisabled ? 'bg-gray-400 cursor-not-allowed' : 'active:scale-95'}`}
               style={!isBtnDisabled ? { backgroundColor: isDarkMode ? '#0c831f' : (customTheme ? customTheme.themeColor : '#0c831f') } : {}}
             >
-              ADD
+              {hasVariants ? 'SELECT' : 'ADD'}
             </button>
           )}
         </div>
       </div>
+
+      {showVariantModal && (
+        <div className="fixed inset-0 z-[10020] flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setShowVariantModal(false)} />
+          <div className="relative bg-white dark:bg-[#111111] w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl p-5 border border-gray-100 dark:border-white/10">
+            <h3 className="text-sm font-black text-gray-900 dark:text-white mb-1">Select Variant</h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">{product.name}</p>
+            <div className="space-y-2 max-h-[45vh] overflow-y-auto">
+              {availableVariants.map((variant, index) => {
+                const variantCartId = `${productId}::${variant.value}`;
+                const variantInCart = cart.find((item) => item.id === variantCartId);
+                const isOut = (variant.stock ?? 0) <= 0;
+                return (
+                  <button
+                    key={`${variant.value}-${index}`}
+                    onClick={() => handleVariantAdd(variant)}
+                    disabled={isOut}
+                    className="w-full flex items-center justify-between p-3 rounded-xl border border-gray-200 dark:border-white/10 hover:border-[#0c831f] disabled:opacity-50 disabled:cursor-not-allowed text-left"
+                  >
+                    <div>
+                      <div className="text-sm font-bold text-gray-900 dark:text-white">{variant.value}</div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">{isOut ? 'Out of stock' : `₹${variant.price ?? product.price}`}</div>
+                    </div>
+                    <div className="text-xs font-bold text-[#0c831f]">
+                      {variantInCart ? `In cart: ${variantInCart.quantity}` : 'Add'}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+            <button
+              onClick={() => setShowVariantModal(false)}
+              className="w-full mt-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 text-xs font-bold"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
 
 
     </div >

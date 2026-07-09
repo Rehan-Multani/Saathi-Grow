@@ -1,6 +1,7 @@
 import Category from '../models/Category.js';
 import Product from '../models/Product.js';
 import SubCategory from '../models/SubCategory.js';
+import XLSX from 'xlsx';
 
 // @desc    Create new category
 // @route   POST /api/admin/categories
@@ -56,9 +57,32 @@ export const getCategories = async (req, res) => {
       query.name = { $regex: String(search).trim(), $options: 'i' };
     }
 
+    const categorySelect = 'name slug image bgColor status description tags';
+    const categorySort = { createdAt: -1 };
+
+    if (hasPagination && hasProducts !== 'true') {
+      const pageNumber = Math.max(parseInt(page, 10) || 1, 1);
+      const limitNumber = Math.min(Math.max(parseInt(limit, 10) || 10, 1), 100);
+      const total = await Category.countDocuments(query);
+      const categories = await Category.find(query)
+        .select(categorySelect)
+        .sort(categorySort)
+        .skip((pageNumber - 1) * limitNumber)
+        .limit(limitNumber);
+      return res.json({
+        categories,
+        pagination: {
+          total,
+          page: pageNumber,
+          limit: limitNumber,
+          totalPages: Math.ceil(total / limitNumber) || 1
+        }
+      });
+    }
+
     let categories = await Category.find(query)
-      .select('name slug image bgColor status description tags')
-      .sort('-createdAt');
+      .select(categorySelect)
+      .sort(categorySort);
 
     if (hasProducts === 'true') {
       // Find distinct category names that have available products efficiently using native distinct
@@ -164,6 +188,183 @@ export const deleteCategory = async (req, res) => {
     } else {
       res.status(404).json({ message: 'Category not found' });
     }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// ─── Bulk upload helpers ─────────────────────────────────────────────────────
+const CATEGORY_BULK_ALIASES = {
+  name: ['name', 'category', 'categoryname', 'category_name', 'title'],
+  slug: ['slug', 'handle', 'url'],
+  description: ['description', 'desc', 'details', 'summary'],
+  tags: ['tags', 'tag', 'keywords'],
+  status: ['status', 'availability', 'visibility'],
+  bgcolor: ['bgcolor', 'bg_color', 'background', 'backgroundcolor', 'color'],
+  image: ['image', 'imageurl', 'image_url', 'img', 'photo', 'icon'],
+};
+
+const normalizeCategoryHeaderKey = (key) =>
+  String(key || '').trim().toLowerCase().replace(/[\s_\-./]+/g, '');
+
+const canonicalCategoryBulkKey = (rawKey) => {
+  const normalized = normalizeCategoryHeaderKey(rawKey);
+  for (const [canonical, aliases] of Object.entries(CATEGORY_BULK_ALIASES)) {
+    if (aliases.includes(normalized) || canonical === normalized) {
+      return canonical === 'bgcolor' ? 'bgColor' : canonical;
+    }
+  }
+  return null;
+};
+
+const normalizeCategoryBulkRow = (rawRow) => {
+  const row = {};
+  for (const [key, value] of Object.entries(rawRow || {})) {
+    const canonical = canonicalCategoryBulkKey(key);
+    if (!canonical) continue;
+    if (row[canonical] === undefined || row[canonical] === null || row[canonical] === '') {
+      row[canonical] = typeof value === 'string' ? value.trim() : value;
+    }
+  }
+  return row;
+};
+
+const isBlankCategoryRow = (row) =>
+  ['name', 'slug', 'description', 'tags', 'image'].every(
+    (k) => row[k] === undefined || row[k] === null || row[k] === ''
+  );
+
+const hasCategoryValue = (v) => v !== undefined && v !== null && String(v).trim() !== '';
+
+const parseCategoryExcelBuffer = (buffer) => {
+  try {
+    const workbook = XLSX.read(buffer, { type: 'buffer' });
+    const sheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[sheetName];
+    const rawRows = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+    return rawRows.map(normalizeCategoryBulkRow);
+  } catch (err) {
+    console.error('Category Excel parse error:', err);
+    return [];
+  }
+};
+
+const slugifyCategory = (name) =>
+  String(name || '')
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
+const resolveUniqueCategorySlug = async (baseSlug, excludeId = null) => {
+  const normalizedBase = slugifyCategory(baseSlug) || 'category';
+  let candidate = normalizedBase;
+  let counter = 2;
+
+  while (true) {
+    const existing = await Category.findOne({ slug: candidate }).select('_id');
+    if (!existing || (excludeId && String(existing._id) === String(excludeId))) return candidate;
+    candidate = `${normalizedBase}-${counter}`;
+    counter++;
+  }
+};
+
+// @desc   Bulk upload categories from Excel
+// @route  POST /api/admin/categories/bulk-upload
+// @access Private (Admin)
+export const bulkUploadCategories = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'No Excel file uploaded' });
+    }
+
+    const rows = parseCategoryExcelBuffer(req.file.buffer);
+    if (rows.length === 0) {
+      return res.status(400).json({ message: 'Excel is empty or has no valid rows' });
+    }
+
+    let created = 0;
+    let updated = 0;
+    let skipped = 0;
+    const errors = [];
+
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      const rowNum = i + 2;
+
+      try {
+        if (isBlankCategoryRow(row)) continue;
+
+        if (!hasCategoryValue(row.name)) {
+          // Soft-skip nameless rows (often trailing/accidental rows in Excel)
+          skipped++;
+          continue;
+        }
+
+        const name = String(row.name).trim();
+        const slugInput = hasCategoryValue(row.slug) ? String(row.slug).trim().toLowerCase() : '';
+        const slug = slugInput || slugifyCategory(name);
+
+        const tags = row.tags
+          ? String(row.tags).split(/[|,]/).map((t) => t.trim()).filter(Boolean)
+          : [];
+
+        const statusRaw = (row.status || 'Active').toString().toLowerCase().trim();
+        const statusMap = { active: 'Active', inactive: 'Inactive', draft: 'Inactive' };
+        const status = statusMap[statusRaw] || 'Active';
+
+        const bgColor = hasCategoryValue(row.bgColor) ? String(row.bgColor).trim() : '#f8f9fa';
+        const imageUrl = hasCategoryValue(row.image) ? String(row.image).trim() : '';
+        const description = row.description ? String(row.description).trim() : '';
+
+        const existing = await Category.findOne({
+          name: new RegExp(`^${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i'),
+        });
+
+        if (existing) {
+          const nextSlug = await resolveUniqueCategorySlug(slug, existing._id);
+          await Category.findByIdAndUpdate(existing._id, {
+            $set: {
+              name,
+              slug: nextSlug,
+              description,
+              tags: [...new Set(tags)],
+              status,
+              bgColor,
+              ...(imageUrl ? { image: imageUrl } : {}),
+            },
+          });
+          updated++;
+        } else {
+          const nextSlug = await resolveUniqueCategorySlug(slug);
+          await Category.create({
+            name,
+            slug: nextSlug,
+            description,
+            tags: [...new Set(tags)],
+            status,
+            bgColor,
+            image: imageUrl,
+            createdBy: req.admin._id,
+          });
+          created++;
+        }
+      } catch (rowErr) {
+        let msg = rowErr.message;
+        if (rowErr.code === 11000) msg = 'Duplicate category name or slug';
+        errors.push(`Row ${rowNum}: ${msg}`);
+        skipped++;
+      }
+    }
+
+    res.json({
+      message: 'Bulk upload completed',
+      created,
+      updated,
+      skipped,
+      total: rows.length,
+      errors: errors.slice(0, 20),
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

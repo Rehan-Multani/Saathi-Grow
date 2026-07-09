@@ -4,6 +4,9 @@ import { HelmetProvider } from 'react-helmet-async';
 import './index.css'
 import App from './App.jsx'
 import './i18n/i18n'
+import { patchGlobalToastError } from './common/utils/toastMessageUtils'
+
+patchGlobalToastError()
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

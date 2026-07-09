@@ -2,6 +2,7 @@
   "title": "All Categories",
   "subtitle": "Manage and organize your product catalog collections",
   "add_new": "Add Category",
+  "bulk_upload": "Bulk Upload",
   "search_placeholder": "Search categories by name...",
   "loading": "Fetching categories...",
   "loading_failed": "Failed to load categories",
@@ -63,7 +64,26 @@
   "pagination": {
     "showing": "Displaying",
     "to": "to",
-    "of": "of"
+    "of": "of",
+    "showing_range": "Showing {{start}}–{{end}} of {{total}}"
+  },
+  "bulk": {
+    "title": "Bulk Category Upload",
+    "subtitle": "Upload an Excel file to add multiple categories at once",
+    "step1_title": "Step 1: Download Template",
+    "step1_desc": "Fill in this Excel file with your categories",
+    "download": "Download Excel",
+    "columns_title": "Excel Columns",
+    "required_note": "* Required fields",
+    "image_note": "Category image URL is optional — add images later from Edit Category.",
+    "step2_title": "Step 2: Upload Your Excel",
+    "select_file": "Click to select Excel file",
+    "file_types": "Only .xlsx and .xls files supported",
+    "change_file": "Click to change file",
+    "uploading": "Uploading...",
+    "upload_btn": "Upload Categories",
+    "no_file": "Please select an Excel file first",
+    "upload_failed": "Bulk upload failed. Check your Excel format."
   },
   "subcategories": {
     "title": "Subcategories",

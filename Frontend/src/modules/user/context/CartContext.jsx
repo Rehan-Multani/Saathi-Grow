@@ -45,8 +45,9 @@ export const CartProvider = ({ children }) => {
                     const data = await cartApi.getCart(token);
                     const formatted = data.map(p => ({
                         ...p,
-                        id: p._id || p.id,
-                        price: p.basePrice || p.price,
+                        id: p.id || p._id,
+                        productId: p.productId || p._id || p.id,
+                        price: p.price || p.basePrice || 0,
                         quantity: p.quantity
                     }));
                     // Clear stale localStorage cart and use server version
@@ -130,6 +131,7 @@ export const CartProvider = ({ children }) => {
         const availableStock = product.availableStock ?? 999;
         const maxAllowed = product.maxAllowed ?? availableStock;
         const prodId = product.id || product._id;
+        const baseProductId = product.productId || product._id || String(prodId).split('::')[0];
 
         if (maxAllowed <= 0) {
             toast.error("Safety stock limit reached", { toastId: `stock-limit-${prodId}` });
@@ -150,7 +152,7 @@ export const CartProvider = ({ children }) => {
                     item.id === prodId ? { ...item, quantity: item.quantity + quantityToAdd } : item
                 );
             }
-            return [...prevCart, { ...product, id: prodId, price: priceToUse, quantity: quantityToAdd }];
+            return [...prevCart, { ...product, id: prodId, productId: baseProductId, price: priceToUse, quantity: quantityToAdd }];
         });
     };
 

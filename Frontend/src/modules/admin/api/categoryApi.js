@@ -3,8 +3,13 @@
 const CATEGORIES_API_BASE_URL = `${API_BASE_URL}/admin/categories`;
 
 export const getCategories = async (token, params = {}) => {
-  const queryParams = new URLSearchParams(params).toString();
-  const queryString = queryParams ? `?${queryParams}` : '';
+  const queryParams = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      queryParams.append(key, value);
+    }
+  });
+  const queryString = queryParams.toString() ? `?${queryParams.toString()}` : '';
 
   const response = await fetch(`${CATEGORIES_API_BASE_URL}${queryString}`, {
     method: 'GET',
@@ -78,6 +83,25 @@ export const getCategoryById = async (token, id) => {
   const data = await response.json();
   if (!response.ok) {
     throw new Error(data.message || 'Failed to fetch category details');
+  }
+  return data;
+};
+
+export const bulkUploadCategories = async (token, file) => {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const response = await fetch(`${CATEGORIES_API_BASE_URL}/bulk-upload`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+    body: formData,
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || 'Failed to bulk upload categories');
   }
   return data;
 };

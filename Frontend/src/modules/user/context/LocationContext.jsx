@@ -8,6 +8,26 @@ const LocationContext = createContext();
 export const useLocation = () => useContext(LocationContext);
 
 export const LocationProvider = ({ children }) => {
+    const mapAddressFromApi = (addr) => {
+        const cityPart = addr.city || '';
+        const statePart = addr.state || '';
+        const zipPart = addr.zipCode || '';
+        const fullAddress = [addr.street, cityPart, statePart, zipPart].filter(Boolean).join(', ');
+        return {
+            id: addr._id,
+            type: addr.label,
+            name: addr.name,
+            phone: addr.phone,
+            address: addr.street || addr.city,
+            city: cityPart,
+            state: statePart,
+            zipCode: zipPart,
+            fullAddress: fullAddress || addr.street || addr.city || '',
+            isDefault: addr.isDefault,
+            coordinates: addr.location?.coordinates || null
+        };
+    };
+
     const [location, setLocation] = useState(() => {
         const saved = localStorage.getItem('sathiGro_location');
         return saved ? JSON.parse(saved) : { address: 'Select Location', city: '', coordinates: null };
@@ -71,6 +91,8 @@ export const LocationProvider = ({ children }) => {
                     let street = "";
                     let area = "";
                     let city = "";
+                    let state = "";
+                    let zipCode = "";
                     
                     place.address_components.forEach(component => {
                         const types = component.types;
@@ -83,6 +105,12 @@ export const LocationProvider = ({ children }) => {
                         if (types.includes("locality")) {
                             city = component.long_name;
                         }
+                        if (types.includes("administrative_area_level_1")) {
+                            state = component.long_name;
+                        }
+                        if (types.includes("postal_code")) {
+                            zipCode = component.long_name;
+                        }
                     });
 
                     const displayArea = street || area || place.address_components[0]?.long_name || "Unknown Area";
@@ -90,7 +118,9 @@ export const LocationProvider = ({ children }) => {
                     resolve({
                         address: place.formatted_address,
                         street: displayArea,
-                        city: city || "Indore"
+                        city: city || "Indore",
+                        state,
+                        zipCode
                     });
                 } else {
                     console.warn(`SDK Geocoder failed: ${status}`);
@@ -108,16 +138,7 @@ export const LocationProvider = ({ children }) => {
                     const data = await addressApi.getAddresses(token);
                     // Map backend data format to LocationContext unified format if needed
                     // The backend stores: { _id, label, street, city, state, zipCode, isDefault }
-                    const formatted = data.map(addr => ({
-                        id: addr._id,
-                        type: addr.label,
-                        name: addr.name,
-                        phone: addr.phone,
-                        address: addr.street || addr.city,
-                        city: `${addr.city || ''} ${addr.zipCode || ''}`.trim(),
-                        isDefault: addr.isDefault,
-                        coordinates: addr.location?.coordinates || null
-                    }));
+                    const formatted = data.map(mapAddressFromApi);
                     setSavedAddresses(formatted);
                 } catch (err) {
                     console.error('Failed to fetch user addresses:', err);
@@ -164,20 +185,13 @@ export const LocationProvider = ({ children }) => {
                     phone: address.phone,
                     street: address.address,
                     city: address.city,
+                    state: address.state || '',
+                    zipCode: address.zipCode || '',
                     isDefault: address.isDefault !== undefined ? address.isDefault : savedAddresses.length === 0,
                     location: address.coordinates ? { type: 'Point', coordinates: address.coordinates } : undefined
                 });
                 // Refresh
-                const formatted = resData.map(addr => ({
-                    id: addr._id,
-                    type: addr.label,
-                    name: addr.name,
-                    phone: addr.phone,
-                    address: addr.street || addr.city,
-                    city: `${addr.city || ''} ${addr.zipCode || ''}`.trim(),
-                    isDefault: addr.isDefault,
-                    coordinates: addr.location?.coordinates || null
-                }));
+                const formatted = resData.map(mapAddressFromApi);
                 setSavedAddresses(formatted);
             } catch (error) {
                 console.error("Add remote address failed", error);
@@ -201,19 +215,12 @@ export const LocationProvider = ({ children }) => {
                     phone: updatedAddress.phone,
                     street: updatedAddress.address,
                     city: updatedAddress.city,
+                    state: updatedAddress.state || '',
+                    zipCode: updatedAddress.zipCode || '',
                     isDefault: updatedAddress.isDefault,
                     location: updatedAddress.coordinates ? { type: 'Point', coordinates: updatedAddress.coordinates } : undefined
                 });
-                const formatted = resData.map(addr => ({
-                    id: addr._id,
-                    type: addr.label,
-                    name: addr.name,
-                    phone: addr.phone,
-                    address: addr.street || addr.city,
-                    city: `${addr.city || ''} ${addr.zipCode || ''}`.trim(),
-                    isDefault: addr.isDefault,
-                    coordinates: addr.location?.coordinates || null
-                }));
+                const formatted = resData.map(mapAddressFromApi);
                 setSavedAddresses(formatted);
             } catch (error) {
                 console.error("Update remote address failed", error);
@@ -231,16 +238,7 @@ export const LocationProvider = ({ children }) => {
         if (token) {
             try {
                 const resData = await addressApi.deleteAddress(token, id);
-                const formatted = resData.addresses.map(addr => ({
-                    id: addr._id,
-                    type: addr.label,
-                    name: addr.name,
-                    phone: addr.phone,
-                    address: addr.street || addr.city,
-                    city: `${addr.city || ''} ${addr.zipCode || ''}`.trim(),
-                    isDefault: addr.isDefault,
-                    coordinates: addr.location?.coordinates || null
-                }));
+                const formatted = resData.addresses.map(mapAddressFromApi);
                 setSavedAddresses(formatted);
             } catch (error) {
                 console.error("Delete remote address failed", error);
@@ -264,6 +262,8 @@ export const LocationProvider = ({ children }) => {
                     updateLocation({
                         address: geoData?.street || geoData?.address || 'Detected Location',
                         city: geoData?.city || 'Indore',
+                        state: geoData?.state || '',
+                        zipCode: geoData?.zipCode || '',
                         coordinates: coords,
                         fullAddress: geoData?.address
                     });

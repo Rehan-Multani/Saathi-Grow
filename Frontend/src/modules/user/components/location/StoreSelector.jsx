@@ -56,8 +56,10 @@ const StoreSelector = ({ isOpen, onClose }) => {
               <div className="w-16 h-16 bg-gray-50 dark:bg-white/5 rounded-full flex items-center justify-center mb-4">
                 <MapPin size={32} className="text-gray-300" />
               </div>
-              <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">No stores found</h3>
-              <p className="text-sm text-gray-400 max-w-[250px] mt-1 text-center">We couldn't find any SathiGro branches or vendors near your current location.</p>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">Service unavailable in this area</h3>
+              <p className="text-sm text-gray-400 max-w-[280px] mt-1 text-center">
+                We are not serving your selected location yet. We are expanding rapidly and will be available in your area soon.
+              </p>
             </div>
           ) : (
             <div className="space-y-3">

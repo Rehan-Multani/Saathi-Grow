@@ -7,6 +7,7 @@ import ProductEditModal from '../../../../common/components/products/ProductEdit
 import RestockModal from '../../../../common/components/products/RestockModal';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { getProducts, deleteProduct, bulkDeleteProducts, updateProduct } from '../../../../common/api/productApi';
+import { bulkUploadProductsJson } from '../../api/productApi';
 import { getCategories } from '../../api/categoryApi';
 import { getBrands } from '../../api/brandApi';
 import { showDeleteConfirmation, showSuccessAlert, showErrorAlert } from '../../../../common/utils/alertUtils';
@@ -62,7 +63,9 @@ const AllProducts = () => {
     const [showRestockModal, setShowRestockModal] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [showBulkModal, setShowBulkModal] = useState(false);
+    const [bulkMode, setBulkMode] = useState('excel');
     const [bulkFile, setBulkFile] = useState(null);
+    const [jsonInput, setJsonInput] = useState('');
     const [bulkLoading, setBulkLoading] = useState(false);
     const [selectedIds, setSelectedIds] = useState([]);
 
@@ -82,6 +85,78 @@ const AllProducts = () => {
         XLSX.writeFile(workbook, 'Saathigro_bulk_product_template.xlsx');
     };
 
+    const resetBulkModal = () => {
+        setShowBulkModal(false);
+        setBulkMode('excel');
+        setBulkFile(null);
+        setJsonInput('');
+    };
+
+    const showBulkUploadResult = (data) => {
+        const created = data.created || 0;
+        const updated = data.updated || 0;
+        const skipped = data.skipped || 0;
+        const errors = data.errors || [];
+        const summary = `${created} created, ${updated} updated${skipped > 0 ? `, ${skipped} skipped` : ''}`;
+
+        if (created + updated > 0) {
+            toast.success(summary, { autoClose: 5000 });
+        } else if (skipped > 0) {
+            toast.warning(summary, { autoClose: 5000 });
+        } else {
+            toast.info(summary, { autoClose: 5000 });
+        }
+
+        if (errors.length > 0) {
+            const preview = errors.slice(0, 5);
+            const remaining = errors.length - preview.length;
+            toast.warning(
+                <div className="text-sm">
+                    <p className="font-bold mb-1">{errors.length} issue{errors.length > 1 ? 's' : ''}</p>
+                    <ul className="list-disc pl-4 space-y-0.5 max-h-40 overflow-y-auto">
+                        {preview.map((e, i) => <li key={i}>{e}</li>)}
+                    </ul>
+                    {remaining > 0 && <p className="mt-1 text-xs opacity-80">…and {remaining} more</p>}
+                </div>,
+                { autoClose: 12000 }
+            );
+        }
+    };
+
+    const downloadJsonTemplate = () => {
+        const template = [
+            {
+                name: 'Amul Butter 100g',
+                category: 'Dairy Bread & Eggs',
+                subCategory: '',
+                brandName: 'Amul',
+                basePrice: 52,
+                mrp: 55,
+                unitType: 'g',
+                unitValue: 100,
+                description: 'Fresh Amul butter 100g pack',
+                tags: ['dairy', 'butter', 'amul'],
+                sku: 'DAI-AMU-XXXXX',
+                stock: 50,
+                status: 'Active'
+            }
+        ];
+        const blob = new Blob([JSON.stringify(template, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'Saathigro_bulk_product_template.json';
+        link.click();
+        URL.revokeObjectURL(url);
+    };
+
+    const parseJsonProducts = (raw) => {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) return parsed;
+        if (Array.isArray(parsed?.products)) return parsed.products;
+        throw new Error('JSON must be an array of products or { "products": [...] }');
+    };
+
     const handleBulkUpload = async () => {
         if (!bulkFile) return toast.warning('Please select an Excel file first');
         setBulkLoading(true);
@@ -95,43 +170,42 @@ const AllProducts = () => {
                 formData,
                 { headers: { Authorization: `Bearer ${adminUser.token}`, 'Content-Type': 'multipart/form-data' } }
             );
-            const created = data.created || 0;
-            const updated = data.updated || 0;
-            const skipped = data.skipped || 0;
-            const errors = data.errors || [];
-            const summary = `${created} created, ${updated} updated${skipped > 0 ? `, ${skipped} skipped` : ''}`;
-
-            if (created + updated > 0) {
-                toast.success(summary, { autoClose: 5000 });
-            } else if (skipped > 0) {
-                toast.warning(summary, { autoClose: 5000 });
-            } else {
-                toast.info(summary, { autoClose: 5000 });
-            }
-
-            // One combined toast instead of one per row
-            if (errors.length > 0) {
-                const preview = errors.slice(0, 5);
-                const remaining = errors.length - preview.length;
-                toast.warning(
-                    <div className="text-sm">
-                        <p className="font-bold mb-1">{errors.length} issue{errors.length > 1 ? 's' : ''}</p>
-                        <ul className="list-disc pl-4 space-y-0.5 max-h-40 overflow-y-auto">
-                            {preview.map((e, i) => <li key={i}>{e}</li>)}
-                        </ul>
-                        {remaining > 0 && <p className="mt-1 text-xs opacity-80">…and {remaining} more</p>}
-                    </div>,
-                    { autoClose: 12000 }
-                );
-            }
-            setShowBulkModal(false);
-            setBulkFile(null);
+            showBulkUploadResult(data);
+            resetBulkModal();
             fetchData();
         } catch (err) {
             toast.error(err?.response?.data?.message || 'Bulk upload failed. Check your Excel format.');
         } finally {
             setBulkLoading(false);
         }
+    };
+
+    const handleBulkJsonUpload = async () => {
+        if (!jsonInput.trim()) return toast.warning('Please paste JSON or upload a .json file');
+        setBulkLoading(true);
+        try {
+            const products = parseJsonProducts(jsonInput.trim());
+            if (products.length === 0) {
+                toast.warning('JSON must contain at least one product');
+                return;
+            }
+            const data = await bulkUploadProductsJson(adminUser.token, products);
+            showBulkUploadResult(data);
+            resetBulkModal();
+            fetchData();
+        } catch (err) {
+            toast.error(err?.message || 'Bulk JSON upload failed. Check your JSON format.');
+        } finally {
+            setBulkLoading(false);
+        }
+    };
+
+    const handleJsonFileSelect = (file) => {
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => setJsonInput(e.target.result || '');
+        reader.onerror = () => toast.error('Failed to read JSON file');
+        reader.readAsText(file);
     };
 
     const updateParams = useCallback((newParams) => {
@@ -586,16 +660,37 @@ const AllProducts = () => {
                                 </div>
                                 <div>
                                     <h2 className="text-base font-bold text-slate-900">Bulk Product Upload</h2>
-                                    <p className="text-xs text-slate-400 font-medium">Upload an Excel file to add multiple products at once</p>
+                                    <p className="text-xs text-slate-400 font-medium">Upload products via Excel or JSON</p>
                                 </div>
                             </div>
-                            <button onClick={() => { setShowBulkModal(false); setBulkFile(null); }} className="p-2 hover:bg-slate-100 rounded-xl transition-all text-slate-400 hover:text-slate-600">
+                            <button onClick={resetBulkModal} className="p-2 hover:bg-slate-100 rounded-xl transition-all text-slate-400 hover:text-slate-600">
                                 <X size={20} />
                             </button>
                         </div>
 
+                        <div className="px-6 pt-4">
+                            <div className="flex p-1 bg-slate-100 rounded-xl">
+                                <button
+                                    type="button"
+                                    onClick={() => setBulkMode('excel')}
+                                    className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${bulkMode === 'excel' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500'}`}
+                                >
+                                    Excel
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setBulkMode('json')}
+                                    className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${bulkMode === 'json' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500'}`}
+                                >
+                                    JSON
+                                </button>
+                            </div>
+                        </div>
+
                         {/* Modal Body - scrollable */}
                         <div className="p-4 space-y-4 overflow-y-auto flex-1">
+                            {bulkMode === 'excel' ? (
+                                <>
                             {/* Step 1: Download Template */}
                             <div className="p-4 bg-blue-50 rounded-2xl flex items-center gap-4">
                                 <div className="flex-1">
@@ -651,16 +746,68 @@ const AllProducts = () => {
                                     />
                                 </label>
                             </div>
+                                </>
+                            ) : (
+                                <>
+                            <div className="p-4 bg-blue-50 rounded-2xl flex items-center gap-4">
+                                <div className="flex-1">
+                                    <p className="text-sm font-bold text-slate-800">Step 1: Download JSON Template</p>
+                                    <p className="text-xs text-slate-500 mt-0.5">Use this sample format for your products</p>
+                                </div>
+                                <button
+                                    onClick={downloadJsonTemplate}
+                                    className="flex items-center gap-2 px-4 py-2 bg-white border border-blue-200 text-blue-600 rounded-xl text-xs font-bold hover:bg-blue-50 transition-all shadow-sm"
+                                >
+                                    <Download size={14} /> Download JSON
+                                </button>
+                            </div>
+
+                            <div className="bg-slate-50 rounded-2xl p-4">
+                                <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-3">Required JSON Fields</p>
+                                <div className="grid grid-cols-3 gap-1.5">
+                                    {['name*', 'category*', 'basePrice*', 'mrp*', 'unitType', 'unitValue', 'brandName', 'description', 'tags', 'sku', 'stock', 'status'].map(col => (
+                                        <span key={col} className={`text-[10px] px-2 py-1 rounded-lg font-bold text-center ${col.includes('*') ? 'bg-rose-100 text-rose-600' : 'bg-white text-slate-500 border border-slate-200'}`}>
+                                            {col}
+                                        </span>
+                                    ))}
+                                </div>
+                                <p className="text-[10px] text-rose-500 font-semibold mt-2">* Required fields</p>
+                                <p className="text-[10px] text-slate-500 mt-1.5">Paste a JSON array or use <span className="font-mono">{`{ "products": [...] }`}</span>. Tags can be an array or comma-separated string.</p>
+                            </div>
+
+                            <div>
+                                <p className="text-sm font-bold text-slate-800 mb-2">Step 2: Paste or Upload JSON</p>
+                                <textarea
+                                    value={jsonInput}
+                                    onChange={(e) => setJsonInput(e.target.value)}
+                                    placeholder='[{"name":"Tomato 1Kg","category":"Vegetables","basePrice":40,"mrp":80}]'
+                                    className="w-full h-40 p-3 text-xs font-mono bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500/20 resize-y"
+                                />
+                                <label className="mt-3 flex flex-col items-center justify-center w-full h-20 border-2 border-dashed rounded-2xl cursor-pointer transition-all border-slate-300 bg-slate-50 hover:border-blue-400 hover:bg-blue-50">
+                                    <div className="flex items-center gap-2 text-slate-500">
+                                        <Upload size={18} />
+                                        <span className="text-xs font-semibold">Or upload a .json file</span>
+                                    </div>
+                                    <input
+                                        type="file"
+                                        accept=".json,application/json"
+                                        className="hidden"
+                                        onChange={(e) => handleJsonFileSelect(e.target.files[0] || null)}
+                                    />
+                                </label>
+                            </div>
+                                </>
+                            )}
                         </div>
 
                         {/* Modal Footer */}
                         <div className="flex gap-3 p-6 border-t border-slate-100">
-                            <button onClick={() => { setShowBulkModal(false); setBulkFile(null); }} className="flex-1 py-2.5 border border-slate-200 text-slate-600 rounded-xl text-sm font-semibold hover:bg-slate-50 transition-all">
+                            <button onClick={resetBulkModal} className="flex-1 py-2.5 border border-slate-200 text-slate-600 rounded-xl text-sm font-semibold hover:bg-slate-50 transition-all">
                                 Cancel
                             </button>
                             <button
-                                onClick={handleBulkUpload}
-                                disabled={!bulkFile || bulkLoading}
+                                onClick={bulkMode === 'excel' ? handleBulkUpload : handleBulkJsonUpload}
+                                disabled={(bulkMode === 'excel' ? !bulkFile : !jsonInput.trim()) || bulkLoading}
                                 className="flex-1 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-md shadow-blue-100"
                             >
                                 {bulkLoading ? <><span className="saathi-spinner !w-4 !h-4 !border-2"></span> Uploading...</> : <><Upload size={16} /> Upload Products</>}

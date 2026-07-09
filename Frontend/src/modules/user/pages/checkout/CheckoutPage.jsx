@@ -65,7 +65,13 @@ const CheckoutPage = () => {
     const [upsellingPromos, setUpsellingPromos] = useState([]);
     const [loadingPromos, setLoadingPromos] = useState(false);
 
-    const [checkoutCity, setCheckoutCity] = useState('');
+    const [shippingAddressForm, setShippingAddressForm] = useState({
+        street: '',
+        city: '',
+        state: '',
+        zipCode: '',
+        landmark: ''
+    });
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -105,15 +111,40 @@ const CheckoutPage = () => {
                 updateLocation({
                     address: defaultAddr.address,
                     city: defaultAddr.city,
+                    state: defaultAddr.state || '',
+                    zipCode: defaultAddr.zipCode || '',
+                    fullAddress: defaultAddr.fullAddress || [defaultAddr.address, defaultAddr.city, defaultAddr.state, defaultAddr.zipCode].filter(Boolean).join(', '),
                     coordinates: defaultAddr.coordinates
                 });
             }
         }
-        
-        if (globalLocation.city) {
-            setCheckoutCity(globalLocation.city);
-        }
-    }, [savedAddresses, globalLocation.address, globalLocation.city, updateLocation]);
+
+        setShippingAddressForm((prev) => ({
+            ...prev,
+            street: globalLocation.address || '',
+            city: globalLocation.city || '',
+            state: globalLocation.state || '',
+            zipCode: globalLocation.zipCode || ''
+        }));
+    }, [savedAddresses, globalLocation.address, globalLocation.city, globalLocation.state, globalLocation.zipCode, updateLocation]);
+
+    useEffect(() => {
+        if (!savedAddresses?.length || !globalLocation?.coordinates) return;
+        const matched = savedAddresses.find((addr) => {
+            const c1 = addr.coordinates || [];
+            const c2 = globalLocation.coordinates || [];
+            return c1.length === 2 && c2.length === 2 && String(c1[0]) === String(c2[0]) && String(c1[1]) === String(c2[1]);
+        });
+        if (!matched) return;
+
+        setShippingAddressForm((prev) => ({
+            ...prev,
+            street: matched.address || prev.street,
+            city: matched.city || prev.city,
+            state: matched.state || prev.state,
+            zipCode: matched.zipCode || prev.zipCode
+        }));
+    }, [savedAddresses, globalLocation.coordinates]);
 
     useEffect(() => {
         const fetchBill = async () => {
@@ -121,11 +152,12 @@ const CheckoutPage = () => {
             setIsCalculating(true);
             try {
                 const items = cart.map(item => ({
-                    product: item.id || item._id,
+                    product: item.productId || item.id || item._id,
                     quantity: item.quantity,
                     price: item.price,
                     name: item.name,
-                    image: item.image
+                    image: item.image,
+                    selectedVariant: item.selectedVariant || null
                 }));
                 const computed = await orderApi.calculateBill(token, items, {
                     storeId: activeStore?.id,
@@ -195,13 +227,17 @@ const CheckoutPage = () => {
             return;
         }
 
-        if (checkoutCity !== globalLocation.city) {
-            toast.error("pin location and city you entered is diifferent so you can not proceed further");
+        if (!shippingAddressForm.street.trim() || !shippingAddressForm.city.trim() || !shippingAddressForm.state.trim() || !shippingAddressForm.zipCode.trim()) {
+            toast.error("Please fill full delivery address details.");
             return;
         }
 
         if (!activeStore || isStoreOutOfRange || isStoreInactive) {
-            toast.error(isStoreInactive ? 'This store is currently inactive.' : 'No stores are available in your area.');
+            toast.error(
+                isStoreInactive
+                    ? 'This store is currently inactive.'
+                    : 'We are not serving this area yet. We will be available in your location soon.'
+            );
             return;
         }
 
@@ -224,19 +260,21 @@ const CheckoutPage = () => {
 
         const orderData = {
             items: cart.map(item => ({
-                product: item.id || item._id,
+                product: item.productId || item.id || item._id,
                 quantity: item.quantity,
                 price: item.price,
                 name: item.name,
-                image: item.image
+                image: item.image,
+                selectedVariant: item.selectedVariant || null
             })),
             shippingAddress: {
                 name: user?.name,
                 phone: user?.phone,
-                street: globalLocation.address,
-                city: globalLocation.city || '',
-                state: '',
-                zipCode: '',
+                street: shippingAddressForm.street.trim(),
+                city: shippingAddressForm.city.trim(),
+                state: shippingAddressForm.state.trim(),
+                zipCode: shippingAddressForm.zipCode.trim(),
+                landmark: shippingAddressForm.landmark?.trim() || '',
                 location: globalLocation.coordinates ? { type: 'Point', coordinates: globalLocation.coordinates } : undefined
             },
             totalAmount: totalToPay,
@@ -268,11 +306,12 @@ const CheckoutPage = () => {
 
                 // Call Backend for Order Initiation Payload
                 const itemsToCheckout = cart.map(item => ({
-                    product: item.id || item._id,
+                    product: item.productId || item.id || item._id,
                     quantity: item.quantity,
                     price: item.price,
                     name: item.name,
-                    image: item.image
+                    image: item.image,
+                    selectedVariant: item.selectedVariant || null
                 }));
                 const rpPayload = await orderApi.createRazorpayOrder(
                     token, 
@@ -415,18 +454,60 @@ const CheckoutPage = () => {
                             </button>
                         </div>
                         <p className="text-[11px] text-gray-800 dark:text-gray-200 font-bold leading-relaxed mb-3">
-                            {globalLocation.address || "Select Address"}
+                            {globalLocation.fullAddress || globalLocation.address || "Select Address"}
                         </p>
-                        
-                        <div className="mt-3">
-                            <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-1">City & Pincode</label>
-                            <input 
-                                type="text" 
-                                value={checkoutCity}
-                                readOnly
-                                placeholder="City and Pincode"
-                                className="w-full bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-xl px-4 py-3 text-[11px] font-bold focus:outline-none focus:border-[#0c831f] transition-all cursor-not-allowed opacity-70"
-                            />
+
+                        <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                            <div className="sm:col-span-2">
+                                <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-1">Street / House No</label>
+                                <input
+                                    type="text"
+                                    value={shippingAddressForm.street}
+                                    onChange={(e) => setShippingAddressForm((prev) => ({ ...prev, street: e.target.value }))}
+                                    placeholder="House No, Building, Street"
+                                    className="w-full bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-xl px-4 py-3 text-[11px] font-bold focus:outline-none focus:border-[#0c831f] transition-all"
+                                />
+                            </div>
+                            <div>
+                                <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-1">City</label>
+                                <input
+                                    type="text"
+                                    value={shippingAddressForm.city}
+                                    onChange={(e) => setShippingAddressForm((prev) => ({ ...prev, city: e.target.value }))}
+                                    placeholder="City"
+                                    className="w-full bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-xl px-4 py-3 text-[11px] font-bold focus:outline-none focus:border-[#0c831f] transition-all"
+                                />
+                            </div>
+                            <div>
+                                <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-1">Pincode</label>
+                                <input
+                                    type="text"
+                                    value={shippingAddressForm.zipCode}
+                                    onChange={(e) => setShippingAddressForm((prev) => ({ ...prev, zipCode: e.target.value }))}
+                                    placeholder="Pincode"
+                                    className="w-full bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-xl px-4 py-3 text-[11px] font-bold focus:outline-none focus:border-[#0c831f] transition-all"
+                                />
+                            </div>
+                            <div>
+                                <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-1">State</label>
+                                <input
+                                    type="text"
+                                    value={shippingAddressForm.state}
+                                    onChange={(e) => setShippingAddressForm((prev) => ({ ...prev, state: e.target.value }))}
+                                    placeholder="State"
+                                    className="w-full bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-xl px-4 py-3 text-[11px] font-bold focus:outline-none focus:border-[#0c831f] transition-all"
+                                />
+                            </div>
+                            <div>
+                                <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-1">Landmark (optional)</label>
+                                <input
+                                    type="text"
+                                    value={shippingAddressForm.landmark}
+                                    onChange={(e) => setShippingAddressForm((prev) => ({ ...prev, landmark: e.target.value }))}
+                                    placeholder="Near ..."
+                                    className="w-full bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-xl px-4 py-3 text-[11px] font-bold focus:outline-none focus:border-[#0c831f] transition-all"
+                                />
+                            </div>
                         </div>
                     </div>
                 </div>

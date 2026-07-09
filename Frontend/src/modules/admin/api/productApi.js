@@ -149,6 +149,23 @@ export const getAllInventoryLogs = async (token, params = {}) => {
   return data;
 };
 
+export const bulkUploadProductsJson = async (token, products) => {
+  const response = await fetch(`${PRODUCTS_API_BASE_URL}/bulk-json`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ products }),
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || 'Failed to upload products from JSON');
+  }
+  return data;
+};
+
 export const getInventoryStats = async (token, branchId = null) => {
   const queryParams = branchId ? `?branchId=${branchId}` : '';
   const response = await fetch(`${PRODUCTS_API_BASE_URL}/inventory/stats${queryParams}`, {

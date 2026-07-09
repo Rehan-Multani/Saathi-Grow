@@ -102,21 +102,22 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen, customTheme }) => {
   }, [routerLocation.state, setIsMenuOpen]);
 
   const renderLocation = () => {
-    if (location.label) return location.label;
+    const fullAddress = (location.fullAddress || '').toString().trim();
+    const addr = (location.address || '').toString().trim();
+    const city = (location.city || '').toString().trim();
 
-    const addr = location.address;
-    const city = location.city;
+    // Prefer the most detailed address available.
+    if (fullAddress) return fullAddress;
 
-    if (addr && typeof addr === 'string') {
-      const street = addr.split(',')[0];
-      // If street is just the city name, don't repeat it
-      if (city && street.toLowerCase() === city.toLowerCase()) {
-        return city;
+    if (addr) {
+      if (city && !addr.toLowerCase().includes(city.toLowerCase())) {
+        return `${addr}, ${city}`;
       }
-      if (city) return `${street}, ${city}`;
-      return street;
+      return addr;
     }
 
+    // Keep label as fallback only (e.g. "Home", "Office").
+    if (location.label) return location.label;
     return city || 'Select Location';
   };
 
@@ -218,7 +219,10 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen, customTheme }) => {
                   <span className={`text-[10px] uppercase font-black tracking-widest flex items-center gap-1 ${isStoreOutOfRange ? 'text-red-500' : 'text-[#0c831f]'}`}>
                     Delivery at <ChevronDown size={10} strokeWidth={3} />
                   </span>
-                  <span className={`text-[14px] font-medium text-gray-800 dark:text-white`}>
+                  <span
+                    className="text-[14px] font-medium text-gray-800 dark:text-white max-w-[320px] truncate block"
+                    title={renderLocation()}
+                  >
                     {renderLocation()}
                   </span>
                 </div>

@@ -1,14 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Search, Plus, Edit, Trash2, ImageIcon, Info, ChevronLeft, ChevronRight, FileText, Package, RefreshCw, Layers } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Search, Plus, Edit, Trash2, Info, ChevronLeft, ChevronRight, FileText, Package, RefreshCw, Layers, Upload, Download, X } from 'lucide-react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import CategoryEditModal from '../../components/products/CategoryEditModal';
 import { useAdminAuth } from '../../context/AdminAuthContext';
-import { getCategories, deleteCategory, updateCategory } from '../../api/categoryApi';
+import { getCategories, deleteCategory, updateCategory, bulkUploadCategories } from '../../api/categoryApi';
 import { showDeleteConfirmation, showSuccessAlert, showErrorAlert } from '../../../../common/utils/alertUtils';
 import { toast } from 'react-toastify';
 import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
 import { pageInfoData } from '../../../../common/data/pageInfoData';
+import * as XLSX from 'xlsx';
 
 const CategoryStatusBadge = ({ status }) => {
     const { t } = useTranslation('admin_categories');
@@ -24,22 +25,39 @@ const AllCategories = () => {
     const { t } = useTranslation('admin_categories');
     const { adminUser } = useAdminAuth();
     const navigate = useNavigate();
+    const [searchParams, setSearchParams] = useSearchParams();
 
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [searchTerm, setSearchTerm] = useState('');
+    const searchTerm = searchParams.get('search') || '';
+    const [localSearch, setLocalSearch] = useState(searchTerm);
     const [showEditModal, setShowEditModal] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState(null);
+    const [showBulkModal, setShowBulkModal] = useState(false);
+    const [bulkFile, setBulkFile] = useState(null);
+    const [bulkLoading, setBulkLoading] = useState(false);
 
-    const [page, setPage] = useState(1);
+    const page = Math.max(parseInt(searchParams.get('page') || '1', 10), 1);
     const limit = 10;
     const [pagination, setPagination] = useState({ total: 0, totalPages: 1, page: 1, limit });
+
+    const updateParams = useCallback((newParams) => {
+        setSearchParams((prev) => {
+            Object.entries(newParams).forEach(([key, value]) => {
+                if (value && value !== 'all') prev.set(key, String(value));
+                else prev.delete(key);
+            });
+            return prev;
+        });
+    }, [setSearchParams]);
 
     const fetchCategories = useCallback(async () => {
         if (!adminUser?.token) return;
         setLoading(true);
         try {
-            const data = await getCategories(adminUser.token, { page, limit, search: searchTerm });
+            const params = { page, limit };
+            if (searchTerm.trim()) params.search = searchTerm.trim();
+            const data = await getCategories(adminUser.token, params);
             const nextCategories = Array.isArray(data?.categories) ? data.categories : (Array.isArray(data) ? data : []);
             const nextPagination = data?.pagination || {
                 total: nextCategories.length,
@@ -51,20 +69,44 @@ const AllCategories = () => {
             setPagination(nextPagination);
         } catch (error) {
             console.error('Failed to fetch categories:', error);
-            // toast.error(t('messages.load_failed'));
         } finally {
             setLoading(false);
         }
-    }, [adminUser.token, page, searchTerm, t]);
+    }, [adminUser?.token, page, searchTerm, limit]);
 
     useEffect(() => {
         fetchCategories();
     }, [fetchCategories]);
 
+    useEffect(() => {
+        const timeout = setTimeout(() => {
+            if (localSearch !== searchTerm) updateParams({ search: localSearch, page: 1 });
+        }, 500);
+        return () => clearTimeout(timeout);
+    }, [localSearch, searchTerm, updateParams]);
+
     const totalFiltered = pagination.total || 0;
     const totalPages = pagination.totalPages || 1;
+    const startItem = totalFiltered === 0 ? 0 : (page - 1) * limit + 1;
+    const endItem = Math.min(page * limit, totalFiltered);
 
-    useEffect(() => { setPage(1); }, [searchTerm]);
+    const getPageNumbers = () => {
+        const pages = [];
+        const maxButtons = 5;
+        if (totalPages <= maxButtons) {
+            for (let i = 1; i <= totalPages; i++) pages.push(i);
+            return pages;
+        }
+        let start = Math.max(1, page - 2);
+        let end = Math.min(totalPages, start + maxButtons - 1);
+        start = Math.max(1, end - maxButtons + 1);
+        if (start > 1) pages.push(1, start > 2 ? '...' : 2);
+        for (let i = start; i <= end; i++) {
+            if (!pages.includes(i)) pages.push(i);
+        }
+        if (end < totalPages) pages.push(end < totalPages - 1 ? '...' : totalPages - 1, totalPages);
+        return [...new Set(pages)];
+    };
 
     const handleEdit = (category) => {
         setSelectedCategory(category);
@@ -96,6 +138,57 @@ const AllCategories = () => {
         }
     };
 
+    const downloadExcelTemplate = () => {
+        const headers = ['name', 'slug', 'description', 'tags', 'status', 'bgColor', 'image'];
+        const example = [
+            'Vegetables', 'vegetables', 'Fresh vegetables and greens', 'veg,fresh,organic', 'Active', '#DBEAFE', ''
+        ];
+        const worksheet = XLSX.utils.aoa_to_sheet([headers, example]);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Categories');
+        XLSX.writeFile(workbook, 'Saathigro_bulk_category_template.xlsx');
+    };
+
+    const handleBulkUpload = async () => {
+        if (!bulkFile) return toast.warning(t('bulk.no_file'));
+        setBulkLoading(true);
+        try {
+            const data = await bulkUploadCategories(adminUser.token, bulkFile);
+            const created = data.created || 0;
+            const updated = data.updated || 0;
+            const skipped = data.skipped || 0;
+            const errors = data.errors || [];
+            const summary = `${created} created, ${updated} updated${skipped > 0 ? `, ${skipped} skipped` : ''}`;
+
+            if (created + updated > 0) toast.success(summary, { autoClose: 5000 });
+            else if (skipped > 0) toast.warning(summary, { autoClose: 5000 });
+            else toast.info(summary, { autoClose: 5000 });
+
+            if (errors.length > 0) {
+                const preview = errors.slice(0, 5);
+                const remaining = errors.length - preview.length;
+                toast.warning(
+                    <div className="text-sm">
+                        <p className="font-bold mb-1">{errors.length} issue{errors.length > 1 ? 's' : ''}</p>
+                        <ul className="list-disc pl-4 space-y-0.5 max-h-40 overflow-y-auto">
+                            {preview.map((e, i) => <li key={i}>{e}</li>)}
+                        </ul>
+                        {remaining > 0 && <p className="mt-1 text-xs opacity-80">…and {remaining} more</p>}
+                    </div>,
+                    { autoClose: 12000 }
+                );
+            }
+
+            setShowBulkModal(false);
+            setBulkFile(null);
+            fetchCategories();
+        } catch (err) {
+            toast.error(err.message || t('bulk.upload_failed'));
+        } finally {
+            setBulkLoading(false);
+        }
+    };
+
     return (
         <div className="container-fluid py-6 bg-slate-50/20 min-h-screen px-4 md:px-6 max-w-7xl mx-auto font-sans text-slate-800">
             {/* Header */}
@@ -115,17 +208,25 @@ const AllCategories = () => {
                             type="text"
                             placeholder={t('search_placeholder')}
                             className="w-full pl-11 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500/50 transition-all text-sm font-medium shadow-sm"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
+                            value={localSearch}
+                            onChange={(e) => setLocalSearch(e.target.value)}
                         />
                     </div>
                     {adminUser?.role === 'Admin' && (
-                        <Link 
-                            to="/admin/categories/add" 
-                            className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl flex items-center gap-2 text-xs font-bold transition-all shadow-md shadow-blue-50 active:scale-95 whitespace-nowrap"
-                        >
-                            <Plus size={18} /> {t('add_new')}
-                        </Link>
+                        <>
+                            <button
+                                onClick={() => setShowBulkModal(true)}
+                                className="px-5 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl flex items-center gap-2 text-xs font-bold hover:bg-slate-50 transition-all shadow-sm active:scale-95 whitespace-nowrap"
+                            >
+                                <Upload size={18} /> {t('bulk_upload')}
+                            </button>
+                            <Link
+                                to="/admin/categories/add"
+                                className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl flex items-center gap-2 text-xs font-bold transition-all shadow-md shadow-blue-50 active:scale-95 whitespace-nowrap"
+                            >
+                                <Plus size={18} /> {t('add_new')}
+                            </Link>
+                        </>
                     )}
                 </div>
             </div>
@@ -230,38 +331,47 @@ const AllCategories = () => {
                 {/* Pagination */}
                 {!loading && totalFiltered > 0 && (
                     <div className="px-6 py-4 bg-slate-50/50 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
-                        <div className="text-xs font-medium text-slate-500 italic">
-                            {t('pagination.showing')} {((page - 1) * limit) + 1}-{Math.min(page * limit, totalFiltered)} of {totalFiltered} entries
+                        <div className="text-xs font-medium text-slate-500">
+                            {t('pagination.showing_range', {
+                                start: startItem,
+                                end: endItem,
+                                total: totalFiltered,
+                                defaultValue: `Showing ${startItem}–${endItem} of ${totalFiltered}`
+                            })}
                         </div>
-                        {totalPages > 1 && (
-                            <div className="flex items-center gap-2">
-                                <button
-                                    onClick={() => setPage(p => Math.max(1, p - 1))}
-                                    disabled={page === 1}
-                                    className={`p-2 rounded-lg border transition-all ${page === 1 ? 'text-slate-200 border-slate-100' : 'bg-white border-slate-200 text-slate-600 hover:border-blue-500 hover:text-blue-600 shadow-sm'}`}
-                                >
-                                    <ChevronLeft size={16} />
-                                </button>
-                                <div className="flex gap-1">
-                                    {[...Array(totalPages)].map((_, i) => (
-                                        <button
-                                            key={i}
-                                            onClick={() => setPage(i + 1)}
-                                            className={`w-9 h-9 text-xs font-bold rounded-lg transition-all ${page === (i + 1) ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100 border border-slate-100'}`}
-                                        >
-                                            {i + 1}
-                                        </button>
-                                    ))}
-                                </div>
-                                <button
-                                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                                    disabled={page === totalPages}
-                                    className={`p-2 rounded-lg border transition-all ${page === totalPages ? 'text-slate-200 border-slate-100' : 'bg-white border-slate-200 text-slate-600 hover:border-blue-500 hover:text-blue-600 shadow-sm'}`}
-                                >
-                                    <ChevronRight size={16} />
-                                </button>
-                            </div>
-                        )}
+                        <div className="flex items-center gap-1.5">
+                            <button
+                                onClick={() => updateParams({ page: Math.max(1, page - 1) })}
+                                disabled={page === 1}
+                                className="p-1.5 border border-slate-200 rounded-lg text-slate-400 hover:bg-white disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                            >
+                                <ChevronLeft size={18} />
+                            </button>
+                            {getPageNumbers().map((p, i) => (
+                                p === '...' ? (
+                                    <span key={`dots-${i}`} className="px-2 text-slate-400 text-sm">…</span>
+                                ) : (
+                                    <button
+                                        key={p}
+                                        onClick={() => updateParams({ page: p })}
+                                        className={`min-w-[34px] h-[34px] px-2 rounded-lg text-sm font-semibold transition-all ${
+                                            p === page
+                                                ? 'bg-blue-600 text-white shadow-sm shadow-blue-100'
+                                                : 'border border-slate-200 text-slate-600 hover:bg-white bg-white'
+                                        }`}
+                                    >
+                                        {p}
+                                    </button>
+                                )
+                            ))}
+                            <button
+                                onClick={() => updateParams({ page: Math.min(totalPages, page + 1) })}
+                                disabled={page === totalPages}
+                                className="p-1.5 border border-slate-200 rounded-lg text-slate-400 hover:bg-white disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                            >
+                                <ChevronRight size={18} />
+                            </button>
+                        </div>
                     </div>
                 )}
             </div>
@@ -272,6 +382,95 @@ const AllCategories = () => {
                 category={selectedCategory}
                 onSave={handleSave}
             />
+
+            {showBulkModal && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg border border-slate-200 flex flex-col max-h-[88vh]">
+                        <div className="flex items-center justify-between p-6 border-b border-slate-100">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center">
+                                    <FileText size={20} />
+                                </div>
+                                <div>
+                                    <h2 className="text-base font-bold text-slate-900">{t('bulk.title')}</h2>
+                                    <p className="text-xs text-slate-400 font-medium">{t('bulk.subtitle')}</p>
+                                </div>
+                            </div>
+                            <button onClick={() => { setShowBulkModal(false); setBulkFile(null); }} className="p-2 hover:bg-slate-100 rounded-xl transition-all text-slate-400 hover:text-slate-600">
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        <div className="p-4 space-y-4 overflow-y-auto flex-1">
+                            <div className="p-4 bg-blue-50 rounded-2xl flex items-center gap-4">
+                                <div className="flex-1">
+                                    <p className="text-sm font-bold text-slate-800">{t('bulk.step1_title')}</p>
+                                    <p className="text-xs text-slate-500 mt-0.5">{t('bulk.step1_desc')}</p>
+                                </div>
+                                <button
+                                    onClick={downloadExcelTemplate}
+                                    className="flex items-center gap-2 px-4 py-2 bg-white border border-blue-200 text-blue-600 rounded-xl text-xs font-bold hover:bg-blue-50 transition-all shadow-sm"
+                                >
+                                    <Download size={14} /> {t('bulk.download')}
+                                </button>
+                            </div>
+
+                            <div className="bg-slate-50 rounded-2xl p-4">
+                                <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-3">{t('bulk.columns_title')}</p>
+                                <div className="grid grid-cols-3 gap-1.5">
+                                    {['name*', 'slug', 'description', 'tags', 'status', 'bgColor', 'image'].map((col) => (
+                                        <span key={col} className={`text-[10px] px-2 py-1 rounded-lg font-bold text-center ${col.includes('*') ? 'bg-rose-100 text-rose-600' : 'bg-white text-slate-500 border border-slate-200'}`}>
+                                            {col}
+                                        </span>
+                                    ))}
+                                </div>
+                                <p className="text-[10px] text-rose-500 font-semibold mt-2">{t('bulk.required_note')}</p>
+                                <p className="text-[10px] text-slate-500 mt-1.5">{t('bulk.image_note')}</p>
+                            </div>
+
+                            <div>
+                                <p className="text-sm font-bold text-slate-800 mb-2">{t('bulk.step2_title')}</p>
+                                <label className={`flex flex-col items-center justify-center w-full h-24 border-2 border-dashed rounded-2xl cursor-pointer transition-all ${bulkFile ? 'border-green-400 bg-green-50' : 'border-slate-300 bg-slate-50 hover:border-blue-400 hover:bg-blue-50'}`}>
+                                    <div className="flex flex-col items-center gap-2">
+                                        {bulkFile ? (
+                                            <>
+                                                <FileText size={24} className="text-green-500" />
+                                                <p className="text-sm font-bold text-green-700">{bulkFile.name}</p>
+                                                <p className="text-xs text-slate-400">{t('bulk.change_file')}</p>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Upload size={24} className="text-slate-400" />
+                                                <p className="text-sm font-bold text-slate-600">{t('bulk.select_file')}</p>
+                                                <p className="text-xs text-slate-400">{t('bulk.file_types')}</p>
+                                            </>
+                                        )}
+                                    </div>
+                                    <input
+                                        type="file"
+                                        accept=".xlsx, .xls"
+                                        className="hidden"
+                                        onChange={(e) => setBulkFile(e.target.files[0] || null)}
+                                    />
+                                </label>
+                            </div>
+                        </div>
+
+                        <div className="flex gap-3 p-6 border-t border-slate-100">
+                            <button onClick={() => { setShowBulkModal(false); setBulkFile(null); }} className="flex-1 py-2.5 border border-slate-200 text-slate-600 rounded-xl text-sm font-semibold hover:bg-slate-50 transition-all">
+                                {t('form.cancel')}
+                            </button>
+                            <button
+                                onClick={handleBulkUpload}
+                                disabled={!bulkFile || bulkLoading}
+                                className="flex-1 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-md shadow-blue-100"
+                            >
+                                {bulkLoading ? <><RefreshCw size={16} className="animate-spin" /> {t('bulk.uploading')}</> : <><Upload size={16} /> {t('bulk.upload_btn')}</>}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
             
             <style dangerouslySetInnerHTML={{ __html: `
                 .custom-scrollbar::-webkit-scrollbar { width: 4px; }

@@ -16,7 +16,8 @@ import {
   bulkAdjustInventory,
   getBranchWiseStock,
   getLowStockAlerts,
-  bulkUploadProducts
+  bulkUploadProducts,
+  bulkUploadProductsJson
 } from '../controllers/productController.js';
 import { protectAdmin, restrictTo, requirePermission, optionalProtectAdmin, protectStoreManager, optionalProtectStoreManager } from '../middleware/authMiddleware.js';
 import { upload, productImageUpload } from '../config/cloudinary.js';
@@ -38,6 +39,7 @@ router.post('/inventory/bulk-adjust', protectAdmin, requirePermission('MANAGE_IN
 router.post('/ai-suggestions', protectStoreManager, getAISuggestions);
 router.get('/inventory-logs', protectAdmin, requirePermission('MANAGE_INVENTORY'), getAllInventoryLogs);
 router.post('/bulk-upload', protectAdmin, requirePermission('MANAGE_PRODUCTS'), csvUpload.single('file'), bulkUploadProducts);
+router.post('/bulk-json', protectAdmin, requirePermission('MANAGE_PRODUCTS'), bulkUploadProductsJson);
 router.delete('/bulk', protectAdmin, requirePermission('MANAGE_PRODUCTS'), restrictTo('Admin', 'Store Manager'), bulkDeleteProducts);
 
 // Public/General Routes

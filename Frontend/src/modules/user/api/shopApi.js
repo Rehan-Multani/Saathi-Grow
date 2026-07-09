@@ -16,9 +16,22 @@ export const fetchSubCategories = async (category = '') => {
 };
 
 export const fetchProducts = async (params = {}) => {
+  // Enforce location/store scoping for user storefront requests.
+  // Many callers pass activeStoreId/activeStoreType; backend hard filtering expects storeId/storeType + hardFilter=true.
+  const normalizedParams = { ...params };
+  if (!normalizedParams.storeId && normalizedParams.activeStoreId) {
+    normalizedParams.storeId = normalizedParams.activeStoreId;
+  }
+  if (!normalizedParams.storeType && normalizedParams.activeStoreType) {
+    normalizedParams.storeType = normalizedParams.activeStoreType;
+  }
+  if (normalizedParams.storeId && !normalizedParams.hardFilter) {
+    normalizedParams.hardFilter = 'true';
+  }
+
   // Sanitize params: remove undefined, null, or empty string values
-  const sanitizedParams = Object.keys(params).reduce((acc, key) => {
-    const val = params[key];
+  const sanitizedParams = Object.keys(normalizedParams).reduce((acc, key) => {
+    const val = normalizedParams[key];
     if (val !== undefined && val !== null && val !== '') {
       acc[key] = val;
     }

@@ -2208,6 +2208,128 @@ const parseExcelBuffer = (buffer) => {
   }
 };
 
+const parseBulkTags = (tags) => {
+  if (!tags) return [];
+  if (Array.isArray(tags)) return tags.map((t) => String(t).trim()).filter(Boolean);
+  return String(tags).split(/[|,]/).map((t) => t.trim()).filter(Boolean);
+};
+
+const processBulkProductRows = async (rows, adminId, { rowLabel = (i) => `Row ${i + 2}` } = {}) => {
+  let created = 0;
+  let updated = 0;
+  let skipped = 0;
+  const errors = [];
+
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    const label = rowLabel(i);
+
+    try {
+      if (isBlankBulkRow(row)) {
+        continue;
+      }
+
+      const missing = [];
+      if (!hasValue(row.name)) missing.push('name');
+      if (!hasValue(row.category)) missing.push('category');
+      if (!hasValue(row.basePrice) && row.basePrice !== 0) missing.push('basePrice');
+      if (!hasValue(row.mrp) && row.mrp !== 0) missing.push('mrp');
+      if (missing.length) {
+        errors.push(`${label}: Missing required fields (${missing.join(', ')})`);
+        skipped++;
+        continue;
+      }
+
+      const sku = row.sku || `SAATHI-${String(row.name).substring(0, 3).toUpperCase().replace(/[^A-Z0-9]/g, 'X')}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
+
+      const productData = {
+        name: String(row.name).trim(),
+        category: String(row.category).trim(),
+        subCategory: row.subCategory || '',
+        brandName: row.brandName || '',
+        basePrice: Number(row.basePrice) || 0,
+        mrp: Number(row.mrp) || Number(row.basePrice) || 0,
+        unitType: (() => {
+          const raw = (row.unitType || 'pcs').toString().toLowerCase().trim();
+          const map = { g: 'gm', gram: 'gm', grams: 'gm', litre: 'ltr', liter: 'ltr', liters: 'ltr', litres: 'ltr', piece: 'pcs', pieces: 'pcs', packet: 'pkt', packets: 'pkt' };
+          return map[raw] || raw;
+        })(),
+        unitValue: Number(row.unitValue) || 1,
+        description: row.description || `${row.name} - Quality product`,
+        tags: parseBulkTags(row.tags),
+        sku: String(sku).trim(),
+        stock: Number(row.stock) || 0,
+        status: (() => {
+          const raw = (row.status || 'Active').toString().toLowerCase().trim();
+          const statusMap = {
+            active: 'Active',
+            draft: 'Draft',
+            'out of stock': 'Out of Stock',
+            'low stock': 'Low Stock',
+            'pending approval': 'Pending Approval',
+            rejected: 'Rejected'
+          };
+          return statusMap[raw] || 'Active';
+        })(),
+        isVeg: row.isVeg === 'false' || row.isVeg === false ? false : true,
+        branchStocks: [],
+        isAllBranches: false,
+        createdBy: adminId,
+      };
+
+      const existing = await Product.findOne({ sku: productData.sku });
+
+      if (existing) {
+        await Product.findByIdAndUpdate(existing._id, {
+          $set: {
+            name: productData.name,
+            basePrice: productData.basePrice,
+            mrp: productData.mrp,
+            description: productData.description,
+            tags: productData.tags,
+            unitType: productData.unitType,
+            unitValue: productData.unitValue,
+            stock: productData.stock,
+            status: productData.status,
+          }
+        });
+        updated++;
+      } else {
+        const nameExists = await Product.findOne({ name: new RegExp(`^${productData.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i'), sku: { $ne: productData.sku } });
+        if (nameExists) {
+          errors.push(`${label}: Product "${productData.name}" already exists with different SKU`);
+          skipped++;
+          continue;
+        }
+
+        const qrCodeDataUrl = await QRCode.toDataURL(productData.sku, { margin: 1 }).catch(() => '');
+        const imageUrl = (row.image || '').toString().trim();
+        await Product.create({
+          ...productData,
+          image: imageUrl,
+          qrCode: qrCodeDataUrl,
+        });
+        created++;
+      }
+    } catch (rowErr) {
+      let msg = rowErr.message;
+      if (rowErr.name === 'ValidationError' && rowErr.errors) {
+        msg = Object.values(rowErr.errors).map((e) => e.message).join('; ');
+      }
+      errors.push(`${label}: ${msg}`);
+      skipped++;
+    }
+  }
+
+  return {
+    created,
+    updated,
+    skipped,
+    total: rows.length,
+    errors: errors.slice(0, 20)
+  };
+};
+
 // @desc   Bulk upload products from Excel
 // @route  POST /api/admin/products/bulk-upload
 // @access Private (Admin only)
@@ -2223,125 +2345,42 @@ export const bulkUploadProducts = async (req, res) => {
       return res.status(400).json({ message: 'Excel is empty or has no valid rows' });
     }
 
-    let created = 0, updated = 0, skipped = 0;
-    const errors = [];
-
-    for (let i = 0; i < rows.length; i++) {
-      const row = rows[i];
-      const rowNum = i + 2; // 1-indexed, +1 for header
-
-      try {
-        // Skip completely empty Excel rows (no error toast spam)
-        if (isBlankBulkRow(row)) {
-          continue;
-        }
-
-        // Validate required fields (0 is a valid price)
-        const missing = [];
-        if (!hasValue(row.name)) missing.push('name');
-        if (!hasValue(row.category)) missing.push('category');
-        if (!hasValue(row.basePrice) && row.basePrice !== 0) missing.push('basePrice');
-        if (!hasValue(row.mrp) && row.mrp !== 0) missing.push('mrp');
-        if (missing.length) {
-          errors.push(`Row ${rowNum}: Missing required fields (${missing.join(', ')})`);
-          skipped++;
-          continue;
-        }
-
-        const sku = row.sku || `SAATHI-${String(row.name).substring(0, 3).toUpperCase().replace(/[^A-Z0-9]/g, 'X')}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
-
-        const productData = {
-          name: String(row.name).trim(),
-          category: String(row.category).trim(),
-          subCategory: row.subCategory || '',
-          brandName: row.brandName || '',
-          basePrice: Number(row.basePrice) || 0,
-          mrp: Number(row.mrp) || Number(row.basePrice) || 0,
-          unitType: (() => {
-            const raw = (row.unitType || 'pcs').toString().toLowerCase().trim();
-            const map = { 'g': 'gm', 'gram': 'gm', 'grams': 'gm', 'litre': 'ltr', 'liter': 'ltr', 'liters': 'ltr', 'litres': 'ltr', 'piece': 'pcs', 'pieces': 'pcs', 'packet': 'pkt', 'packets': 'pkt' };
-            return map[raw] || raw;
-          })(),
-          unitValue: Number(row.unitValue) || 1,
-          description: row.description || `${row.name} - Quality product`,
-          tags: row.tags ? String(row.tags).split(/[|,]/).map(t => t.trim()).filter(Boolean) : [],
-          sku: String(sku).trim(),
-          stock: Number(row.stock) || 0,
-          status: (() => {
-            const raw = (row.status || 'Active').toString().toLowerCase().trim();
-            const statusMap = {
-              'active': 'Active',
-              'draft': 'Draft',
-              'out of stock': 'Out of Stock',
-              'low stock': 'Low Stock',
-              'pending approval': 'Pending Approval',
-              'rejected': 'Rejected'
-            };
-            return statusMap[raw] || 'Active';
-          })(),
-          isVeg: row.isVeg === 'false' || row.isVeg === false ? false : true,
-          branchStocks: [],
-          isAllBranches: false,
-          createdBy: req.admin._id,
-        };
-
-        // Try to find existing product by SKU
-        const existing = await Product.findOne({ sku: productData.sku });
-
-        if (existing) {
-          await Product.findByIdAndUpdate(existing._id, {
-            $set: {
-              name: productData.name,
-              basePrice: productData.basePrice,
-              mrp: productData.mrp,
-              description: productData.description,
-              tags: productData.tags,
-              unitType: productData.unitType,
-              unitValue: productData.unitValue,
-              stock: productData.stock,
-              status: productData.status,
-            }
-          });
-          updated++;
-        } else {
-          // Check if product with same name exists
-          const nameExists = await Product.findOne({ name: new RegExp(`^${productData.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i'), sku: { $ne: productData.sku } });
-          if (nameExists) {
-            errors.push(`Row ${rowNum}: Product "${productData.name}" already exists with different SKU`);
-            skipped++;
-            continue;
-          }
-
-          const qrCodeDataUrl = await QRCode.toDataURL(productData.sku, { margin: 1 }).catch(() => '');
-          // Image is optional for bulk Excel upload
-          const imageUrl = (row.image || '').toString().trim();
-          await Product.create({
-            ...productData,
-            image: imageUrl,
-            qrCode: qrCodeDataUrl,
-          });
-          created++;
-        }
-      } catch (rowErr) {
-        // Flatten mongoose ValidationError into a short message
-        let msg = rowErr.message;
-        if (rowErr.name === 'ValidationError' && rowErr.errors) {
-          msg = Object.values(rowErr.errors).map((e) => e.message).join('; ');
-        }
-        errors.push(`Row ${rowNum}: ${msg}`);
-        skipped++;
-      }
-    }
+    const result = await processBulkProductRows(rows, req.admin._id);
 
     res.json({
       message: 'Bulk upload completed',
-      created,
-      updated,
-      skipped,
-      total: rows.length,
-      errors: errors.slice(0, 20) // Return first 20 errors max
+      ...result
     });
 
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc   Bulk upload products from JSON
+// @route  POST /api/admin/products/bulk-json
+// @access Private (Admin only)
+export const bulkUploadProductsJson = async (req, res) => {
+  try {
+    const payload = req.body?.products ?? req.body;
+    if (!Array.isArray(payload)) {
+      return res.status(400).json({ message: 'JSON body must be an array of products or { products: [...] }' });
+    }
+
+    if (payload.length === 0) {
+      return res.status(400).json({ message: 'No products provided in JSON' });
+    }
+
+    const rows = payload.map((item) => normalizeBulkRow(item));
+
+    const result = await processBulkProductRows(rows, req.admin._id, {
+      rowLabel: (i) => `Item ${i + 1}`
+    });
+
+    res.json({
+      message: 'JSON bulk upload completed',
+      ...result
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
