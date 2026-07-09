@@ -1,7 +1,8 @@
 import { API_BASE_URL } from '../../../config/apiConfig';
 
 export const fetchCategories = async () => {
-  const response = await fetch(`${API_BASE_URL}/admin/categories?hasProducts=true`);
+  // Show all active admin categories on user UI (even if products are not mapped yet).
+  const response = await fetch(`${API_BASE_URL}/admin/categories?status=Active`);
   const data = await response.json();
   if (!response.ok) throw new Error(data.message || 'Failed to fetch categories');
   return data;

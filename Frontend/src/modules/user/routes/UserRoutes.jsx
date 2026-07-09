@@ -19,10 +19,11 @@ import { useStore } from '../context/StoreContext';
 
 import PullToRefresh from '../../../common/components/PullToRefresh';
 import FirebaseNotificationHandler from '../../../common/components/FirebaseNotificationHandler';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import OfferTicker from '../components/layout/OfferTicker';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ReactLenis } from 'lenis/react';
+import { MapPin } from 'lucide-react';
 
 // Standard Imports for Order Flow (to prevent lazy loading white screen issues)
 import OrdersPage from '../pages/profile/OrdersPage';
@@ -97,6 +98,20 @@ const LoadingFallback = () => (
     </div>
 );
 
+const ComingSoonInArea = ({ title = 'Coming Soon to Your Area', message = 'We are not delivering to your location yet. We are expanding quickly and will start serving your area soon.' }) => (
+    <div className="min-h-[65vh] flex items-center justify-center px-4">
+        <div className="w-full max-w-xl rounded-3xl border border-amber-100 bg-gradient-to-br from-amber-50 to-white p-8 text-center shadow-sm">
+            <div className="mx-auto mb-4 w-14 h-14 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center">
+                <MapPin size={24} />
+            </div>
+            <h2 className="text-2xl font-black text-slate-900 mb-2">{title}</h2>
+            <p className="text-sm text-slate-600 leading-relaxed">
+                {message}
+            </p>
+        </div>
+    </div>
+);
+
 const isTouchDevice = typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
 
 const UserLayout = () => {
@@ -167,9 +182,28 @@ const UserLayout = () => {
 
     const { token, isWebView, loading, refreshProfile } = useAuth();
     const { refreshShopData } = useShop();
-    // const { isStoreSelectorOpen, setIsStoreSelectorOpen } = useStore();
+    const { activeStore, isStoreOutOfRange, isStoreInactive, loading: storeLoading } = useStore();
 
     const isPublicPath = ['/login', '/register', '/logout-confirmation', '/privacy-policy', '/support/user', '/support/delivery'].includes(location.pathname) || location.pathname.startsWith('/legal/');
+
+    const isShoppingRoute = useMemo(() => {
+        const shoppingPrefixes = [
+            '/',
+            '/category',
+            '/brand',
+            '/store',
+            '/product',
+            '/offer',
+            '/campaign',
+            '/lowest-prices',
+            '/occasion'
+        ];
+        // Home route exact match
+        if (location.pathname === '/') return true;
+        return shoppingPrefixes
+            .filter((p) => p !== '/')
+            .some((p) => location.pathname.startsWith(p));
+    }, [location.pathname]);
 
     const handleRefresh = async () => {
         try {
@@ -214,6 +248,12 @@ const UserLayout = () => {
     if (isWebView && !token && !isPublicPath) {
         return <Navigate to="/login" replace />;
     }
+
+    const shouldShowServiceUnavailable = isShoppingRoute && !storeLoading && (!activeStore || isStoreOutOfRange || isStoreInactive);
+    const serviceUnavailableTitle = isStoreInactive ? 'Service Temporarily Unavailable' : 'Coming Soon to Your Area';
+    const serviceUnavailableMessage = isStoreInactive
+        ? 'Service is temporarily unavailable for your selected location. Please try again shortly or change your address.'
+        : 'We are not delivering to your location yet. We are expanding quickly and will start serving your area soon.';
 
     const content = (
         <div className="user-module-root flex flex-col min-h-screen">
@@ -303,7 +343,12 @@ const UserLayout = () => {
             <SearchOverlay />
 
             <main className={`flex-grow bg-white dark:!bg-black transition-colors duration-300 ${hideDesktopChrome ? '' : 'pb-20 md:pb-0'} ${shouldAddPadding ? 'extra-mobile-padding' : ''}`}>
-                {disablePullToRefresh ? (
+                {shouldShowServiceUnavailable ? (
+                    <ComingSoonInArea
+                        title={serviceUnavailableTitle}
+                        message={serviceUnavailableMessage}
+                    />
+                ) : disablePullToRefresh ? (
                      <Suspense fallback={<LoadingFallback />}>
                         <AnimatePresence mode="wait">
                             <motion.div

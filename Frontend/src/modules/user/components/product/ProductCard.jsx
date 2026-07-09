@@ -258,7 +258,7 @@ const ProductCard = memo(({ product, isCompact = false, customTheme, imgPadding,
               className={`${(isLargeButton || isLowestPrice || isValentine || isSaathiSignature) ? ((isValentine || isSaathiSignature) ? 'px-3 sm:px-3 h-[24px] sm:h-[30px] text-[9px]' : isLowestPrice ? 'px-3 sm:px-3 h-[24px] sm:h-[30px] text-[10px]' : 'px-4 sm:px-4 h-[28px] sm:h-[34px] text-[10px]') : (isCompact ? 'px-2 sm:px-3 h-[20px] sm:h-[30px] text-[10px]' : 'px-3 sm:px-4 h-[24px] sm:h-[34px] text-[10px]')} py-1 text-white border border-transparent transition-all sm:text-[12px] font-bold !rounded-full uppercase tracking-wider shadow-sm flex items-center justify-center ${isBtnDisabled ? 'bg-gray-400 cursor-not-allowed' : 'active:scale-95'}`}
               style={!isBtnDisabled ? { backgroundColor: isDarkMode ? '#0c831f' : (customTheme ? customTheme.themeColor : '#0c831f') } : {}}
             >
-              {hasVariants ? 'SELECT' : 'ADD'}
+              ADD
             </button>
           )}
         </div>

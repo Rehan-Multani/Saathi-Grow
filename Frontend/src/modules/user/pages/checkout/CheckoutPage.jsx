@@ -74,6 +74,14 @@ const CheckoutPage = () => {
     });
     const navigate = useNavigate();
     const location = useLocation();
+    const isCityOnlySelection = (loc) => {
+        if (!loc) return false;
+        const address = (loc.address || '').trim().toLowerCase();
+        const city = (loc.city || '').trim().toLowerCase();
+        const fullAddress = (loc.fullAddress || '').trim().toLowerCase();
+        const hasDetailFields = Boolean((loc.state || '').trim() || (loc.zipCode || '').trim());
+        return !hasDetailFields && address && city && address === city && fullAddress === `${city}, india`;
+    };
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -119,9 +127,10 @@ const CheckoutPage = () => {
             }
         }
 
+        const shouldKeepStreetBlank = isCityOnlySelection(globalLocation);
         setShippingAddressForm((prev) => ({
             ...prev,
-            street: globalLocation.address || '',
+            street: shouldKeepStreetBlank ? '' : (globalLocation.address || ''),
             city: globalLocation.city || '',
             state: globalLocation.state || '',
             zipCode: globalLocation.zipCode || ''

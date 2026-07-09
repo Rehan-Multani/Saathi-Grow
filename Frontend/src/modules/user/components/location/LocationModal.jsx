@@ -6,8 +6,11 @@ const LocationModal = () => {
     const { showLocationModal, closeLocationModal, updateLocation, savedAddresses, mapLoaded, reverseGeocode } = useLocation();
     const [searchText, setSearchText] = useState('');
     const [detecting, setDetecting] = useState(false);
+    const [placeSuggestions, setPlaceSuggestions] = useState([]);
     const searchRef = useRef(null);
-    const autocompleteRef = useRef(null);
+    const autocompleteServiceRef = useRef(null);
+    const placesServiceRef = useRef(null);
+    const placesServiceNodeRef = useRef(null);
 
     useEffect(() => {
         if (showLocationModal) {
@@ -26,58 +29,104 @@ const LocationModal = () => {
         };
     }, [showLocationModal]);
 
-    // Google Maps Autocomplete init
+    // Google Places service init (for custom dropdown suggestions under input)
     useEffect(() => {
-        if (mapLoaded && showLocationModal && searchRef.current && !autocompleteRef.current) {
-            autocompleteRef.current = new window.google.maps.places.Autocomplete(searchRef.current, {
-                componentRestrictions: { country: "IN" },
-                fields: ["address_components", "geometry", "formatted_address"]
-            });
-
-            autocompleteRef.current.addListener("place_changed", () => {
-                const place = autocompleteRef.current.getPlace();
-                if (!place.geometry || !place.geometry.location) return;
-
-                const lat = place.geometry.location.lat();
-                const lng = place.geometry.location.lng();
-                
-                let street = "";
-                let area = "";
-                let city = "";
-                let state = "";
-                let zipCode = "";
-                
-                place.address_components.forEach(component => {
-                    if (component.types.includes("sublocality_level_1") || component.types.includes("route")) {
-                        street = component.long_name;
-                    }
-                    if (component.types.includes("sublocality_level_2") || component.types.includes("neighborhood")) {
-                        area = component.long_name;
-                    }
-                    if (component.types.includes("locality")) {
-                        city = component.long_name;
-                    }
-                    if (component.types.includes("administrative_area_level_1")) {
-                        state = component.long_name;
-                    }
-                    if (component.types.includes("postal_code")) {
-                        zipCode = component.long_name;
-                    }
-                });
-
-                const displayArea = street || area || place.address_components[0]?.long_name || "Unknown Area";
-
-                updateLocation({
-                    address: displayArea,
-                    city: city || "Indore",
-                    state,
-                    zipCode,
-                    coordinates: [lng, lat],
-                    fullAddress: place.formatted_address
-                }, true);
-            });
+        if (mapLoaded && showLocationModal && window.google && !autocompleteServiceRef.current) {
+            autocompleteServiceRef.current = new window.google.maps.places.AutocompleteService();
+            if (placesServiceNodeRef.current) {
+                placesServiceRef.current = new window.google.maps.places.PlacesService(placesServiceNodeRef.current);
+            }
         }
     }, [mapLoaded, showLocationModal]);
+
+    useEffect(() => {
+        if (!showLocationModal) {
+            setSearchText('');
+            setPlaceSuggestions([]);
+            return;
+        }
+        if (!autocompleteServiceRef.current || !searchText.trim() || searchText.trim().length < 2) {
+            setPlaceSuggestions([]);
+            return;
+        }
+
+        const debounceId = setTimeout(() => {
+            autocompleteServiceRef.current.getPlacePredictions(
+                {
+                    input: searchText.trim(),
+                    componentRestrictions: { country: 'in' },
+                    types: ['geocode']
+                },
+                (predictions, status) => {
+                    if (status !== window.google.maps.places.PlacesServiceStatus.OK || !predictions) {
+                        setPlaceSuggestions([]);
+                        return;
+                    }
+                    setPlaceSuggestions(predictions.slice(0, 6));
+                }
+            );
+        }, 250);
+
+        return () => clearTimeout(debounceId);
+    }, [searchText, showLocationModal]);
+
+    const applyGooglePlace = (place) => {
+        if (!place?.geometry?.location) return;
+
+        const lat = place.geometry.location.lat();
+        const lng = place.geometry.location.lng();
+
+        let street = "";
+        let area = "";
+        let city = "";
+        let state = "";
+        let zipCode = "";
+
+        (place.address_components || []).forEach(component => {
+            if (component.types.includes("sublocality_level_1") || component.types.includes("route")) {
+                street = component.long_name;
+            }
+            if (component.types.includes("sublocality_level_2") || component.types.includes("neighborhood")) {
+                area = component.long_name;
+            }
+            if (component.types.includes("locality")) {
+                city = component.long_name;
+            }
+            if (component.types.includes("administrative_area_level_1")) {
+                state = component.long_name;
+            }
+            if (component.types.includes("postal_code")) {
+                zipCode = component.long_name;
+            }
+        });
+
+        const displayArea = street || area || place.address_components?.[0]?.long_name || "Unknown Area";
+
+        updateLocation({
+            address: displayArea,
+            city: city || "Indore",
+            state,
+            zipCode,
+            coordinates: [lng, lat],
+            fullAddress: place.formatted_address
+        }, true);
+    };
+
+    const handlePlaceSuggestionSelect = (prediction) => {
+        if (!placesServiceRef.current || !prediction?.place_id) return;
+        placesServiceRef.current.getDetails(
+            {
+                placeId: prediction.place_id,
+                fields: ["address_components", "geometry", "formatted_address"]
+            },
+            (place, status) => {
+                if (status !== window.google.maps.places.PlacesServiceStatus.OK || !place) return;
+                setSearchText(prediction.description || '');
+                setPlaceSuggestions([]);
+                applyGooglePlace(place);
+            }
+        );
+    };
 
     const handleDetectLocation = () => {
         setDetecting(true);
@@ -161,7 +210,7 @@ const LocationModal = () => {
             ></div>
 
             {/* Modal Box */}
-            <div className="bg-gradient-to-br from-[#f0faf1] to-[#ffffff] dark:from-[#111111] dark:to-[#080808] w-full max-w-[500px] relative z-10 overflow-hidden animate-in slide-in-from-top-3 fade-in duration-300 pointer-events-auto rounded-[32px] shadow-[0_30px_70px_rgba(0,0,0,0.25)] border border-white/50 dark:border-white/5 p-5 md:p-6 h-auto max-h-[82vh] flex flex-col">
+            <div className="bg-gradient-to-br from-[#f0faf1] to-[#ffffff] dark:from-[#111111] dark:to-[#080808] w-full max-w-[500px] relative z-10 overflow-visible animate-in slide-in-from-top-3 fade-in duration-300 pointer-events-auto rounded-[32px] shadow-[0_30px_70px_rgba(0,0,0,0.25)] border border-white/50 dark:border-white/5 p-5 md:p-6 h-auto max-h-[82vh] flex flex-col">
                 <button
                     onClick={closeLocationModal}
                     className="absolute top-4 right-4 p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-full transition-colors md:flex"
@@ -169,11 +218,11 @@ const LocationModal = () => {
                     <X size={20} className="text-gray-400" />
                 </button>
 
-                <div className="flex flex-col h-full overflow-hidden">
+                <div className="flex flex-col h-full overflow-visible">
                     <h2 className="text-base md:text-lg font-black text-gray-900 dark:text-gray-100 mb-6 text-left tracking-tight">Select Delivery Location</h2>
 
                     {/* blinkit-style input row */}
-                    <div className="flex flex-col md:flex-row items-center gap-4 mb-4 shrink-0">
+                    <div className="flex flex-col md:flex-row items-center gap-4 mb-4 shrink-0 overflow-visible">
                         {/* Detect Location Button */}
                         <button
                             onClick={handleDetectLocation}
@@ -184,18 +233,39 @@ const LocationModal = () => {
                         </button>
 
                         {/* Search Input */}
-                        <div className="w-full md:flex-1 relative h-[42px]">
+                        <div className="w-full md:flex-1 relative overflow-visible z-40">
                             <input
                                 ref={searchRef}
                                 type="text"
                                 placeholder="Search delivery location"
                                 value={searchText}
                                 onChange={(e) => setSearchText(e.target.value)}
-                                className="w-full h-full pl-9 pr-4 border border-gray-200 dark:border-white/10 rounded-lg focus:outline-none focus:border-[#0c831f] dark:focus:border-[#0c831f] transition-colors placeholder:text-gray-400 text-gray-700 dark:text-white text-xs md:text-sm bg-gray-50 dark:bg-white/5"
+                                className="w-full h-[42px] pl-9 pr-4 border border-gray-200 dark:border-white/10 rounded-lg focus:outline-none focus:border-[#0c831f] dark:focus:border-[#0c831f] transition-colors placeholder:text-gray-400 text-gray-700 dark:text-white text-xs md:text-sm bg-gray-50 dark:bg-white/5"
                             />
                             <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
                                 <Search size={14} />
                             </div>
+                            {searchText.trim().length >= 2 && (
+                                <div className="absolute top-full left-0 right-0 mt-1 z-30 bg-white dark:bg-[#101010] border border-gray-200 dark:border-white/10 rounded-lg shadow-xl overflow-hidden max-h-56 overflow-y-auto">
+                                    {placeSuggestions.length > 0 ? (
+                                        placeSuggestions.map((prediction) => (
+                                            <button
+                                                key={prediction.place_id}
+                                                onClick={() => handlePlaceSuggestionSelect(prediction)}
+                                                className="w-full text-left px-3 py-2.5 hover:bg-green-50 dark:hover:bg-[#0c831f]/10 border-b border-gray-100 dark:border-white/5 last:border-b-0"
+                                            >
+                                                <span className="text-xs md:text-sm text-gray-700 dark:text-gray-200 font-medium line-clamp-2">
+                                                    {prediction.description}
+                                                </span>
+                                            </button>
+                                        ))
+                                    ) : (
+                                        <div className="px-3 py-2.5 text-xs text-gray-500 dark:text-gray-400">
+                                            No suggestions found. Try a broader keyword.
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     </div>
 
@@ -255,6 +325,7 @@ const LocationModal = () => {
                     </div>
                 </div>
             </div>
+            <div ref={placesServiceNodeRef} className="hidden" />
         </div>
     );
 };
