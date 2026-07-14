@@ -188,7 +188,7 @@ const DeliverySlots = () => {
                                         </td>
                                         {!isVendor && (
                                             <td className="px-8 py-6 text-right">
-                                                <div className="flex justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <div className="flex justify-end gap-1.5">
                                                     <button
                                                         onClick={() => handleEdit(slot)}
                                                         className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all active:scale-95"
