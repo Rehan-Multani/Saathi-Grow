@@ -20,7 +20,7 @@ export const requestOTP = async (phone, type) => {
 
 /**
  * Verify OTP and authenticate
- * @param {object} credentials - { phone, otp, name, email }
+ * @param {object} credentials - { phone, otp, name, email, referralCode }
  */
 export const verifyOTP = async (credentials) => {
   const response = await fetch(`${API_URL}/verify-otp`, {

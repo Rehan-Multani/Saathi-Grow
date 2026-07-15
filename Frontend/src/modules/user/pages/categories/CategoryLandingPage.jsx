@@ -180,7 +180,7 @@ const CategoryLandingPage = () => {
 
   return (
     <div
-      className="category-landing-page min-h-screen pb-28 transition-colors duration-300 dark:bg-black"
+      className="category-landing-page min-h-screen pb-28 transition-colors duration-300 dark:bg-black overflow-x-hidden w-full max-w-full"
       style={{
         background: theme.pageBg,
         '--category-page-bg': theme.pageBg,

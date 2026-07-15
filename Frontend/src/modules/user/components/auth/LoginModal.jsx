@@ -6,6 +6,7 @@ import * as authApi from '../../api/userAuthApi';
 import { toast } from 'react-toastify';
 import PolicyViewerModal from '../../../../common/components/legal/PolicyViewerModal';
 import { useLocation } from '../../context/LocationContext';
+import { getStoredReferralCode } from '../../utils/referralUtils';
 
 const LoginModal = () => {
     const navigate = useNavigate();
@@ -79,6 +80,10 @@ const LoginModal = () => {
         if (loginView === 'register') {
             credentials.name = name;
             credentials.email = email || undefined;
+            const referralCode = getStoredReferralCode();
+            if (referralCode) {
+                credentials.referralCode = referralCode;
+            }
         }
 
         const result = loginView === 'login'

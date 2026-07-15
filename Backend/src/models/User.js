@@ -108,6 +108,20 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         default: true
     },
+    /** Unique code for invite/share links (e.g. /register?ref=ABC123) */
+    referralCode: {
+        type: String,
+        unique: true,
+        sparse: true,
+        uppercase: true,
+        trim: true
+    },
+    /** User who referred this account (set only on first registration) */
+    referredBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        default: null
+    },
     fcmToken: {
         app: {
             type: String,

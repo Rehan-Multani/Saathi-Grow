@@ -1,5 +1,5 @@
 import React, {useRef , useState, useEffect}from 'react';
-import { User, Mail, Phone, MapPin, Camera, ArrowLeft, ChevronRight, ShoppingBag, CreditCard, LogOut, Shield, Moon, Sun, Bell, HelpCircle, Heart, MessageCircle, Tag, BellRing, Edit2, X, Loader2 } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Camera, ArrowLeft, ChevronRight, ShoppingBag, CreditCard, LogOut, Shield, Moon, Sun, Bell, HelpCircle, Heart, MessageCircle, Tag, BellRing, Edit2, X, Loader2, Share2, Copy, Check } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -9,6 +9,8 @@ import axios from 'axios';
 import { API_BASE_URL } from '../../../../config/apiConfig';
 import ImageSourceModal from '../../../../common/components/modals/ImageSourceModal';
 import { showDeleteConfirmation, showSuccessAlert, showErrorAlert } from '../../../../common/utils/alertUtils';
+import { buildReferralSharePayload } from '../../utils/referralUtils';
+import { useShop } from '../../context/ShopContext';
 
 const ProfilePage = () => {
     const navigate = useNavigate();
@@ -17,6 +19,7 @@ const ProfilePage = () => {
     const { user, updateUser, loading, refreshProfile } = auth;
 
     const { isDarkMode, toggleTheme } = useTheme();
+    const { settings: appSettings } = useShop();
     const [notificationsEnabled, setNotificationsEnabled] = React.useState(true);
     const [isImageModalOpen, setIsImageModalOpen] = useState(false);
     const fileInputRef = React.useRef(null);
@@ -136,6 +139,57 @@ const ProfilePage = () => {
         }
     };
 
+    const [showShareModal, setShowShareModal] = useState(false);
+    const [linkCopied, setLinkCopied] = useState(false);
+
+    const sharePayload = user?.referralCode
+        ? buildReferralSharePayload(user.referralCode, appSettings || {})
+        : null;
+    const referralLink = sharePayload?.webLink || '';
+
+    const handleShareApp = async () => {
+        let code = user?.referralCode;
+        if (!code && typeof refreshProfile === 'function') {
+            toast.info('Preparing your invite link...');
+            const refreshed = await refreshProfile();
+            code = refreshed?.referralCode;
+        }
+
+        if (!code) {
+            toast.error('Could not load your referral code. Please try again.');
+            return;
+        }
+
+        const payload = buildReferralSharePayload(code, appSettings || {});
+
+        try {
+            if (typeof navigator !== 'undefined' && navigator.share) {
+                await navigator.share({
+                    title: 'Saathigro Invite',
+                    text: payload.shareText
+                });
+                return;
+            }
+        } catch (err) {
+            if (err?.name === 'AbortError') return;
+        }
+
+        setShowShareModal(true);
+    };
+
+    const handleCopyReferralLink = async () => {
+        const text = sharePayload?.shareText || referralLink;
+        if (!text) return;
+        try {
+            await navigator.clipboard.writeText(text);
+            setLinkCopied(true);
+            toast.success('Invite message copied!');
+            setTimeout(() => setLinkCopied(false), 2000);
+        } catch {
+            toast.error('Could not copy');
+        }
+    };
+
     const openEditModal = () => {
         setEditName(user?.name || '');
         setEditEmail(user?.email || '');
@@ -155,6 +209,7 @@ const ProfilePage = () => {
         { icon: MapPin, label: "Saved Addresses", subtitle: "Manage your delivery locations", path: "/saved-addresses" },
         { icon: Heart, label: "My Wishlist", subtitle: "Your favorite items", path: "/wishlist" },
         { icon: CreditCard, label: "saathigro Wallet", subtitle: `₹${Number(user?.walletBalance || 0).toFixed(2)} Balance available`, path: "/wallet" },
+        { icon: Share2, label: "Invite & Share App", subtitle: "Share your referral link with friends", action: "share" },
         { icon: HelpCircle, label: "FAQs & Help Center", subtitle: "Find answers and guides", path: "/help" },
         { icon: MessageCircle, label: "Raise a Complaint", subtitle: "Raise a ticket for any issue", path: "/support/raise-ticket" },
         { icon: Shield, label: "Legal & Policies", subtitle: "Terms, Privacy and more", path: "/settings" }
@@ -162,7 +217,7 @@ const ProfilePage = () => {
 
 
     return (
-        <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] md:bg-none md:bg-white md:dark:bg-black pt-24 px-0 pb-0 md:p-2">
+        <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] md:bg-none md:bg-white md:dark:bg-black pt-24 px-0 pb-0 md:p-2 overflow-x-hidden w-full max-w-full">
             <div className="max-w-2xl md:max-w-6xl mx-auto">
                 {/* Header */}
                 <div className="hidden md:flex items-center gap-3 p-4 md:p-0 mb-0 md:mb-1 bg-gradient-to-br from-[#f6fbf7] to-[#e8f5e9] md:bg-none md:bg-white md:dark:bg-black border-b border-gray-50 md:border-none">
@@ -246,7 +301,13 @@ const ProfilePage = () => {
                                 {sections.map((item, idx) => (
                                     <button
                                         key={idx}
-                                        onClick={() => navigate(item.path, { state: { from: '/profile' } })}
+                                        onClick={() => {
+                                            if (item.action === 'share') {
+                                                handleShareApp();
+                                                return;
+                                            }
+                                            navigate(item.path, { state: { from: '/profile' } });
+                                        }}
                                         className="w-full py-3 px-6 md:py-1.5 md:px-4 flex items-center justify-between hover:bg-[#e8f5e9] md:hover:bg-gray-50 dark:hover:bg-white/5 transition-all group"
                                     >
                                         <div className="flex items-center gap-4 md:gap-6">
@@ -394,6 +455,81 @@ const ProfilePage = () => {
                                 {loading ? <Loader2 size={20} className="animate-spin" /> : 'Save Changes'}
                             </button>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Share / Invite Modal (desktop / no Web Share API) */}
+            {showShareModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+                    <div className="bg-white dark:bg-[#141414] rounded-3xl w-full max-w-md shadow-2xl overflow-hidden border border-gray-100 dark:border-white/10 animate-in zoom-in-95 duration-200">
+                        <div className="flex justify-between items-center p-6 border-b border-gray-100 dark:border-white/10">
+                            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 uppercase tracking-widest">Invite Friends</h3>
+                            <button onClick={() => setShowShareModal(false)} className="text-gray-400 hover:text-red-500 transition-colors bg-gray-50 dark:bg-white/5 p-2 rounded-full">
+                                <X size={20} />
+                            </button>
+                        </div>
+                        <div className="p-6 space-y-4">
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                                Share your code with Play Store &amp; App Store download links. Friends who register with your code are tagged to you.
+                            </p>
+                            <div className="flex items-center justify-between gap-2 bg-[#eefaf1] dark:bg-[#0c831f]/10 rounded-2xl px-4 py-3">
+                                <div>
+                                    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">Your code</p>
+                                    <p className="text-lg font-bold text-[#0c831f] tracking-widest">{user?.referralCode || '—'}</p>
+                                </div>
+                            </div>
+
+                            {sharePayload?.playStoreLink && (
+                                <div className="space-y-1">
+                                    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 ml-1">Play Store</p>
+                                    <p className="text-[11px] font-medium text-gray-600 dark:text-gray-300 break-all bg-gray-50 dark:bg-white/5 rounded-xl px-3 py-2">
+                                        {sharePayload.playStoreLink}
+                                    </p>
+                                </div>
+                            )}
+                            {sharePayload?.appStoreLink && (
+                                <div className="space-y-1">
+                                    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 ml-1">App Store</p>
+                                    <p className="text-[11px] font-medium text-gray-600 dark:text-gray-300 break-all bg-gray-50 dark:bg-white/5 rounded-xl px-3 py-2">
+                                        {sharePayload.appStoreLink}
+                                    </p>
+                                </div>
+                            )}
+                            {!sharePayload?.playStoreLink && !sharePayload?.appStoreLink && (
+                                <p className="text-[11px] text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 rounded-xl px-3 py-2">
+                                    Store links not set yet. Admin → Social Profile me Play Store / App Store URLs add karein. Web invite link abhi available hai.
+                                </p>
+                            )}
+
+                            <div className="space-y-1">
+                                <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 ml-1">Web invite</p>
+                                <div className="flex gap-2">
+                                    <input
+                                        readOnly
+                                        value={referralLink}
+                                        className="flex-1 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl py-3 px-4 text-xs font-medium text-gray-700 dark:text-gray-200 outline-none"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={handleCopyReferralLink}
+                                        className="shrink-0 px-4 py-3 bg-[#0c831f] text-white rounded-2xl font-bold flex items-center gap-2 hover:bg-[#0a6b19] transition-colors"
+                                    >
+                                        {linkCopied ? <Check size={18} /> : <Copy size={18} />}
+                                        {linkCopied ? 'Copied' : 'Copy'}
+                                    </button>
+                                </div>
+                                <p className="text-[10px] text-gray-400 ml-1">Copy includes code + store links + web link</p>
+                            </div>
+                            <a
+                                href={`https://wa.me/?text=${encodeURIComponent(sharePayload?.shareText || referralLink)}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="w-full py-3.5 rounded-2xl font-bold text-center text-white bg-[#25D366] hover:bg-[#1ebe57] transition-colors block"
+                            >
+                                Share on WhatsApp
+                            </a>
+                        </div>
                     </div>
                 </div>
             )}

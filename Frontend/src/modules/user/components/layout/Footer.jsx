@@ -116,8 +116,20 @@ const Footer = ({ customTheme }) => {
               )}
             </div>
             <div className="hidden sm:flex flex-col gap-3 w-full max-w-[140px] mt-6">
-              <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/Google_Play_Store_badge_EN.svg/1024px-Google_Play_Store_badge_EN.svg.png" alt="Google Play" className="h-8 cursor-pointer hover:opacity-80 transition-opacity object-contain" />
-              <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Download_on_the_App_Store_Badge.svg/1024px-Download_on_the_App_Store_Badge.svg.png" alt="App Store" className="h-8 cursor-pointer hover:opacity-80 transition-opacity object-contain" />
+              {settings?.playStoreUrl ? (
+                <a href={settings.playStoreUrl} target="_blank" rel="noopener noreferrer">
+                  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/Google_Play_Store_badge_EN.svg/1024px-Google_Play_Store_badge_EN.svg.png" alt="Google Play" className="h-8 cursor-pointer hover:opacity-80 transition-opacity object-contain" />
+                </a>
+              ) : (
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/Google_Play_Store_badge_EN.svg/1024px-Google_Play_Store_badge_EN.svg.png" alt="Google Play" className="h-8 opacity-50 object-contain" />
+              )}
+              {settings?.appStoreUrl ? (
+                <a href={settings.appStoreUrl} target="_blank" rel="noopener noreferrer">
+                  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Download_on_the_App_Store_Badge.svg/1024px-Download_on_the_App_Store_Badge.svg.png" alt="App Store" className="h-8 cursor-pointer hover:opacity-80 transition-opacity object-contain" />
+                </a>
+              ) : (
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Download_on_the_App_Store_Badge.svg/1024px-Download_on_the_App_Store_Badge.svg.png" alt="App Store" className="h-8 opacity-50 object-contain" />
+              )}
             </div>
           </div>
         </div>

@@ -28,6 +28,8 @@ const globalSettingSchema = new mongoose.Schema({
   twitterUrl: { type: String, default: '' },
   linkedinUrl: { type: String, default: '' },
   officialWebsite: { type: String, default: '' },
+  playStoreUrl: { type: String, default: '' },
+  appStoreUrl: { type: String, default: '' },
   
   // Offer Strip Settings
   offerStripText: { type: String, default: 'Welcome to Saathigro! Discover fresh groceries at wholesale prices.' },

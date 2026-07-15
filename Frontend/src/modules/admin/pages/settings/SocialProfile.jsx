@@ -22,7 +22,9 @@ const SocialProfile = () => {
         whatsappNumber: '',
         officialWebsite: '',
         supportPhone: '',
-        supportEmail: ''
+        supportEmail: '',
+        playStoreUrl: '',
+        appStoreUrl: ''
     });
 
     useEffect(() => {
@@ -40,7 +42,9 @@ const SocialProfile = () => {
                 whatsappNumber: data.whatsappNumber || '',
                 officialWebsite: data.officialWebsite || '',
                 supportPhone: data.supportPhone || '',
-                supportEmail: data.supportEmail || ''
+                supportEmail: data.supportEmail || '',
+                playStoreUrl: data.playStoreUrl || '',
+                appStoreUrl: data.appStoreUrl || ''
             });
         } catch (error) {
             // toast.error('Failed to load social profiles.');
@@ -187,6 +191,40 @@ const SocialProfile = () => {
                                         onChange={handleInputChange}
                                         placeholder="https://linkedin.com/company/yourstore"
                                         className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-normal text-slate-800 placeholder:text-slate-300 focus:bg-white focus:border-sky-500 outline-none transition-all"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="space-y-1.5 focus-within:text-emerald-600 text-slate-500 transition-colors">
+                                <label className="text-xs font-medium ml-1">Google Play Store</label>
+                                <div className="relative">
+                                    <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center justify-center w-6 h-6 rounded bg-emerald-50 text-emerald-600">
+                                        <Globe size={14} />
+                                    </div>
+                                    <input
+                                        type="url"
+                                        name="playStoreUrl"
+                                        value={settings.playStoreUrl}
+                                        onChange={handleInputChange}
+                                        placeholder="https://play.google.com/store/apps/details?id=com.saathigro.app"
+                                        className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-normal text-slate-800 placeholder:text-slate-300 focus:bg-white focus:border-emerald-500 outline-none transition-all"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="space-y-1.5 focus-within:text-slate-800 text-slate-500 transition-colors">
+                                <label className="text-xs font-medium ml-1">Apple App Store</label>
+                                <div className="relative">
+                                    <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center justify-center w-6 h-6 rounded bg-slate-100 text-slate-900">
+                                        <Globe size={14} />
+                                    </div>
+                                    <input
+                                        type="url"
+                                        name="appStoreUrl"
+                                        value={settings.appStoreUrl}
+                                        onChange={handleInputChange}
+                                        placeholder="https://apps.apple.com/app/idXXXXXXXX"
+                                        className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-normal text-slate-800 placeholder:text-slate-300 focus:bg-white focus:border-slate-400 outline-none transition-all"
                                     />
                                 </div>
                             </div>

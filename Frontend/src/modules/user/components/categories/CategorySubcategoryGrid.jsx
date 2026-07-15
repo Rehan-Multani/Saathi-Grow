@@ -40,7 +40,7 @@ const CategorySubcategoryGrid = ({ categorySlug, section, accentColor = '#0c831f
         </p>
       )}
 
-      <div className="category-landing-subscroll flex gap-3 overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
+      <div className="category-landing-subscroll flex gap-3 overflow-x-auto pb-4 scrollbar-hide -mx-3 px-3 sm:mx-0 sm:px-0">
         {(section.items || []).map((item) => (
           <button
             key={item._id}

@@ -69,6 +69,8 @@ export const getPublicSettings = async (req, res) => {
       twitterUrl: settings.twitterUrl,
       linkedinUrl: settings.linkedinUrl,
       officialWebsite: settings.officialWebsite,
+      playStoreUrl: settings.playStoreUrl,
+      appStoreUrl: settings.appStoreUrl,
       offerStripText: settings.offerStripText,
       isOfferStripEnabled: settings.isOfferStripEnabled
     });

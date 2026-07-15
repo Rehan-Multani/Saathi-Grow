@@ -4,6 +4,7 @@ import { toast } from 'react-toastify';
 import { isWebView as checkWebView } from '../../../utils/deviceUtils';
 import { useNavigate } from 'react-router-dom';
 import { API_BASE_URL } from '../../../config/apiConfig';
+import { captureReferralFromUrl, clearStoredReferralCode } from '../utils/referralUtils';
 
 export const AuthContext = createContext();
 
@@ -26,6 +27,11 @@ export const AuthProvider = ({ children }) => {
     const [showLoginModal, setShowLoginModal] = useState(false);
     const [loginView, setLoginView] = useState('login'); // 'login' or 'register'
     const [isWebView] = useState(checkWebView());
+
+    // Persist ?ref= from invite links until registration
+    useEffect(() => {
+        captureReferralFromUrl();
+    }, []);
 
     // Handle Persistence
     useEffect(() => {
@@ -73,6 +79,7 @@ export const AuthProvider = ({ children }) => {
             setUser(data.user);
             setToken(data.token);
             setShowLoginModal(false);
+            clearStoredReferralCode();
             toast.success('Account created successfully!');
             return { success: true };
         } catch (error) {
@@ -86,9 +93,9 @@ export const AuthProvider = ({ children }) => {
     const isFetchingProfile = useRef(false);
 
     const refreshProfile = useCallback(async () => {
-        if (!token) return;
+        if (!token) return null;
         // Prevent concurrent duplicate calls
-        if (isFetchingProfile.current) return;
+        if (isFetchingProfile.current) return null;
         isFetchingProfile.current = true;
         try {
             const data = await authApi.getProfile(token);
@@ -97,10 +104,11 @@ export const AuthProvider = ({ children }) => {
             if (data.user && data.user.isActive === false) {
                 toast.error('Your account has been deactivated by admin.', { toastId: 'account-deactivated' });
                 logout();
-                return;
+                return null;
             }
             
             setUser(data.user);
+            return data.user;
         } catch (error) {
             console.error('Profile refresh failed:', error);
             if (error.statusCode === 403 || error.message.includes('deactivated') || error.message.includes('Access Denied')) {
@@ -109,6 +117,7 @@ export const AuthProvider = ({ children }) => {
             } else if (error.message.includes('expired') || error.message.includes('authorized')) {
                 logout();
             }
+            return null;
         } finally {
             isFetchingProfile.current = false;
         }

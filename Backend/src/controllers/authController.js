@@ -6,6 +6,7 @@ import { cloudinary } from '../config/cloudinary.js';
 import Order from '../models/Order.js';
 import { sendPushNotification } from '../services/notificationService.js';
 import { sendWelcomeEmail } from '../services/emailService.js';
+import { ensureUserReferralCode } from '../utils/generateReferralCode.js';
 // @desc    Request OTP for Login/Register
 // @route   POST /api/auth/request-otp
 // @access  Public
@@ -84,7 +85,7 @@ export const requestOTP = async (req, res) => {
 // @access  Public
 export const verifyOTP = async (req, res) => {
   try {
-    const { phone, otp, name, email } = req.body;
+    const { phone, otp, name, email, referralCode: incomingReferral } = req.body;
 
     if (!phone || !otp) {
       return res.status(400).json({ message: 'Phone and OTP are required' });
@@ -105,6 +106,7 @@ export const verifyOTP = async (req, res) => {
       user.otp = undefined;
       user.otpExpires = undefined;
       await user.save();
+      await ensureUserReferralCode(user);
     } else {
       // Register Flow
       const otpRecord = await Otp.findOne({ phone });
@@ -125,15 +127,27 @@ export const verifyOTP = async (req, res) => {
         }
       }
 
+      let referredBy = null;
+      if (incomingReferral && String(incomingReferral).trim()) {
+        const referrer = await User.findOne({
+          referralCode: String(incomingReferral).trim().toUpperCase()
+        }).select('_id');
+        if (referrer) {
+          referredBy = referrer._id;
+        }
+      }
+
       // Create user
       user = new User({
         phone,
         name: name || 'New Saathi',
         email: email || undefined,
-        isActive: true
+        isActive: true,
+        referredBy
       });
       isNewUser = true;
       await user.save();
+      await ensureUserReferralCode(user);
       await Otp.deleteOne({ phone });
 
       // --- Production Welcome Flow ---
@@ -163,7 +177,8 @@ export const verifyOTP = async (req, res) => {
         role: user.role,
         profileImage: user.profileImage,
         addresses: user.addresses,
-        walletBalance: user.walletBalance
+        walletBalance: user.walletBalance,
+        referralCode: user.referralCode
       },
       token: generateToken(user._id),
       isNewUser
@@ -217,10 +232,11 @@ export const resendOTP = async (req, res) => {
 // @access  Private
 export const getUserProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id).select('name email phone role profileImage addresses walletBalance');
+    const user = await User.findById(req.user._id).select('name email phone role profileImage addresses walletBalance referralCode');
     const totalOrders = await Order.countDocuments({ user: req.user._id });
 
     if (user) {
+      await ensureUserReferralCode(user);
       res.json({
         success: true,
         user: {
@@ -232,6 +248,7 @@ export const getUserProfile = async (req, res) => {
           profileImage: user.profileImage,
           addresses: user.addresses,
           walletBalance: user.walletBalance,
+          referralCode: user.referralCode,
           totalOrders: totalOrders
         }
       });
@@ -270,6 +287,7 @@ export const updateProfile = async (req, res) => {
         user.profileImagePublicId = req.file.filename;
       }
 
+      await ensureUserReferralCode(user);
       const updatedUser = await user.save();
       res.json({
         success: true,
@@ -282,7 +300,8 @@ export const updateProfile = async (req, res) => {
           role: updatedUser.role,
           profileImage: updatedUser.profileImage,
           addresses: updatedUser.addresses,
-          walletBalance: updatedUser.walletBalance
+          walletBalance: updatedUser.walletBalance,
+          referralCode: updatedUser.referralCode
         }
       });
     } else {

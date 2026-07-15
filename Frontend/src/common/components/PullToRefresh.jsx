@@ -85,12 +85,10 @@ const PullToRefresh = ({ onRefresh, children }) => {
                 style={{ 
                     opacity, 
                     scale,
-                    left: "50%",
-                    x: "-50%",
                     top: 0
                 }}
                 animate={isRefreshing ? { opacity: 1, scale: 1 } : controls}
-                className={`fixed w-screen h-screen z-[9999] pointer-events-none flex flex-col items-center justify-center bg-white ${!isRefreshing && y.get() < 5 ? 'hidden' : 'flex'}`}
+                className={`fixed inset-0 z-[9999] pointer-events-none flex flex-col items-center justify-center bg-white ${!isRefreshing && y.get() < 5 ? 'hidden' : 'flex'}`}
             >
                 <div className="flex flex-col items-center gap-10">
                     <div className="relative w-24 h-24 flex items-center justify-center">
