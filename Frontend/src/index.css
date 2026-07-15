@@ -50,14 +50,9 @@
   --border-subtle: #1e293b;
 }
 
-html, body {
-  overscroll-behavior-y: contain;
-  overscroll-behavior-x: none;
-  overflow-x: hidden;
+html {
   max-width: 100%;
-  width: 100%;
-  position: relative;
-  touch-action: pan-y;
+  overscroll-behavior-x: none;
 }
 
 body {
@@ -66,16 +61,22 @@ body {
   min-height: 100vh;
   width: 100%;
   max-width: 100%;
-  overflow-x: hidden;
+  overscroll-behavior-x: none;
   -webkit-overflow-scrolling: touch;
+  /* IMPORTANT: do not set overflow-x:hidden on html/body — WKWebView/Flutter
+     treats that as a scroll container and vertical scroll breaks. */
 }
 
-/* Flutter WebView / iOS: block document-level horizontal bounce */
 #root {
   width: 100%;
   max-width: 100%;
-  overflow-x: hidden;
-  position: relative;
+  min-height: 100%;
+}
+
+/* Horizontal clip without trapping document scroll (WebView-safe) */
+.webview-x-clip {
+  max-width: 100%;
+  overflow-x: clip;
 }
 
 /* Prefer intentional horizontal carousels only */
@@ -83,7 +84,6 @@ body {
 .scrollbar-hide {
   max-width: 100%;
   -webkit-overflow-scrolling: touch;
-  touch-action: pan-x pan-y;
 }
 
 /* Restrict transition to interactive elements to prevent global layout thrashing and opacity conflicts */

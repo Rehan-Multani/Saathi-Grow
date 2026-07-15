@@ -217,7 +217,7 @@ const ProfilePage = () => {
 
 
     return (
-        <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] md:bg-none md:bg-white md:dark:bg-black pt-24 px-0 pb-0 md:p-2 overflow-x-hidden w-full max-w-full">
+        <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] md:bg-none md:bg-white md:dark:bg-black pt-24 px-0 pb-0 md:p-2 w-full max-w-full">
             <div className="max-w-2xl md:max-w-6xl mx-auto">
                 {/* Header */}
                 <div className="hidden md:flex items-center gap-3 p-4 md:p-0 mb-0 md:mb-1 bg-gradient-to-br from-[#f6fbf7] to-[#e8f5e9] md:bg-none md:bg-white md:dark:bg-black border-b border-gray-50 md:border-none">

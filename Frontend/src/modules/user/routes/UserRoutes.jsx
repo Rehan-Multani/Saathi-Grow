@@ -272,17 +272,13 @@ const UserLayout = () => {
         : 'We are not delivering to your location yet. We are expanding quickly and will start serving your area soon.';
 
     const content = (
-        <div className="user-module-root flex flex-col min-h-screen w-full max-w-full overflow-x-hidden">
+        <div className="user-module-root flex flex-col min-h-screen w-full max-w-full">
             {/* Custom WebView Safe Area Styles for User/Customer Side */}
             <style>{`
                 @media (max-width: 767px) {
-                    html, body, #root, .user-module-root {
-                        overflow-x: hidden !important;
-                        max-width: 100% !important;
-                        overscroll-behavior-x: none;
-                    }
+                    /* Keep width constrained — avoid overflow-x on scroll ancestors in WebView */
+                    .user-module-root,
                     .user-module-root main {
-                        overflow-x: hidden;
                         max-width: 100%;
                     }
                     /* Main header safe area */
@@ -367,7 +363,7 @@ const UserLayout = () => {
             <LoginModal />
             <SearchOverlay />
 
-            <main className={`flex-grow bg-white dark:!bg-black transition-colors duration-300 overflow-x-hidden w-full max-w-full ${hideDesktopChrome ? '' : 'pb-20 md:pb-0'} ${shouldAddPadding ? 'extra-mobile-padding' : ''}`}>
+            <main className={`flex-grow bg-white dark:!bg-black transition-colors duration-300 w-full max-w-full ${hideDesktopChrome ? '' : 'pb-20 md:pb-0'} ${shouldAddPadding ? 'extra-mobile-padding' : ''}`}>
                 {shouldShowServiceUnavailable ? (
                     <ComingSoonInArea
                         title={serviceUnavailableTitle}

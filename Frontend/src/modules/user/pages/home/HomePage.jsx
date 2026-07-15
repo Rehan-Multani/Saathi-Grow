@@ -271,7 +271,7 @@ const HomePage = ({ }) => {
 
     return (
         <div
-            className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#000000] dark:to-[#000000] md:bg-none md:bg-white md:dark:bg-black transition-colors duration-300 overflow-x-hidden"
+            className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#000000] dark:to-[#000000] md:bg-none md:bg-white md:dark:bg-black transition-colors duration-300 w-full max-w-full"
         >
             <SEO
                 title="Fresh Grocery Delivery"

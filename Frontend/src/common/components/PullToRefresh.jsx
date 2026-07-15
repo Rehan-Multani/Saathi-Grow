@@ -15,37 +15,75 @@ const PullToRefresh = ({ onRefresh, children }) => {
 
     const PULL_THRESHOLD = 90; 
     const MAX_PULL = 220;
+    const PULL_START_SLOP = 12;
     
     const startY = useRef(0);
+    const startX = useRef(0);
     const isPulling = useRef(false);
+    const pullLocked = useRef(false);
+
+    const resetPull = () => {
+        isPulling.current = false;
+        pullLocked.current = false;
+        y.set(0);
+    };
 
     const handleTouchStart = (e) => {
-        if (window.scrollY <= 0) {
+        // Only arm pull-to-refresh at the very top of the document
+        if (window.scrollY <= 0 && !isRefreshing) {
             startY.current = e.touches[0].pageY;
+            startX.current = e.touches[0].pageX;
             isPulling.current = true;
+            pullLocked.current = false;
+        } else {
+            resetPull();
         }
     };
 
     const handleTouchMove = (e) => {
         if (!isPulling.current || isRefreshing) return;
 
-        const currentY = e.touches[0].pageY;
-        const diff = currentY - startY.current;
+        // If page already scrolled, never hijack touches
+        if (window.scrollY > 0) {
+            resetPull();
+            return;
+        }
 
-        if (diff > 0) {
-            const dampedDiff = Math.min(diff * 0.45, MAX_PULL);
+        const touch = e.touches[0];
+        const diffY = touch.pageY - startY.current;
+        const diffX = Math.abs(touch.pageX - startX.current);
+
+        // Horizontal / normal scroll down — release control so WebView can scroll
+        if (!pullLocked.current) {
+            if (diffY < -PULL_START_SLOP || (diffX > PULL_START_SLOP && diffX > Math.abs(diffY))) {
+                resetPull();
+                return;
+            }
+            if (diffY < PULL_START_SLOP) {
+                return;
+            }
+            pullLocked.current = true;
+        }
+
+        if (diffY > 0 && pullLocked.current) {
+            const dampedDiff = Math.min(diffY * 0.45, MAX_PULL);
             y.set(dampedDiff);
             if (e.cancelable) e.preventDefault();
         }
     };
 
     const handleTouchEnd = async () => {
-        if (!isPulling.current || isRefreshing) return;
-        isPulling.current = false;
+        if (!isPulling.current || isRefreshing) {
+            resetPull();
+            return;
+        }
 
         const currentY = y.get();
+        const wasLocked = pullLocked.current;
+        isPulling.current = false;
+        pullLocked.current = false;
 
-        if (currentY >= PULL_THRESHOLD) {
+        if (wasLocked && currentY >= PULL_THRESHOLD) {
             setIsRefreshing(true);
             await controls.start({
                 y: 0, 
@@ -53,8 +91,6 @@ const PullToRefresh = ({ onRefresh, children }) => {
             });
 
             try {
-                // Completely removed navigator.vibrate to eliminate [Intervention] errors
-                // as browsers now strictly block haptics triggered via touch-events without clear user intent
                 await onRefresh();
             } finally {
                 setIsRefreshing(false);
@@ -75,10 +111,11 @@ const PullToRefresh = ({ onRefresh, children }) => {
 
     return (
         <div 
-            className="relative w-full h-full overscroll-none"
+            className="relative w-full"
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
+            onTouchCancel={resetPull}
         >
             {/* SAATHIGRO Pixel-Perfect Brand Loader Overlay */}
             <motion.div
@@ -92,9 +129,6 @@ const PullToRefresh = ({ onRefresh, children }) => {
             >
                 <div className="flex flex-col items-center gap-10">
                     <div className="relative w-24 h-24 flex items-center justify-center">
-                        {/* 
-                          LOCKED INTEGRATION: Black Ring & Lime Segment as ONE rolling unit.
-                        */}
                         <motion.svg 
                             viewBox="0 0 100 100" 
                             className="w-full h-full"
@@ -107,7 +141,6 @@ const PullToRefresh = ({ onRefresh, children }) => {
                             } : { duration: 0 }}
                         >
                             <g transform="rotate(-90 50 50)">
-                                {/* 1. The FULL Dark Ring Frame (#1a1c24) */}
                                 <circle
                                     cx="50"
                                     cy="50"
@@ -116,8 +149,6 @@ const PullToRefresh = ({ onRefresh, children }) => {
                                     strokeWidth="4.5"
                                     fill="transparent"
                                 />
-                                
-                                {/* 2. The LIME Segment - Built as an overlay to stay perfectly aligned */}
                                 <circle
                                     cx="50"
                                     cy="50"
@@ -127,7 +158,7 @@ const PullToRefresh = ({ onRefresh, children }) => {
                                     fill="transparent"
                                     strokeLinecap="butt"
                                     strokeDasharray="276.46" 
-                                    strokeDashoffset={276.46 * 0.72} // Locked segment
+                                    strokeDashoffset={276.46 * 0.72}
                                 />
                             </g>
                         </motion.svg>
@@ -139,7 +170,6 @@ const PullToRefresh = ({ onRefresh, children }) => {
                         >
                             SAATHIGRO
                         </motion.span>
-                        {/* Underline Progress Line */}
                         <div className="w-24 h-[4.5px] bg-[#f2f4f7] mt-5 rounded-full overflow-hidden relative">
                             {isRefreshing && (
                                 <motion.div 
@@ -162,7 +192,7 @@ const PullToRefresh = ({ onRefresh, children }) => {
             {/* Main Content Area */}
             <motion.div 
                 style={{ y: isRefreshing ? 0 : contentY }}
-                className="w-full h-full"
+                className="w-full"
             >
                 {children}
             </motion.div>

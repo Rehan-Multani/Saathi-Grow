@@ -205,7 +205,7 @@ const CategoryPage = () => {
         }
 
         return (
-            <div className="category-products-page category-products-index min-h-screen bg-[#fcfcfc] dark:bg-black p-4 pt-6 pb-24 overflow-x-hidden">
+            <div className="category-products-page category-products-index min-h-screen bg-[#fcfcfc] dark:bg-black p-4 pt-6 pb-24 w-full max-w-full">
                 <SEO title="All Categories" description="Browse through all categories of fresh products and groceries available on Saathi-Grow." />
                 <div className="max-w-6xl mx-auto">
                     {/* Header */}
@@ -288,7 +288,7 @@ const CategoryPage = () => {
     const normalizedProducts = pageProducts.map(normalizeProduct);
 
     return (
-        <div className="category-products-page min-h-screen bg-white dark:bg-black pb-28 transition-colors duration-300 overflow-x-hidden">
+        <div className="category-products-page min-h-screen bg-white dark:bg-black pb-28 transition-colors duration-300 w-full max-w-full">
             <style dangerouslySetInnerHTML={{ __html: `
                 .back-btn-clear, .back-btn-clear:hover, .back-btn-clear:active {
                     background: transparent !important;
