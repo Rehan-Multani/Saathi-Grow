@@ -4,13 +4,12 @@ import { fetchProductById, fetchProducts, logDemandRequest, fetchProductReviews,
 import { useCart } from '../../context/CartContext';
 import { Minus, Plus, ChevronRight, ChevronLeft, Star, ShoppingCart, Sparkles, TrendingUp, AlertCircle, Bell, MapPin } from 'lucide-react';
 import { ProductDetailSkeleton } from '../../components/common/Skeleton';
+import FadeImage from '../../components/common/FadeImage';
 import ProductCard from '../../components/product/ProductCard';
 import { useAuth } from '../../context/AuthContext';
 import { useStore } from '../../context/StoreContext';
-import { ASSET_URLS } from '../../../../constants/assetUrls';
 import { toast } from 'react-toastify';
 import SEO from '../../../../common/components/SEO';
-const categoryPlaceholder = ASSET_URLS.placeholder;
 
 const ProductDetailsPage = () => {
     const { id } = useParams();
@@ -43,32 +42,36 @@ const ProductDetailsPage = () => {
             setError(false);
             if (!silent) window.scrollTo({ top: 0, behavior: 'smooth' });
 
+            let storeId = activeStore?.id;
+            let storeType = activeStore?.type;
+
             // Fetch product details
-            const data = await fetchProductById(id, {
-                storeId: activeStore?.id,
-                storeType: activeStore?.type
-            });
+            let data = await fetchProductById(id, { storeId, storeType });
 
             // Automatically switch active store if product is from a different vendor/branch in range
             const productVendorId = (data.vendor?._id || data.vendor)?.toString();
+            let matchedStore = null;
             if (productVendorId && activeStore?.id?.toString() !== productVendorId) {
-                const matchedStore = nearbyStores?.find(s => s.id?.toString() === productVendorId && s.type === 'vendor');
-                if (matchedStore) {
-                    console.log("[ProductDetails] Switching active store to product vendor:", matchedStore.name);
-                    setActiveStore(matchedStore);
-                    return;
-                }
+                matchedStore = nearbyStores?.find(s => s.id?.toString() === productVendorId && s.type === 'vendor') || null;
             } else if (!productVendorId && data.branchStocks && data.branchStocks.length > 0) {
                 const branchesWithStock = data.branchStocks.filter(bs => bs.stock > 0);
-                const matchedBranch = nearbyStores?.find(s => 
-                    s.type === 'branch' && 
+                matchedStore = nearbyStores?.find(s =>
+                    s.type === 'branch' &&
                     branchesWithStock.some(bs => (bs.branchId?._id || bs.branchId)?.toString() === s.id?.toString())
-                );
-                if (matchedBranch && activeStore?.id?.toString() !== matchedBranch.id?.toString()) {
-                    console.log("[ProductDetails] Switching active store to product branch:", matchedBranch.name);
-                    setActiveStore(matchedBranch);
-                    return;
+                ) || null;
+                if (matchedStore && activeStore?.id?.toString() === matchedStore.id?.toString()) {
+                    matchedStore = null;
                 }
+            }
+
+            if (matchedStore) {
+                console.log("[ProductDetails] Switching active store to:", matchedStore.name);
+                setActiveStore(matchedStore);
+                // Continue in-place so UI never blanks / remounts during the store switch.
+                data = await fetchProductById(id, {
+                    storeId: matchedStore.id,
+                    storeType: matchedStore.type
+                });
             }
 
             // Standardize mapping to frontend model
@@ -161,11 +164,16 @@ const ProductDetailsPage = () => {
         }
     };
 
+    // Avoid remounting skeleton when nearbyStores array identity changes; only react to store id.
+    const nearbyStoreKey = (nearbyStores || []).map((s) => s.id).join(',');
+
     useEffect(() => {
-        if (id) {
-            loadProduct();
-            loadReviews();
-        }
+        if (!id) return;
+
+        // Keep current product visible on store switch to prevent image/skeleton blink.
+        const silent = Boolean(product && product.id === id);
+        loadProduct(silent);
+        if (!silent) loadReviews();
 
         const handleRefresh = () => {
             loadProduct(true);
@@ -173,7 +181,8 @@ const ProductDetailsPage = () => {
         };
         window.addEventListener('saathi_refresh', handleRefresh);
         return () => window.removeEventListener('saathi_refresh', handleRefresh);
-    }, [id, activeStore?.id, nearbyStores]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- product presence only gates silent reload
+    }, [id, activeStore?.id, nearbyStoreKey]);
 
     const handleDemandRequest = async () => {
         if (demandLogged) return;
@@ -243,7 +252,13 @@ const ProductDetailsPage = () => {
         }
     };
 
-    if (error || (!loading && !product)) return <div className="p-8 text-center text-gray-500">Product not found. <Link to="/" className="text-green-600 underline">Return Home</Link></div>;
+    if (loading) return (
+        <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] md:bg-none md:bg-white dark:from-[#141414] dark:to-[#141414] transition-colors duration-300">
+            <ProductDetailSkeleton />
+        </div>
+    );
+
+    if (error || !product) return <div className="p-8 text-center text-gray-500">Product not found. <Link to="/" className="text-green-600 underline">Return Home</Link></div>;
 
     const hasVariants = product?.variants?.length > 0;
     const selectedVariant = hasVariants ? product.variants[selectedVariantIndex] : null;
@@ -296,12 +311,6 @@ const ProductDetailsPage = () => {
             ? 'Out of Zone'
             : 'Out of Stock';
 
-    if (loading) return (
-        <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] md:bg-none md:bg-white dark:from-[#141414] dark:to-[#141414] transition-colors duration-300">
-            <ProductDetailSkeleton />
-        </div>
-    );
-
     return (
         <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] md:bg-none md:bg-white md:dark:bg-[#09090b] pb-20 transition-colors duration-300">
             <SEO
@@ -351,17 +360,12 @@ const ProductDetailsPage = () => {
                     {/* Left: Image Section */}
                     <div className="flex flex-col gap-6">
                         <div className="relative z-10 w-full max-w-[260px] h-[260px] md:max-w-[400px] md:h-[400px] bg-white dark:bg-[#111] rounded-[32px] overflow-hidden flex items-center justify-center shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-[#0c831f]/10 dark:border-white/5 p-4 md:p-12 mx-auto transition-all duration-500 hover:shadow-xl shrink-0 group">
-                            <img
-                                src={selectedImage || categoryPlaceholder}
+                            <FadeImage
+                                src={selectedImage}
                                 alt={product.name}
-                                className={`w-full h-full transition-all duration-700 group-hover:scale-110 ${!selectedImage ? 'object-cover' : 'object-contain'}`}
-                                onError={(e) => {
-                                    if (e.target.src !== categoryPlaceholder) {
-                                        e.target.src = categoryPlaceholder;
-                                        e.target.classList.add('opacity-80');
-                                        e.target.style.objectFit = 'cover';
-                                    }
-                                }}
+                                className="w-full h-full"
+                                imgClassName="w-full h-full object-contain transition-all duration-700 group-hover:scale-110"
+                                loading="eager"
                             />
                         </div>
 
@@ -369,23 +373,18 @@ const ProductDetailsPage = () => {
                         <div className="relative z-20 flex gap-4 overflow-x-auto py-3 px-2 justify-center mt-2 shrink-0 scrollbar-hide lg-scrollbar-show">
                             {productImages.map((img, i) => (
                                 <div
-                                    key={i}
+                                    key={img || i}
                                     onClick={() => setSelectedImage(img)}
                                     className={`w-16 h-16 md:w-20 md:h-20 rounded-2xl overflow-hidden border flex items-center justify-center cursor-pointer transition-all duration-300 shadow-sm ${selectedImage === img
                                         ? 'border-[#0c831f] bg-[#fdfdfd] dark:bg-[#0c831f]/10 shadow-md scale-105 ring-1 ring-[#0c831f]/20'
                                         : 'border-[#0c831f]/30 dark:border-white/10 hover:border-[#0c831f] bg-white dark:bg-[#222]'
                                         }`}
                                 >
-                                    <img
-                                        src={img || categoryPlaceholder}
+                                    <FadeImage
+                                        src={img}
                                         alt="thumb"
-                                        className={`w-full h-full transition-all duration-300 ${!img ? 'object-cover' : 'object-contain'}`}
-                                        onError={(e) => {
-                                            if (e.target.src !== categoryPlaceholder) {
-                                                e.target.src = categoryPlaceholder;
-                                                e.target.style.objectFit = 'cover';
-                                            }
-                                        }}
+                                        className="w-full h-full"
+                                        imgClassName="w-full h-full object-contain transition-all duration-300"
                                     />
                                 </div>
                             ))}

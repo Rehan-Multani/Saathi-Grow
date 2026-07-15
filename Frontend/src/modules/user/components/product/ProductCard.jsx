@@ -1,14 +1,13 @@
 import React, { memo, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useCart } from '../../context/CartContext';
-import { ASSET_URLS } from '../../../../constants/assetUrls';
-const categoryPlaceholder = ASSET_URLS.placeholder;
 import { useAuth } from '../../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
 import { Plus, Minus, Heart, Star } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { useWishlist } from '../../context/WishlistContext';
 import { useStore } from '../../context/StoreContext';
+import FadeImage from '../common/FadeImage';
 
 const ProductCard = memo(({ product, isCompact = false, customTheme, imgPadding, wishlistPosition = "top-2 right-2", isLowestPrice = false, isValentine = false, isSaathiSignature = false, isLargeButton = false }) => {
   const { cart, addToCart, updateQuantity } = useCart();
@@ -187,19 +186,13 @@ const ProductCard = memo(({ product, isCompact = false, customTheme, imgPadding,
           <div className="absolute top-0 -left-[100%] w-[50%] h-full bg-gradient-to-r from-transparent via-white/50 to-transparent skew-x-[-25deg] group-hover:animate-[shine-sweep-fast_0.75s_ease-in-out]" />
         </div>
         <Link to={`/product/${productId}`} className="block w-full h-full">
-          <img
-            src={product.image || categoryPlaceholder}
+          <FadeImage
+            src={product.image}
             alt={product.name}
-            className={`w-full h-full object-contain transition-transform duration-500 group-hover:scale-110 ${imgPadding || 'p-2'}`}
-            onError={(e) => {
-              if (e.target.src !== categoryPlaceholder) {
-                e.target.src = categoryPlaceholder;
-                e.target.style.objectFit = 'cover';
-              }
-            }}
+            className="w-full h-full"
+            imgClassName={`w-full h-full object-contain transition-transform duration-500 group-hover:scale-110 ${imgPadding || 'p-2'}`}
             loading="lazy"
           />
-
         </Link>
       </div>
 
