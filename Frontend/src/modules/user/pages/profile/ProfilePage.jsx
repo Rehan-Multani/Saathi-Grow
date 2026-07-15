@@ -141,6 +141,7 @@ const ProfilePage = () => {
 
     const [showShareModal, setShowShareModal] = useState(false);
     const [linkCopied, setLinkCopied] = useState(false);
+    const [copiedKey, setCopiedKey] = useState(null);
 
     const sharePayload = user?.referralCode
         ? buildReferralSharePayload(user.referralCode, appSettings || {})
@@ -160,34 +161,51 @@ const ProfilePage = () => {
             return;
         }
 
-        const payload = buildReferralSharePayload(code, appSettings || {});
+        // Always show in-app invite sheet (cleaner on Flutter WebView than system share scrapes)
+        setShowShareModal(true);
+    };
 
+    const copyText = async (text, key = 'all') => {
+        if (!text) return;
         try {
-            if (typeof navigator !== 'undefined' && navigator.share) {
-                await navigator.share({
-                    title: 'Saathigro Invite',
-                    text: payload.shareText
-                });
+            if (navigator.clipboard?.writeText) {
+                await navigator.clipboard.writeText(text);
+            } else {
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                ta.style.position = 'fixed';
+                ta.style.left = '-9999px';
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+            }
+            setCopiedKey(key);
+            setLinkCopied(key === 'all');
+            toast.success(key === 'all' ? 'Invite message copied!' : 'Copied!');
+            setTimeout(() => {
+                setCopiedKey(null);
+                setLinkCopied(false);
+            }, 2000);
+        } catch {
+            toast.error('Could not copy');
+        }
+    };
+
+    const handleCopyReferralLink = () => copyText(sharePayload?.shareText || referralLink, 'all');
+
+    const handleNativeShare = async () => {
+        const text = sharePayload?.shareText || referralLink;
+        if (!text) return;
+        try {
+            if (navigator.share) {
+                await navigator.share({ title: 'Saathigro Invite', text });
                 return;
             }
         } catch (err) {
             if (err?.name === 'AbortError') return;
         }
-
-        setShowShareModal(true);
-    };
-
-    const handleCopyReferralLink = async () => {
-        const text = sharePayload?.shareText || referralLink;
-        if (!text) return;
-        try {
-            await navigator.clipboard.writeText(text);
-            setLinkCopied(true);
-            toast.success('Invite message copied!');
-            setTimeout(() => setLinkCopied(false), 2000);
-        } catch {
-            toast.error('Could not copy');
-        }
+        await copyText(text, 'all');
     };
 
     const openEditModal = () => {
@@ -459,76 +477,108 @@ const ProfilePage = () => {
                 </div>
             )}
 
-            {/* Share / Invite Modal (desktop / no Web Share API) */}
+            {/* Share / Invite Modal — mobile WebView safe layout */}
             {showShareModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-                    <div className="bg-white dark:bg-[#141414] rounded-3xl w-full max-w-md shadow-2xl overflow-hidden border border-gray-100 dark:border-white/10 animate-in zoom-in-95 duration-200">
-                        <div className="flex justify-between items-center p-6 border-b border-gray-100 dark:border-white/10">
-                            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 uppercase tracking-widest">Invite Friends</h3>
-                            <button onClick={() => setShowShareModal(false)} className="text-gray-400 hover:text-red-500 transition-colors bg-gray-50 dark:bg-white/5 p-2 rounded-full">
-                                <X size={20} />
+                <div className="fixed inset-0 z-[120] flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm p-0 sm:p-4 animate-in fade-in duration-200">
+                    <div className="bg-white dark:bg-[#141414] rounded-t-3xl sm:rounded-3xl w-full max-w-md max-h-[88vh] shadow-2xl border border-gray-100 dark:border-white/10 animate-in slide-in-from-bottom sm:zoom-in-95 duration-200 flex flex-col overflow-hidden">
+                        <div className="flex justify-between items-center px-5 py-4 border-b border-gray-100 dark:border-white/10 shrink-0">
+                            <h3 className="text-base font-bold text-gray-900 dark:text-gray-100 uppercase tracking-widest">Invite Friends</h3>
+                            <button
+                                type="button"
+                                onClick={() => setShowShareModal(false)}
+                                className="text-gray-400 hover:text-red-500 transition-colors bg-gray-50 dark:bg-white/5 p-2 rounded-full"
+                            >
+                                <X size={18} />
                             </button>
                         </div>
-                        <div className="p-6 space-y-4">
-                            <p className="text-sm text-gray-500 dark:text-gray-400">
-                                Share your code with Play Store &amp; App Store download links. Friends who register with your code are tagged to you.
+
+                        <div className="px-5 py-4 space-y-4 overflow-y-auto overscroll-contain flex-1 min-h-0 pb-[max(1rem,env(safe-area-inset-bottom))]">
+                            <p className="text-[13px] leading-relaxed text-gray-500 dark:text-gray-400">
+                                Share your referral code. Friends who join with it are tagged to you.
                             </p>
-                            <div className="flex items-center justify-between gap-2 bg-[#eefaf1] dark:bg-[#0c831f]/10 rounded-2xl px-4 py-3">
-                                <div>
-                                    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">Your code</p>
-                                    <p className="text-lg font-bold text-[#0c831f] tracking-widest">{user?.referralCode || '—'}</p>
-                                </div>
+
+                            <div className="bg-[#eefaf1] dark:bg-[#0c831f]/10 rounded-2xl px-4 py-4 text-center">
+                                <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">Your code</p>
+                                <p className="text-2xl font-black text-[#0c831f] tracking-[0.2em]">{user?.referralCode || '—'}</p>
                             </div>
 
-                            {sharePayload?.playStoreLink && (
-                                <div className="space-y-1">
-                                    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 ml-1">Play Store</p>
-                                    <p className="text-[11px] font-medium text-gray-600 dark:text-gray-300 break-all bg-gray-50 dark:bg-white/5 rounded-xl px-3 py-2">
-                                        {sharePayload.playStoreLink}
-                                    </p>
-                                </div>
-                            )}
-                            {sharePayload?.appStoreLink && (
-                                <div className="space-y-1">
-                                    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 ml-1">App Store</p>
-                                    <p className="text-[11px] font-medium text-gray-600 dark:text-gray-300 break-all bg-gray-50 dark:bg-white/5 rounded-xl px-3 py-2">
-                                        {sharePayload.appStoreLink}
-                                    </p>
-                                </div>
-                            )}
-                            {!sharePayload?.playStoreLink && !sharePayload?.appStoreLink && (
-                                <p className="text-[11px] text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 rounded-xl px-3 py-2">
-                                    Store links not set yet. Admin → Social Profile me Play Store / App Store URLs add karein. Web invite link abhi available hai.
-                                </p>
-                            )}
+                            <div className="space-y-2.5">
+                                {sharePayload?.playStoreLink && (
+                                    <div className="flex items-center gap-2.5 rounded-2xl border border-gray-100 dark:border-white/10 bg-gray-50 dark:bg-white/5 px-3 py-3 min-w-0">
+                                        <div className="min-w-0 flex-1">
+                                            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Play Store</p>
+                                            <p className="text-[12px] font-semibold text-gray-700 dark:text-gray-200 truncate">Android app download</p>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => copyText(sharePayload.playStoreLink, 'play')}
+                                            className="shrink-0 h-10 w-10 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-white/10 flex items-center justify-center text-[#0c831f]"
+                                            aria-label="Copy Play Store link"
+                                        >
+                                            {copiedKey === 'play' ? <Check size={16} /> : <Copy size={16} />}
+                                        </button>
+                                    </div>
+                                )}
 
-                            <div className="space-y-1">
-                                <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 ml-1">Web invite</p>
-                                <div className="flex gap-2">
-                                    <input
-                                        readOnly
-                                        value={referralLink}
-                                        className="flex-1 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl py-3 px-4 text-xs font-medium text-gray-700 dark:text-gray-200 outline-none"
-                                    />
+                                {sharePayload?.appStoreLink && (
+                                    <div className="flex items-center gap-2.5 rounded-2xl border border-gray-100 dark:border-white/10 bg-gray-50 dark:bg-white/5 px-3 py-3 min-w-0">
+                                        <div className="min-w-0 flex-1">
+                                            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">App Store</p>
+                                            <p className="text-[12px] font-semibold text-gray-700 dark:text-gray-200 truncate">iOS app download</p>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => copyText(sharePayload.appStoreLink, 'ios')}
+                                            className="shrink-0 h-10 w-10 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-white/10 flex items-center justify-center text-[#0c831f]"
+                                            aria-label="Copy App Store link"
+                                        >
+                                            {copiedKey === 'ios' ? <Check size={16} /> : <Copy size={16} />}
+                                        </button>
+                                    </div>
+                                )}
+
+                                <div className="flex items-center gap-2.5 rounded-2xl border border-gray-100 dark:border-white/10 bg-gray-50 dark:bg-white/5 px-3 py-3 min-w-0">
+                                    <div className="min-w-0 flex-1">
+                                        <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Web invite</p>
+                                        <p className="text-[12px] font-semibold text-gray-700 dark:text-gray-200 truncate">{referralLink || '—'}</p>
+                                    </div>
                                     <button
                                         type="button"
-                                        onClick={handleCopyReferralLink}
-                                        className="shrink-0 px-4 py-3 bg-[#0c831f] text-white rounded-2xl font-bold flex items-center gap-2 hover:bg-[#0a6b19] transition-colors"
+                                        onClick={() => copyText(referralLink, 'web')}
+                                        className="shrink-0 h-10 w-10 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-white/10 flex items-center justify-center text-[#0c831f]"
+                                        aria-label="Copy web invite link"
                                     >
-                                        {linkCopied ? <Check size={18} /> : <Copy size={18} />}
-                                        {linkCopied ? 'Copied' : 'Copy'}
+                                        {copiedKey === 'web' ? <Check size={16} /> : <Copy size={16} />}
                                     </button>
                                 </div>
-                                <p className="text-[10px] text-gray-400 ml-1">Copy includes code + store links + web link</p>
                             </div>
-                            <a
-                                href={`https://wa.me/?text=${encodeURIComponent(sharePayload?.shareText || referralLink)}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="w-full py-3.5 rounded-2xl font-bold text-center text-white bg-[#25D366] hover:bg-[#1ebe57] transition-colors block"
-                            >
-                                Share on WhatsApp
-                            </a>
+
+                            <div className="space-y-2.5 pt-1">
+                                <button
+                                    type="button"
+                                    onClick={handleCopyReferralLink}
+                                    className="w-full py-3.5 rounded-2xl font-bold text-center text-white bg-[#0c831f] hover:bg-[#0a6b19] transition-colors flex items-center justify-center gap-2"
+                                >
+                                    {linkCopied ? <Check size={18} /> : <Copy size={18} />}
+                                    {linkCopied ? 'Copied full invite' : 'Copy full invite'}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handleNativeShare}
+                                    className="w-full py-3.5 rounded-2xl font-bold text-center text-[#0c831f] bg-[#eefaf1] dark:bg-[#0c831f]/15 hover:bg-[#dff5e4] transition-colors flex items-center justify-center gap-2"
+                                >
+                                    <Share2 size={18} />
+                                    Share via apps
+                                </button>
+                                <a
+                                    href={`https://wa.me/?text=${encodeURIComponent(sharePayload?.shareText || referralLink)}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="w-full py-3.5 rounded-2xl font-bold text-center text-white bg-[#25D366] hover:bg-[#1ebe57] transition-colors block"
+                                >
+                                    Share on WhatsApp
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
