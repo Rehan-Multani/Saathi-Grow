@@ -16,9 +16,8 @@ import { useCart } from '../../context/CartContext';
 import { useStore } from '../../context/StoreContext';
 import { useTheme } from '../../context/ThemeContext';
 import { fetchProducts } from '../../api/shopApi';
-import { ASSET_URLS } from '../../../../constants/assetUrls';
 import SEO from '../../../../common/components/SEO';
-const categoryPlaceholder = ASSET_URLS.placeholder;
+import FadeImage from '../../components/common/FadeImage';
 
 // Helper for countdown
 const useCountdown = (targetDate) => {
@@ -78,16 +77,11 @@ const FlyerProductCard = ({ product, badgeText }) => {
 
             {/* Product Image Section */}
             <Link to={`/product/${product.id}`} className="relative w-full aspect-square overflow-hidden rounded-xl bg-gray-50/50 dark:bg-[#0a0a0a] z-10 flex items-center justify-center p-1.5 md:p-2.5">
-                <img
-                    src={product.image || categoryPlaceholder}
+                <FadeImage
+                    src={product.image}
                     alt={product.name}
-                    className="w-full h-full object-contain transition-transform duration-1000 group-hover:scale-105"
-                    onError={(e) => {
-                        if (e.target.src !== categoryPlaceholder) {
-                            e.target.src = categoryPlaceholder;
-                            e.target.style.objectFit = 'cover';
-                        }
-                    }}
+                    className="w-full h-full"
+                    imgClassName="w-full h-full object-contain transition-transform duration-1000 group-hover:scale-105"
                 />
 
                 {/* Sale Percentage Tag (Matched to Home Reference) */}
