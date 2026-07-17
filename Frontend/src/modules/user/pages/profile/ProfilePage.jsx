@@ -1,5 +1,5 @@
 import React, {useRef , useState, useEffect}from 'react';
-import { User, Mail, Phone, MapPin, Camera, ArrowLeft, ChevronRight, ShoppingBag, CreditCard, LogOut, Shield, Moon, Sun, Bell, HelpCircle, Heart, MessageCircle, Tag, BellRing, Edit2, X, Loader2, Share2, Copy, Check } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Camera, ArrowLeft, ChevronRight, ShoppingBag, CreditCard, LogOut, Shield, Moon, Sun, Bell, HelpCircle, Heart, MessageCircle, Tag, BellRing, Edit2, X, Loader2, Share2, Copy, Check, Send } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -140,6 +140,7 @@ const ProfilePage = () => {
     };
 
     const [showShareModal, setShowShareModal] = useState(false);
+    const [showShareApps, setShowShareApps] = useState(false);
     const [linkCopied, setLinkCopied] = useState(false);
     const [copiedKey, setCopiedKey] = useState(null);
 
@@ -147,6 +148,7 @@ const ProfilePage = () => {
         ? buildReferralSharePayload(user.referralCode, appSettings || {})
         : null;
     const referralLink = sharePayload?.webLink || '';
+    const inviteText = sharePayload?.shareText || referralLink;
 
     const handleShareApp = async () => {
         let code = user?.referralCode;
@@ -162,6 +164,7 @@ const ProfilePage = () => {
         }
 
         // Always show in-app invite sheet (cleaner on Flutter WebView than system share scrapes)
+        setShowShareApps(false);
         setShowShareModal(true);
     };
 
@@ -192,20 +195,79 @@ const ProfilePage = () => {
         }
     };
 
-    const handleCopyReferralLink = () => copyText(sharePayload?.shareText || referralLink, 'all');
+    const handleCopyReferralLink = () => copyText(inviteText, 'all');
+
+    const openExternalShare = (href) => {
+        if (!href) return;
+        const a = document.createElement('a');
+        a.href = href;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    };
+
+    const shareViaApp = (app) => {
+        if (!inviteText) {
+            toast.error('Invite link not ready yet');
+            return;
+        }
+        const text = encodeURIComponent(inviteText);
+        const url = encodeURIComponent(referralLink || inviteText);
+        const subject = encodeURIComponent('Join me on Saathigro');
+
+        switch (app) {
+            case 'whatsapp':
+                openExternalShare(`https://wa.me/?text=${text}`);
+                break;
+            case 'telegram':
+                openExternalShare(`https://t.me/share/url?url=${url}&text=${text}`);
+                break;
+            case 'sms':
+                // Works on Android + iOS WebView / mobile browsers
+                openExternalShare(`sms:?&body=${text}`);
+                break;
+            case 'email':
+                openExternalShare(`mailto:?subject=${subject}&body=${text}`);
+                break;
+            default:
+                break;
+        }
+    };
 
     const handleNativeShare = async () => {
-        const text = sharePayload?.shareText || referralLink;
-        if (!text) return;
-        try {
-            if (navigator.share) {
-                await navigator.share({ title: 'Saathigro Invite', text });
-                return;
+        if (!inviteText) return;
+
+        if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
+            const shareData = { title: 'Saathigro Invite', text: inviteText };
+            try {
+                if (!navigator.canShare || navigator.canShare(shareData)) {
+                    await navigator.share(shareData);
+                    return;
+                }
+            } catch (err) {
+                if (err?.name === 'AbortError') return;
             }
-        } catch (err) {
-            if (err?.name === 'AbortError') return;
+            try {
+                await navigator.share({ title: 'Saathigro Invite', text: referralLink || inviteText });
+                return;
+            } catch (err) {
+                if (err?.name === 'AbortError') return;
+            }
         }
-        await copyText(text, 'all');
+
+        toast.info('Pick WhatsApp, Telegram, SMS or Email above to share');
+        setShowShareApps(true);
+    };
+
+    const handleShareViaAppsClick = () => {
+        if (!inviteText) {
+            toast.error('Invite link not ready yet');
+            return;
+        }
+        // Always show app chooser first (Flutter WebView often lacks a real OS share sheet).
+        setShowShareApps((prev) => !prev);
     };
 
     const openEditModal = () => {
@@ -485,7 +547,10 @@ const ProfilePage = () => {
                             <h3 className="text-base font-bold text-gray-900 dark:text-gray-100 uppercase tracking-widest">Invite Friends</h3>
                             <button
                                 type="button"
-                                onClick={() => setShowShareModal(false)}
+                                onClick={() => {
+                                    setShowShareModal(false);
+                                    setShowShareApps(false);
+                                }}
                                 className="text-gray-400 hover:text-red-500 transition-colors bg-gray-50 dark:bg-white/5 p-2 rounded-full"
                             >
                                 <X size={18} />
@@ -564,20 +629,70 @@ const ProfilePage = () => {
                                 </button>
                                 <button
                                     type="button"
-                                    onClick={handleNativeShare}
+                                    onClick={handleShareViaAppsClick}
                                     className="w-full py-3.5 rounded-2xl font-bold text-center text-[#0c831f] bg-[#eefaf1] dark:bg-[#0c831f]/15 hover:bg-[#dff5e4] transition-colors flex items-center justify-center gap-2"
                                 >
                                     <Share2 size={18} />
                                     Share via apps
                                 </button>
-                                <a
-                                    href={`https://wa.me/?text=${encodeURIComponent(sharePayload?.shareText || referralLink)}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="w-full py-3.5 rounded-2xl font-bold text-center text-white bg-[#25D366] hover:bg-[#1ebe57] transition-colors block"
-                                >
-                                    Share on WhatsApp
-                                </a>
+
+                                {showShareApps && (
+                                    <div className="rounded-2xl border border-gray-100 dark:border-white/10 bg-gray-50 dark:bg-white/5 p-3.5 space-y-3 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                                        <p className="text-[11px] font-bold uppercase tracking-widest text-gray-400 text-center">
+                                            Choose an app
+                                        </p>
+                                        <div className="grid grid-cols-4 gap-2.5">
+                                            <button
+                                                type="button"
+                                                onClick={() => shareViaApp('whatsapp')}
+                                                className="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-white dark:hover:bg-white/10 transition-colors"
+                                            >
+                                                <span className="h-12 w-12 rounded-2xl bg-[#25D366] text-white flex items-center justify-center shadow-sm">
+                                                    <MessageCircle size={22} strokeWidth={2.25} />
+                                                </span>
+                                                <span className="text-[10px] font-bold text-gray-700 dark:text-gray-200">WhatsApp</span>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => shareViaApp('telegram')}
+                                                className="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-white dark:hover:bg-white/10 transition-colors"
+                                            >
+                                                <span className="h-12 w-12 rounded-2xl bg-[#229ED9] text-white flex items-center justify-center shadow-sm">
+                                                    <Send size={20} strokeWidth={2.25} />
+                                                </span>
+                                                <span className="text-[10px] font-bold text-gray-700 dark:text-gray-200">Telegram</span>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => shareViaApp('sms')}
+                                                className="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-white dark:hover:bg-white/10 transition-colors"
+                                            >
+                                                <span className="h-12 w-12 rounded-2xl bg-[#0c831f] text-white flex items-center justify-center shadow-sm">
+                                                    <Phone size={20} strokeWidth={2.25} />
+                                                </span>
+                                                <span className="text-[10px] font-bold text-gray-700 dark:text-gray-200">SMS</span>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => shareViaApp('email')}
+                                                className="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-white dark:hover:bg-white/10 transition-colors"
+                                            >
+                                                <span className="h-12 w-12 rounded-2xl bg-[#EA4335] text-white flex items-center justify-center shadow-sm">
+                                                    <Mail size={20} strokeWidth={2.25} />
+                                                </span>
+                                                <span className="text-[10px] font-bold text-gray-700 dark:text-gray-200">Email</span>
+                                            </button>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={handleNativeShare}
+                                            className="w-full py-2.5 rounded-xl text-[12px] font-bold text-[#0c831f] bg-white dark:bg-white/10 border border-[#0c831f]/20 flex items-center justify-center gap-2"
+                                        >
+                                            <Share2 size={15} />
+                                            More apps
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
