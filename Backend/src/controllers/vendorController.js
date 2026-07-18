@@ -30,7 +30,7 @@ export const getVendors = async (req, res) => {
     }
 
     const vendorsQuery = Vendor.find(query)
-      .select('storeName ownerName email phone address status logo createdAt updatedAt')
+      .select('storeName ownerName email phone address status logo deliveryRadius createdAt updatedAt')
       .sort({ createdAt: -1 })
       .lean();
 
@@ -141,7 +141,7 @@ export const getVendorById = async (req, res) => {
 // @access  Private (Admin/Staff)
 export const createVendor = async (req, res) => {
   try {
-    const { storeName, ownerName, email, phone, address, description, status, password } = req.body;
+    const { storeName, ownerName, email, phone, address, description, status, password, deliveryRadius } = req.body;
 
     let parsedAddress = address;
     if (typeof address === 'string') {
@@ -190,6 +190,10 @@ export const createVendor = async (req, res) => {
       }
     }
 
+    const parsedRadius = deliveryRadius !== undefined && deliveryRadius !== ''
+      ? Number(deliveryRadius)
+      : undefined;
+
     const vendor = await Vendor.create({
       storeName,
       ownerName,
@@ -200,6 +204,7 @@ export const createVendor = async (req, res) => {
       status: status || 'Pending',
       password: password || '123456', // Default password if not provided
       logo,
+      ...(Number.isFinite(parsedRadius) && parsedRadius > 0 ? { deliveryRadius: parsedRadius } : {}),
       createdBy: req.admin._id
     });
 
@@ -228,7 +233,7 @@ export const updateVendor = async (req, res) => {
     const vendor = await Vendor.findById(req.params.id);
     if (!vendor) return res.status(404).json({ message: 'Vendor not found' });
 
-    const { storeName, ownerName, email, phone, address, description, status } = req.body;
+    const { storeName, ownerName, email, phone, address, description, status, deliveryRadius } = req.body;
 
     // Check unique email and phone
     if (email && email !== vendor.email) {
@@ -283,6 +288,13 @@ export const updateVendor = async (req, res) => {
     vendor.phone = phone || vendor.phone;
     vendor.description = description || vendor.description;
     vendor.status = status || vendor.status;
+
+    if (deliveryRadius !== undefined && deliveryRadius !== '') {
+      const parsedRadius = Number(deliveryRadius);
+      if (Number.isFinite(parsedRadius) && parsedRadius > 0) {
+        vendor.deliveryRadius = parsedRadius;
+      }
+    }
 
     if (req.file) {
       vendor.logo = req.file.path;

@@ -11,6 +11,7 @@ import { toast } from 'react-toastify';
 import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
 import { pageInfoData } from '../../../../common/data/pageInfoData';
 import { downloadCSV } from '../../../../common/utils/formatUtils';
+import { showDeleteConfirmation } from '../../../../common/utils/alertUtils';
 
 const OrderStatusBadge = ({ status, t }) => {
     const variants = {
@@ -320,25 +321,10 @@ const AllOrders = () => {
     };
 
     const handleDeleteOrder = async (orderId) => {
-        const result = await Swal.fire({
-            title: t('actions.delete_confirm_title'),
-            html: `
-                <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
-                    <p style="color:#475569;font-size:14px;margin:0;">${t('actions.delete_confirm_text', { id: orderId })}</p>
-                    <div style="background:#fef2f2;border:1px solid #fecaca;color:#b91c1c;font-size:12px;font-weight:600;padding:8px 12px;border-radius:8px;">
-                        ${t('actions.delete_warning', { defaultValue: 'This action cannot be undone.' })}
-                    </div>
-                </div>
-            `,
-            icon: 'warning',
-            showCancelButton: true,
-            reverseButtons: true,
-            focusCancel: true,
-            confirmButtonColor: '#ef4444',
-            cancelButtonColor: '#64748b',
-            confirmButtonText: t('common:yes_confirm'),
-            cancelButtonText: t('common:cancel', { defaultValue: 'Cancel' }),
-        });
+        const result = await showDeleteConfirmation(
+            t('actions.delete_confirm_title'),
+            `${t('actions.delete_confirm_text', { id: orderId })} ${t('actions.delete_warning', { defaultValue: 'This action cannot be undone.' })}`
+        );
 
         if (result.isConfirmed) {
             try {
@@ -370,25 +356,10 @@ const AllOrders = () => {
     const handleBulkDelete = async () => {
         if (selectedIds.length === 0) return;
 
-        const result = await Swal.fire({
-            title: t('actions.bulk_delete_confirm_title', { defaultValue: 'Delete selected orders?' }),
-            html: `
-                <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
-                    <p style="color:#475569;font-size:14px;margin:0;">${t('actions.bulk_delete_confirm_text', { count: selectedIds.length, defaultValue: `Are you sure you want to delete ${selectedIds.length} selected order(s)?` })}</p>
-                    <div style="background:#fef2f2;border:1px solid #fecaca;color:#b91c1c;font-size:12px;font-weight:600;padding:8px 12px;border-radius:8px;">
-                        ${t('actions.delete_warning', { defaultValue: 'This action cannot be undone.' })}
-                    </div>
-                </div>
-            `,
-            icon: 'warning',
-            showCancelButton: true,
-            reverseButtons: true,
-            focusCancel: true,
-            confirmButtonColor: '#ef4444',
-            cancelButtonColor: '#64748b',
-            confirmButtonText: t('common:yes_confirm'),
-            cancelButtonText: t('common:cancel', { defaultValue: 'Cancel' }),
-        });
+        const result = await showDeleteConfirmation(
+            t('actions.bulk_delete_confirm_title', { defaultValue: 'Delete selected orders?' }),
+            `${t('actions.bulk_delete_confirm_text', { count: selectedIds.length, defaultValue: `Are you sure you want to delete ${selectedIds.length} selected order(s)?` })} ${t('actions.delete_warning', { defaultValue: 'This action cannot be undone.' })}`
+        );
 
         if (result.isConfirmed) {
             try {

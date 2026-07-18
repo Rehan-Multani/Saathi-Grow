@@ -8,7 +8,7 @@ import {
   deleteVendorLocation
 } from '../api/vendorLocationApi';
 import { toast } from 'react-toastify';
-import Swal from 'sweetalert2';
+import { showDeleteConfirmation } from '../../../common/utils/alertUtils';
 
 const VendorLocations = () => {
   const { vendor } = useVendor();
@@ -76,15 +76,15 @@ const VendorLocations = () => {
   };
 
   const handleDelete = async (loc) => {
-    const result = await Swal.fire({
-      title: loc.assignedProduct ? 'Location Occupied' : 'Delete Location?',
-      text: loc.assignedProduct ? 'Unassign the product before deleting this location.' : `"${loc.label}" will be permanently removed.`,
-      icon: loc.assignedProduct ? 'error' : 'warning',
-      confirmButtonText: loc.assignedProduct ? 'OK' : 'Delete',
-      showCancelButton: !loc.assignedProduct,
-      confirmButtonColor: loc.assignedProduct ? '#3b82f6' : '#ef4444'
-    });
-    if (!result.isConfirmed || loc.assignedProduct) return;
+    if (loc.assignedProduct) {
+      toast.error('Unassign the product before deleting this location.');
+      return;
+    }
+    const result = await showDeleteConfirmation(
+      'Delete Location?',
+      `"${loc.label}" will be permanently removed.`
+    );
+    if (!result.isConfirmed) return;
     try {
       await deleteVendorLocation(vendor.token, loc._id);
       toast.success('Location deleted');

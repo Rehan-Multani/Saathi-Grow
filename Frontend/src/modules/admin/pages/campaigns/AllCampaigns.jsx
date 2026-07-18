@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { getCampaigns, deleteCampaign } from '../../api/campaignApi';
-import Swal from 'sweetalert2';
+import { showDeleteConfirmation, showSuccessAlert } from '../../../../common/utils/alertUtils';
 import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
 import { pageInfoData } from '../../../../common/data/pageInfoData';
 
@@ -45,31 +45,19 @@ const AllCampaigns = () => {
   };
 
   const handleDelete = async (id, title) => {
-    Swal.fire({
-      title: t('messages.delete_confirm_title'),
-      text: t('messages.delete_confirm_msg', { name: title }),
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#ef4444',
-      cancelButtonColor: '#94a3b8',
-      confirmButtonText: 'Yes, Delete',
-      cancelButtonText: 'Cancel'
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        try {
-          await deleteCampaign(adminUser.token, id);
-          setCampaigns(campaigns.filter(c => c._id !== id));
-          Swal.fire({
-            title: t('messages.delete_success'),
-            icon: 'success',
-            timer: 1500,
-            showConfirmButton: false
-          });
-        } catch (error) {
-          toast.error(error.message);
-        }
+    const result = await showDeleteConfirmation(
+      t('messages.delete_confirm_title'),
+      t('messages.delete_confirm_msg', { name: title })
+    );
+    if (result.isConfirmed) {
+      try {
+        await deleteCampaign(adminUser.token, id);
+        setCampaigns(campaigns.filter(c => c._id !== id));
+        await showSuccessAlert(t('messages.delete_success'), '');
+      } catch (error) {
+        toast.error(error.message);
       }
-    });
+    }
   };
 
   const filteredCampaigns = campaigns.filter(c => 

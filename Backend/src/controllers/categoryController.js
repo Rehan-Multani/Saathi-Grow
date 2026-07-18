@@ -1,6 +1,8 @@
 import Category from '../models/Category.js';
 import Product from '../models/Product.js';
 import SubCategory from '../models/SubCategory.js';
+import Brand from '../models/Brand.js';
+import CategoryPage from '../models/CategoryPage.js';
 import XLSX from 'xlsx';
 
 // @desc    Create new category
@@ -171,23 +173,62 @@ export const updateCategory = async (req, res) => {
   }
 };
 
-// @desc    Delete category
+// @desc    Delete category (cascades to subcategories, brands, products, category page)
 // @route   DELETE /api/admin/categories/:id
 // @access  Private (Admin)
 export const deleteCategory = async (req, res) => {
   try {
     const category = await Category.findById(req.params.id);
-    if (category) {
-      // Cascade: remove all subcategories under this category
-      const subResult = await SubCategory.deleteMany({ category: category._id });
-      await category.deleteOne();
-      res.json({
-        message: 'Category removed',
-        deletedSubCategories: subResult.deletedCount || 0
-      });
-    } else {
-      res.status(404).json({ message: 'Category not found' });
+    if (!category) {
+      return res.status(404).json({ message: 'Category not found' });
     }
+
+    const categoryName = category.name;
+    const categoryNameRegex = new RegExp(
+      `^${String(categoryName).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`,
+      'i'
+    );
+
+    // 1) Products linked to this category (stored as category name string)
+    const productResult = await Product.deleteMany({ category: categoryNameRegex });
+
+    // 2) Subcategories under this category
+    const subResult = await SubCategory.deleteMany({ category: category._id });
+
+    // 3) Brands linked to this category name
+    //    - if brand only had this category → delete brand
+    //    - if brand has other categories → just remove this category
+    const linkedBrands = await Brand.find({ category: categoryNameRegex }).select('_id category');
+    let deletedBrands = 0;
+    let updatedBrands = 0;
+
+    for (const brand of linkedBrands) {
+      const remaining = (brand.category || []).filter(
+        (c) => String(c).toLowerCase() !== String(categoryName).toLowerCase()
+      );
+      if (remaining.length === 0) {
+        await Brand.deleteOne({ _id: brand._id });
+        deletedBrands += 1;
+      } else {
+        brand.category = remaining;
+        await brand.save();
+        updatedBrands += 1;
+      }
+    }
+
+    // 4) Category landing page (if any)
+    const pageResult = await CategoryPage.deleteMany({ category: category._id });
+
+    await category.deleteOne();
+
+    res.json({
+      message: 'Category and associated data removed',
+      deletedSubCategories: subResult.deletedCount || 0,
+      deletedProducts: productResult.deletedCount || 0,
+      deletedBrands,
+      updatedBrands,
+      deletedCategoryPages: pageResult.deletedCount || 0
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -314,7 +355,9 @@ export const bulkUploadCategories = async (req, res) => {
         const status = statusMap[statusRaw] || 'Active';
 
         const bgColor = hasCategoryValue(row.bgColor) ? String(row.bgColor).trim() : '#f8f9fa';
-        const imageUrl = hasCategoryValue(row.image) ? String(row.image).trim() : '';
+        const clientBase = (process.env.CLIENT_URL || 'http://localhost:5173').replace(/\/$/, '');
+        const defaultCategoryImage = process.env.DEFAULT_PRODUCT_IMAGE_URL || `${clientBase}/assets/logo_fav.png`;
+        const rowImage = hasCategoryValue(row.image) ? String(row.image).trim() : '';
         const description = row.description ? String(row.description).trim() : '';
 
         const existing = await Category.findOne({
@@ -331,7 +374,11 @@ export const bulkUploadCategories = async (req, res) => {
               tags: [...new Set(tags)],
               status,
               bgColor,
-              ...(imageUrl ? { image: imageUrl } : {}),
+              ...(rowImage
+                ? { image: rowImage }
+                : !existing.image
+                  ? { image: defaultCategoryImage }
+                  : {}),
             },
           });
           updated++;
@@ -344,7 +391,7 @@ export const bulkUploadCategories = async (req, res) => {
             tags: [...new Set(tags)],
             status,
             bgColor,
-            image: imageUrl,
+            image: rowImage || defaultCategoryImage,
             createdBy: req.admin._id,
           });
           created++;

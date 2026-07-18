@@ -39,26 +39,33 @@ export const addDeliveryPartner = async (req, res) => {
       return res.status(400).json({ message: 'A Delivery Partner with this phone number already exists' });
     }
 
-    let profileImage = '';
-    let profileImagePublicId = '';
-    if (req.file) {
-      profileImage = req.file.path;
-      profileImagePublicId = req.file.filename;
+    const pickFile = (files, field) => files?.[field]?.[0] || null;
+    const aadharFile = pickFile(req.files, 'aadhar');
+    const licenseFile = pickFile(req.files, 'license');
+    const rcFile = pickFile(req.files, 'rc');
+    const profileFile = pickFile(req.files, 'profileImage') || req.file || null;
+
+    if (!aadharFile || !licenseFile) {
+      return res.status(400).json({ message: 'Aadhar card and Driving License uploads are required' });
     }
 
     const partner = await DeliveryPartner.create({
       name,
       phone,
       email,
-      password: password || undefined, // Password is now optional for OTP login
+      password: password || undefined,
       vehicleType,
       vehicleNumber,
-      profileImage,
-      profileImagePublicId
+      profileImage: profileFile?.path || '',
+      profileImagePublicId: profileFile?.filename || '',
+      aadharImage: aadharFile.path,
+      aadharImagePublicId: aadharFile.filename,
+      licenseImage: licenseFile.path,
+      licenseImagePublicId: licenseFile.filename,
+      ...(rcFile ? { rcImage: rcFile.path, rcImagePublicId: rcFile.filename } : {}),
     });
 
     if (partner) {
-      // Send Welcome Email (We do this BEFORE response to ensure audit, but catch error to not block UI)
       try {
         await sendWelcomeEmail(partner.email, partner.name, 'Rider', password || 'Logged via Mobile OTP');
       } catch (emailErr) {
@@ -73,7 +80,10 @@ export const addDeliveryPartner = async (req, res) => {
         email: partner.email,
         vehicleType: partner.vehicleType,
         authStatus: partner.authStatus,
-        dutyStatus: partner.dutyStatus
+        dutyStatus: partner.dutyStatus,
+        aadharImage: partner.aadharImage,
+        licenseImage: partner.licenseImage,
+        rcImage: partner.rcImage,
       });
     } else {
       res.status(400).json({ message: 'Invalid delivery partner data' });

@@ -33,6 +33,8 @@
     "city": "City",
     "state": "State",
     "zip": "Pincode",
+    "delivery_radius": "Delivery Area Radius",
+    "delivery_radius_hint": "Products from this branch will only show to customers within this distance (KM).",
     "operational_status": "Branch Active?",
     "status_description": "Active branches will be shown in the app",
     "submit_add": "Save Branch",

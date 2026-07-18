@@ -4,6 +4,7 @@ import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
 import { getMyNotifications, markAsRead, markAllRead, deleteNotifications } from '../../admin/api/notificationApi';
 import { useStoreManagerAuth } from '../context/StoreManagerAuthContext';
+import { showDeleteConfirmation } from '../../../common/utils/alertUtils';
 
 const ManagerNotifications = () => {
     const { managerUser } = useStoreManagerAuth();
@@ -76,15 +77,10 @@ const ManagerNotifications = () => {
     };
 
     const handleDelete = async (idsToDelete) => {
-        const result = await Swal.fire({
-            title: 'Delete selected?',
-            text: 'Are you sure you want to delete these notifications?',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#ef4444',
-            cancelButtonColor: '#94a3b8',
-            confirmButtonText: 'Delete'
-        });
+        const result = await showDeleteConfirmation(
+            'Delete selected?',
+            'Are you sure you want to delete these notifications?'
+        );
 
         if (result.isConfirmed) {
             try {

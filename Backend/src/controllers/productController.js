@@ -13,6 +13,15 @@ import { syncLocationAssignment } from './physicalLocationController.js';
 import PhysicalLocation from '../models/PhysicalLocation.js';
 import XLSX from 'xlsx';
 
+/** Default product image (SG logo) when bulk upload has no image URL */
+const getDefaultProductImageUrl = () => {
+  if (process.env.DEFAULT_PRODUCT_IMAGE_URL) {
+    return process.env.DEFAULT_PRODUCT_IMAGE_URL;
+  }
+  const clientBase = (process.env.CLIENT_URL || 'http://localhost:5173').replace(/\/$/, '');
+  return `${clientBase}/assets/logo_fav.png`;
+};
+
 // Helper to determine status based on total stock
 const determineProductStatus = (branchStocks, vendorStock = null, vendorThreshold = null) => {
   let totalStock = 0;
@@ -2280,19 +2289,25 @@ const processBulkProductRows = async (rows, adminId, { rowLabel = (i) => `Row ${
       const existing = await Product.findOne({ sku: productData.sku });
 
       if (existing) {
-        await Product.findByIdAndUpdate(existing._id, {
-          $set: {
-            name: productData.name,
-            basePrice: productData.basePrice,
-            mrp: productData.mrp,
-            description: productData.description,
-            tags: productData.tags,
-            unitType: productData.unitType,
-            unitValue: productData.unitValue,
-            stock: productData.stock,
-            status: productData.status,
-          }
-        });
+        const updateSet = {
+          name: productData.name,
+          basePrice: productData.basePrice,
+          mrp: productData.mrp,
+          description: productData.description,
+          tags: productData.tags,
+          unitType: productData.unitType,
+          unitValue: productData.unitValue,
+          stock: productData.stock,
+          status: productData.status,
+        };
+        // If Excel provides an image, use it; if product has no image yet, set SG logo default
+        const rowImage = (row.image || '').toString().trim();
+        if (rowImage) {
+          updateSet.image = rowImage;
+        } else if (!existing.image) {
+          updateSet.image = getDefaultProductImageUrl();
+        }
+        await Product.findByIdAndUpdate(existing._id, { $set: updateSet });
         updated++;
       } else {
         const nameExists = await Product.findOne({ name: new RegExp(`^${productData.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i'), sku: { $ne: productData.sku } });
@@ -2303,7 +2318,7 @@ const processBulkProductRows = async (rows, adminId, { rowLabel = (i) => `Row ${
         }
 
         const qrCodeDataUrl = await QRCode.toDataURL(productData.sku, { margin: 1 }).catch(() => '');
-        const imageUrl = (row.image || '').toString().trim();
+        const imageUrl = (row.image || '').toString().trim() || getDefaultProductImageUrl();
         await Product.create({
           ...productData,
           image: imageUrl,

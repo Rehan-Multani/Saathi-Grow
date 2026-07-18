@@ -42,6 +42,25 @@ const deliveryPartnerSchema = new mongoose.Schema({
     profileImagePublicId: {
         type: String
     },
+    // KYC documents (Cloudinary URLs)
+    aadharImage: {
+        type: String
+    },
+    aadharImagePublicId: {
+        type: String
+    },
+    licenseImage: {
+        type: String
+    },
+    licenseImagePublicId: {
+        type: String
+    },
+    rcImage: {
+        type: String // optional
+    },
+    rcImagePublicId: {
+        type: String
+    },
     vehicleType: {
         type: String,
         enum: ['Bike', 'EV', 'Cycle', 'Other'],

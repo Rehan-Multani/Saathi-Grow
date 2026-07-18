@@ -3,6 +3,7 @@ import { Plus, Search, Edit2, Trash2, CheckCircle, Clock, XCircle, AlertCircle, 
 import { useNavigate } from 'react-router-dom';
 import { useVendor } from '../../contexts/VendorContext';
 import { formatCurrency } from '../../../../common/utils/formatUtils';
+import { showDeleteConfirmation } from '../../../../common/utils/alertUtils';
 
 const ProductList = () => {
     const { products } = useVendor();
@@ -297,7 +298,13 @@ const ProductList = () => {
                                                 <Edit2 size={16} />
                                             </button>
                                             <button
-                                                onClick={() => { if (window.confirm('Are you sure you want to delete this product?')) navigate(`delete/${product._id}`) }}
+                                                onClick={async () => {
+                                                    const result = await showDeleteConfirmation(
+                                                        'Delete product?',
+                                                        'Are you sure you want to delete this product?'
+                                                    );
+                                                    if (result.isConfirmed) navigate(`delete/${product._id}`);
+                                                }}
                                                 className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
                                                 title="Delete Product"
                                             >

@@ -9,7 +9,11 @@ export const requestOTP = async (phone) => {
 };
 
 export const registerDeliveryPartner = async (formData) => {
-  const { data } = await axios.post(`${API_URL}/delivery/auth/register`, formData);
+  // formData may be a plain object (legacy) or FormData (with document uploads)
+  const isFormData = typeof FormData !== 'undefined' && formData instanceof FormData;
+  const { data } = await axios.post(`${API_URL}/delivery/auth/register`, formData, {
+    headers: isFormData ? undefined : { 'Content-Type': 'application/json' },
+  });
   return data;
 };
 

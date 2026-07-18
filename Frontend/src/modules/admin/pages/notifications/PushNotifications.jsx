@@ -6,6 +6,7 @@ import PageInfoTooltip from '../../../../common/components/modals/PageInfoToolti
 import { pageInfoData } from '../../../../common/data/pageInfoData';
 import { sendNotification, getNotificationHistory, searchRecipients, deleteNotifications } from '../../api/notificationApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
+import { showDeleteConfirmation } from '../../../../common/utils/alertUtils';
 
 const PushNotifications = () => {
     const { t } = useTranslation('admin_notifications');
@@ -110,7 +111,11 @@ const PushNotifications = () => {
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm(t('push.delete_record_confirm'))) return;
+        const result = await showDeleteConfirmation(
+            t('push.delete_confirm_title', { defaultValue: 'Delete notification?' }),
+            t('push.delete_record_confirm')
+        );
+        if (!result.isConfirmed) return;
         try {
             const res = await deleteNotifications(adminUser.token, [id]);
             if (res.success) {

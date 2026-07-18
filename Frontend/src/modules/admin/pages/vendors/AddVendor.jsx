@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Save, Store, User, Phone, MapPin, Shield, CheckCircle2, ArrowLeft, Info, Camera, Loader2, Trash2 } from 'lucide-react';
+import { Save, Store, User, Phone, MapPin, Shield, CheckCircle2, ArrowLeft, Info, Camera, Loader2, Trash2, CircleDot } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { createVendor } from '../../api/vendorApi';
@@ -27,7 +27,8 @@ const AddVendor = () => {
             location: { type: 'Point', coordinates: [0, 0] }
         },
         description: '',
-        status: 'Pending'
+        status: 'Pending',
+        deliveryRadius: 20
     });
     const [logoFile, setLogoFile] = useState(null);
     const [logoPreview, setLogoPreview] = useState(null);
@@ -39,6 +40,9 @@ const AddVendor = () => {
             setFormData(prev => ({ ...prev, [name]: value.replace(/[^a-zA-Z\s]/g, '') }));
         } else if (name === 'phone') {
             setFormData(prev => ({ ...prev, [name]: value.replace(/\D/g, '').slice(0, 10) }));
+        } else if (name === 'deliveryRadius') {
+            const cleaned = value.replace(/\D/g, '').slice(0, 3);
+            setFormData(prev => ({ ...prev, [name]: cleaned === '' ? '' : Number(cleaned) }));
         } else {
             setFormData(prev => ({ ...prev, [name]: value }));
         }
@@ -285,6 +289,26 @@ const AddVendor = () => {
                                         className={`w-full border rounded-xl py-2.5 px-4 text-xs font-bold text-slate-700 outline-none transition-all shadow-sm ${errors.zipCode ? 'border-red-400 bg-red-50/30' : 'bg-white border-slate-200 focus:border-blue-500'}`}
                                     />
                                     <FieldError errKey="zipCode" />
+                                </div>
+
+                                <div className="space-y-1 md:col-span-2">
+                                    <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
+                                        <CircleDot size={14} /> {t('form.delivery_radius')}
+                                    </label>
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            name="deliveryRadius"
+                                            inputMode="numeric"
+                                            value={formData.deliveryRadius}
+                                            onChange={handleChange}
+                                            placeholder="20"
+                                            className="w-full bg-white border border-slate-200 rounded-xl py-2.5 px-4 pr-14 text-xs font-bold text-slate-700 outline-none focus:border-blue-500 transition-all shadow-sm"
+                                            required
+                                        />
+                                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400 uppercase">KM</span>
+                                    </div>
+                                    <p className="text-[10px] text-slate-400 font-medium ml-1">{t('form.delivery_radius_hint')}</p>
                                 </div>
                             </div>
                         </div>

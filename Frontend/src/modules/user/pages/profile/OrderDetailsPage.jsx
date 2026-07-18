@@ -30,6 +30,24 @@ const OrderDetailsPage = () => {
             const d = new Date(data.createdAt);
             const formattedDate = d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) + ", " + d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
 
+            const resolveWeight = (item) => {
+                if (item.selectedVariant?.value) return item.selectedVariant.value;
+                if (item.weight) return item.weight;
+                const p = item.product;
+                if (p?.unitValue != null && p.unitValue !== '') {
+                    return `${p.unitValue} ${p.unitType || ''}`.trim();
+                }
+                const match = String(item.name || '').match(/\(([^)]+)\)\s*$/);
+                return match?.[1]?.trim() || '';
+            };
+
+            const resolveDisplayName = (item, weight) => {
+                const raw = item.name || item.product?.name || 'Unknown Product';
+                if (!weight) return raw;
+                const escaped = weight.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                return raw.replace(new RegExp(`\\s*\\(${escaped}\\)\\s*$`, 'i'), '').trim() || raw;
+            };
+
             return {
                 id: data._id,
                 status: data.status,
@@ -40,12 +58,18 @@ const OrderDetailsPage = () => {
                 handlingFee: data.handlingFee || 0,
                 discountAmount: data.discountAmount || 0,
                 total: data.totalAmount,
-                items: data.items.map(item => ({
-                    name: item.name || item.product?.name || "Unknown Product",
-                    qty: item.quantity,
-                    price: '₹' + item.price,
-                    img: item.image || (item.product?.image && item.product.image) || 'https://via.placeholder.com/150'
-                }))
+                items: data.items.map(item => {
+                    const weight = resolveWeight(item);
+                    const name = resolveDisplayName(item, weight);
+                    return {
+                        name,
+                        fullName: item.name || item.product?.name || name,
+                        weight,
+                        qty: item.quantity,
+                        price: '₹' + item.price,
+                        img: item.image || (item.product?.image && item.product.image) || 'https://via.placeholder.com/150'
+                    };
+                })
             };
         };
 
@@ -432,8 +456,18 @@ const OrderDetailsPage = () => {
                                     <div className="w-11 h-11 rounded-xl bg-gray-50 dark:bg-white/10 p-1.5 border border-gray-100 dark:border-white/10 flex-shrink-0">
                                         <img src={item.img} alt={item.name} className="w-full h-full object-contain" />
                                     </div>
-                                    <div className="flex-1">
-                                        <div className="text-[12px] font-black text-gray-800 dark:text-gray-100 leading-tight">{item.name}</div>
+                                    <div className="flex-1 min-w-0">
+                                        <div
+                                            className="text-[12px] font-black text-gray-800 dark:text-gray-100 leading-tight truncate cursor-default"
+                                            title={item.fullName || item.name}
+                                        >
+                                            {item.name}
+                                        </div>
+                                        {item.weight ? (
+                                            <div className="text-[10px] text-gray-500 dark:text-gray-400 font-semibold mt-0.5 uppercase tracking-wide">
+                                                {item.weight}
+                                            </div>
+                                        ) : null}
                                         <div className="text-[10px] text-gray-400 font-bold mt-0.5">{item.qty} × {item.price}</div>
                                     </div>
                                 </div>

@@ -9,6 +9,7 @@ import { useAdminAuth } from '../../context/AdminAuthContext';
 import { toast } from 'react-toastify';
 import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
 import { pageInfoData } from '../../../../common/data/pageInfoData';
+import { showDeleteConfirmation } from '../../../../common/utils/alertUtils';
 
 const AllPromoCodes = () => {
     const { t } = useTranslation('admin_promocodes');
@@ -89,33 +90,26 @@ const AllPromoCodes = () => {
         }
     };
 
-    const handleDelete = (id, code) => {
-        Swal.fire({
-            title: t('messages.delete_confirm_title'),
-            text: t('messages.delete_confirm_msg', { code }),
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#ef4444',
-            cancelButtonColor: '#94a3b8',
-            confirmButtonText: 'Yes, Delete',
-            cancelButtonText: 'Cancel'
-        }).then(async (result) => {
-            if (result.isConfirmed) {
-                try {
-                    await deletePromoCode(adminUser.token, id);
-                    fetchPromos();
-                    Swal.fire({
-                        title: 'Deleted!',
-                        text: t('messages.delete_success'),
-                        icon: 'success',
-                        timer: 1500,
-                        showConfirmButton: false
-                    });
-                } catch (error) {
-                    toast.error(error.message || 'Delete failed');
-                }
+    const handleDelete = async (id, code) => {
+        const result = await showDeleteConfirmation(
+            t('messages.delete_confirm_title'),
+            t('messages.delete_confirm_msg', { code })
+        );
+        if (result.isConfirmed) {
+            try {
+                await deletePromoCode(adminUser.token, id);
+                fetchPromos();
+                Swal.fire({
+                    title: 'Deleted!',
+                    text: t('messages.delete_success'),
+                    icon: 'success',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+            } catch (error) {
+                toast.error(error.message || 'Delete failed');
             }
-        });
+        }
     };
 
     const renderStatusBadge = (p) => {

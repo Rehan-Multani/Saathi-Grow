@@ -52,6 +52,13 @@ const branchSchema = new mongoose.Schema({
   logo: {
     type: String,
     default: ''
+  },
+  /** Service area radius in KM — products only visible to users within this distance */
+  deliveryRadius: {
+    type: Number,
+    default: 20,
+    min: [1, 'Delivery radius must be at least 1 km'],
+    max: [200, 'Delivery radius cannot exceed 200 km']
   }
 }, {
   timestamps: true

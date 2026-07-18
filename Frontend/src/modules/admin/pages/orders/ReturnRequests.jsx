@@ -7,10 +7,11 @@ import {
 } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { toast } from 'react-toastify';
-import { getReturnRequests, handleReturnRequest, createReturnBatch } from '../../api/orderApi';
+import { getReturnRequests, handleReturnRequest, createReturnBatch, deleteOrder } from '../../api/orderApi';
 import { getDeliveryPartners } from '../../api/adminDeliveryApi';
 import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
 import { pageInfoData } from '../../../../common/data/pageInfoData';
+import { showDeleteConfirmation } from '../../../../common/utils/alertUtils';
 
 const statusColors = {
     Pending: 'bg-amber-50 text-amber-600 border-amber-100',
@@ -87,6 +88,23 @@ const ReturnRequests = () => {
     useEffect(() => { fetchReturns(); }, [page, activeTab, debouncedSearch]);
 
     useEffect(() => { setSelectedForBatch([]); }, [page, activeTab, debouncedSearch]);
+
+    const handleDeleteOrder = async (orderId) => {
+        const result = await showDeleteConfirmation(
+            t('actions.delete_confirm_title'),
+            t('actions.delete_warning', { defaultValue: 'This action cannot be undone.' })
+        );
+        if (result.isConfirmed) {
+            try {
+                await deleteOrder(orderId);
+                toast.success(t('actions.delete_success'));
+                if (selectedRequest?._id === orderId) setSelectedRequest(null);
+                fetchReturns();
+            } catch (error) {
+                toast.error(error.response?.data?.message || t('common:error_occurred'));
+            }
+        }
+    };
 
     const handleApproval = async (id, action) => {
         let reason = null;
@@ -262,8 +280,8 @@ const ReturnRequests = () => {
                                         <td className="px-6 py-4 text-right font-bold text-slate-900">₹{r.totalAmount?.toLocaleString()}</td>
                                         <td className="px-6 py-4 text-center">
                                             <div className="flex justify-center gap-2">
-                                                <button onClick={() => setSelectedRequest(r)} className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 transition-colors"><Eye size={16} /></button>
-                                                <button className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"><Trash2 size={18} /></button>
+                                                <button onClick={() => setSelectedRequest(r)} className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 transition-colors" title="View Details"><Eye size={16} /></button>
+                                                <button onClick={() => handleDeleteOrder(r._id)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all" title="Delete Order"><Trash2 size={18} /></button>
                                             </div>
                                         </td>
                                     </tr>

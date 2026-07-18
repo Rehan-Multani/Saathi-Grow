@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Save, X, ArrowLeft, Upload, Store, Mail, Phone, MapPin, Shield, CheckCircle2, Hash, Image as ImageIcon, Loader2, Info } from 'lucide-react';
+import { Save, X, ArrowLeft, Upload, Store, Mail, Phone, MapPin, Shield, CheckCircle2, Hash, Image as ImageIcon, Loader2, Info, CircleDot } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { createBranch } from '../../api/branchApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
@@ -20,6 +20,7 @@ const AddBranch = () => {
         code: '',
         phone: '',
         email: '',
+        deliveryRadius: 20,
         address: {
             street: '',
             city: '',
@@ -266,6 +267,26 @@ const AddBranch = () => {
                                             onChange={(e) => setFormData({...formData, address: {...formData.address, zipCode: e.target.value.replace(/\D/g, '')}})}
                                             required
                                         />
+                                    </div>
+                                    <div className="md:col-span-2 space-y-1.5">
+                                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-tight ml-1 flex items-center gap-1.5">
+                                            <CircleDot size={12} /> {t('form.delivery_radius')}
+                                        </label>
+                                        <div className="relative">
+                                            <input
+                                                type="text"
+                                                inputMode="numeric"
+                                                className="w-full px-4 py-2.5 pr-14 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 transition-all text-sm font-bold text-slate-700 shadow-sm"
+                                                value={formData.deliveryRadius}
+                                                onChange={(e) => {
+                                                    const cleaned = e.target.value.replace(/\D/g, '').slice(0, 3);
+                                                    setFormData({ ...formData, deliveryRadius: cleaned === '' ? '' : Number(cleaned) });
+                                                }}
+                                                required
+                                            />
+                                            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400 uppercase">KM</span>
+                                        </div>
+                                        <p className="text-[9px] text-slate-400 font-medium ml-1">{t('form.delivery_radius_hint')}</p>
                                     </div>
                                 </div>
                             </div>

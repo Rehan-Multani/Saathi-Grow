@@ -26,6 +26,12 @@ export const fetchProducts = async (params = {}) => {
   if (!normalizedParams.storeType && normalizedParams.activeStoreType) {
     normalizedParams.storeType = normalizedParams.activeStoreType;
   }
+
+  // No in-range store → do not show products from other areas
+  if (!normalizedParams.storeId && !normalizedParams.skipStoreScope) {
+    return { products: [], page: 1, pages: 0, total: 0 };
+  }
+
   if (normalizedParams.storeId && !normalizedParams.hardFilter) {
     normalizedParams.hardFilter = 'true';
   }
@@ -33,7 +39,7 @@ export const fetchProducts = async (params = {}) => {
   // Sanitize params: remove undefined, null, or empty string values
   const sanitizedParams = Object.keys(normalizedParams).reduce((acc, key) => {
     const val = normalizedParams[key];
-    if (val !== undefined && val !== null && val !== '') {
+    if (val !== undefined && val !== null && val !== '' && key !== 'skipStoreScope') {
       acc[key] = val;
     }
     return acc;

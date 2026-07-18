@@ -8,7 +8,7 @@ import { sendPushNotification } from '../services/notificationService.js';
 // @access  Private (Admin)
 export const createBranch = async (req, res) => {
   try {
-    let { name, code, address, phone, email } = req.body;
+    let { name, code, address, phone, email, deliveryRadius } = req.body;
     const logo = req.file ? req.file.path : '';
 
     // Handle parsed Form Data if address is a string
@@ -42,13 +42,18 @@ export const createBranch = async (req, res) => {
       }
     }
 
+    const parsedRadius = deliveryRadius !== undefined && deliveryRadius !== ''
+      ? Number(deliveryRadius)
+      : undefined;
+
     const branch = await Branch.create({
       name,
       code,
       address: finalAddress,
       phone,
       email,
-      logo
+      logo,
+      ...(Number.isFinite(parsedRadius) && parsedRadius > 0 ? { deliveryRadius: parsedRadius } : {})
     });
 
     res.status(201).json(branch);
@@ -178,7 +183,7 @@ export const updateMyBranch = async (req, res) => {
 // @access  Private (Admin)
 export const updateBranch = async (req, res) => {
   try {
-    let { name, code, address, phone, email, isActive } = req.body;
+    let { name, code, address, phone, email, isActive, deliveryRadius } = req.body;
     const logo = req.file ? req.file.path : null;
 
     // Handle parsed Form Data if address is a string
@@ -209,6 +214,13 @@ export const updateBranch = async (req, res) => {
       branch.email = email || branch.email;
       branch.isActive = isActive ?? branch.isActive;
       if (logo) branch.logo = logo;
+
+      if (deliveryRadius !== undefined && deliveryRadius !== '') {
+        const parsedRadius = Number(deliveryRadius);
+        if (Number.isFinite(parsedRadius) && parsedRadius > 0) {
+          branch.deliveryRadius = parsedRadius;
+        }
+      }
 
       const updatedBranch = await branch.save();
       res.json(updatedBranch);

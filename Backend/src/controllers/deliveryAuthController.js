@@ -3,6 +3,38 @@ import generateToken from '../utils/generateToken.js';
 import smsService from '../utils/smsService.js';
 import { cloudinary } from '../config/cloudinary.js';
 
+const pickFile = (files, field) => {
+  if (files?.[field]?.[0]) return files[field][0];
+  return null;
+};
+
+const applyUploadedDocs = async (partner, files, singleFile) => {
+  const profileFile = pickFile(files, 'profileImage') || (singleFile || null);
+  if (profileFile) {
+    if (partner.profileImagePublicId) {
+      try { await cloudinary.uploader.destroy(partner.profileImagePublicId); } catch (_) { /* ignore */ }
+    }
+    partner.profileImage = profileFile.path;
+    partner.profileImagePublicId = profileFile.filename;
+  }
+
+  const docMap = [
+    { field: 'aadhar', url: 'aadharImage', publicId: 'aadharImagePublicId' },
+    { field: 'license', url: 'licenseImage', publicId: 'licenseImagePublicId' },
+    { field: 'rc', url: 'rcImage', publicId: 'rcImagePublicId' },
+  ];
+
+  for (const { field, url, publicId } of docMap) {
+    const file = pickFile(files, field);
+    if (!file) continue;
+    if (partner[publicId]) {
+      try { await cloudinary.uploader.destroy(partner[publicId]); } catch (_) { /* ignore */ }
+    }
+    partner[url] = file.path;
+    partner[publicId] = file.filename;
+  }
+};
+
 // @desc    Register a new Delivery Partner (self-signup, pending admin approval)
 // @route   POST /api/delivery/auth/register
 // @access  Public
@@ -18,12 +50,18 @@ export const registerPartner = async (req, res) => {
       return res.status(400).json({ message: 'Enter a valid 10-digit phone number' });
     }
 
+    const aadharFile = pickFile(req.files, 'aadhar');
+    const licenseFile = pickFile(req.files, 'license');
+    if (!aadharFile || !licenseFile) {
+      return res.status(400).json({ message: 'Aadhar card and Driving License uploads are required' });
+    }
+
     const existing = await DeliveryPartner.findOne({ phone });
     if (existing) {
       return res.status(409).json({ message: 'An account with this phone number already exists' });
     }
 
-    const partner = await DeliveryPartner.create({
+    const partnerData = {
       name: name.trim(),
       phone,
       email: email?.trim().toLowerCase() || undefined,
@@ -32,7 +70,25 @@ export const registerPartner = async (req, res) => {
       authStatus: 'Unverified',
       dutyStatus: 'Offline',
       assignmentStatus: 'Free',
-    });
+      aadharImage: aadharFile.path,
+      aadharImagePublicId: aadharFile.filename,
+      licenseImage: licenseFile.path,
+      licenseImagePublicId: licenseFile.filename,
+    };
+
+    const rcFile = pickFile(req.files, 'rc');
+    if (rcFile) {
+      partnerData.rcImage = rcFile.path;
+      partnerData.rcImagePublicId = rcFile.filename;
+    }
+
+    const profileFile = pickFile(req.files, 'profileImage');
+    if (profileFile) {
+      partnerData.profileImage = profileFile.path;
+      partnerData.profileImagePublicId = profileFile.filename;
+    }
+
+    const partner = await DeliveryPartner.create(partnerData);
 
     res.status(201).json({
       success: true,
@@ -72,19 +128,16 @@ export const requestOTP = async (req, res) => {
       return res.status(403).json({ message: `Your account is ${partner.authStatus}. Please contact support at support@saathigro.in.` });
     }
 
-    // TEST NUMBERS - Bypass OTP with default 123456
     const testNumbers = ['9199818320', '9009925021', '6261096283', '9752275626', '7047716600', '9685974247', '8770620342'];
     const isTestNumber = testNumbers.includes(phone);
 
-    // Generate 6-digit OTP
     const otp = isTestNumber ? '123456' : Math.floor(100000 + Math.random() * 900000).toString();
-    const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes expiry
+    const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
 
     partner.otp = otp;
     partner.otpExpires = otpExpires;
     await partner.save();
 
-    // Send SMS only for non-test numbers
     if (!isTestNumber) {
       await smsService.sendOTP(phone, otp);
     } else {
@@ -124,7 +177,6 @@ export const verifyOTP = async (req, res) => {
     const isTestNumber = testNumbers.includes(phone);
 
     if (isTestNumber && otp === '123456') {
-      // Test number bypass
       console.log(`🧪 Test Partner Login: ${phone}`);
     } else {
       if (!partner.otp || partner.otp !== otp) {
@@ -218,6 +270,9 @@ export const changePassword = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+
+// @desc    Update partner profile (including KYC docs)
+// @route   PUT /api/delivery/auth/profile
 // @access  Private (Partner)
 export const updateProfile = async (req, res) => {
   try {
@@ -227,14 +282,9 @@ export const updateProfile = async (req, res) => {
       partner.name = req.body.name || partner.name;
       partner.email = req.body.email || partner.email;
       partner.vehicleNumber = req.body.vehicleNumber || partner.vehicleNumber;
+      if (req.body.vehicleType) partner.vehicleType = req.body.vehicleType;
 
-      if (req.file) {
-        if (partner.profileImagePublicId) {
-          await cloudinary.uploader.destroy(partner.profileImagePublicId);
-        }
-        partner.profileImage = req.file.path;
-        partner.profileImagePublicId = req.file.filename;
-      }
+      await applyUploadedDocs(partner, req.files, req.file);
 
       const updatedPartner = await partner.save();
       res.json({
@@ -261,10 +311,16 @@ export const deleteProfile = async (req, res) => {
       return res.status(404).json({ message: 'Delivery Partner not found' });
     }
 
-    // Delete profile image from cloudinary if exists
-    if (partner.profileImagePublicId) {
+    const publicIds = [
+      partner.profileImagePublicId,
+      partner.aadharImagePublicId,
+      partner.licenseImagePublicId,
+      partner.rcImagePublicId,
+    ].filter(Boolean);
+
+    for (const publicId of publicIds) {
       try {
-        await cloudinary.uploader.destroy(partner.profileImagePublicId);
+        await cloudinary.uploader.destroy(publicId);
       } catch (err) {
         console.error('Error deleting image from Cloudinary:', err);
       }
@@ -281,4 +337,3 @@ export const deleteProfile = async (req, res) => {
     res.status(500).json({ message: 'Server error deleting account' });
   }
 };
-

@@ -7,6 +7,7 @@ import Swal from 'sweetalert2';
 import { toast } from 'react-toastify';
 import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
 import { pageInfoData } from '../../../../common/data/pageInfoData';
+import { showDeleteConfirmation } from '../../../../common/utils/alertUtils';
 
 const OrderStatusBadge = ({ status, t }) => {
     const variants = {
@@ -182,12 +183,10 @@ const POSHistory = () => {
     };
 
     const handleDeleteOrder = async (orderId) => {
-        const result = await Swal.fire({
-            title: t('actions.delete_confirm_title'),
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#ef4444',
-        });
+        const result = await showDeleteConfirmation(
+            t('actions.delete_confirm_title'),
+            t('actions.delete_warning', { defaultValue: 'This action cannot be undone.' })
+        );
         if (result.isConfirmed) {
             try {
                 await deleteOrder(orderId);
@@ -341,7 +340,7 @@ const POSHistory = () => {
                                             <div className="flex justify-center gap-2">
                                                 <button onClick={() => handleShowDetails(order)} className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-900 transition-colors" title="View Details"><Eye size={16} /></button>
                                                 <button onClick={() => handlePrintReceipt(order)} className="p-2 hover:bg-blue-50 rounded-lg text-slate-400 hover:text-blue-600 transition-colors" title="Print Bill"><Printer size={16} /></button>
-                                                <button className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"><Trash2 size={18} /></button>
+                                                <button onClick={() => handleDeleteOrder(order._id)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all" title="Delete Order"><Trash2 size={18} /></button>
                                             </div>
                                         </td>
                                     </tr>

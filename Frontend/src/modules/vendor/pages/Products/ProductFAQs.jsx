@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Search, Send, Clock, X, CheckCircle2, Trash2, MoreHorizontal, MessageCircle, Edit, Archive } from 'lucide-react';
+import { showDeleteConfirmation } from '../../../../common/utils/alertUtils';
 
 const ProductFAQs = () => {
     const [activeTab, setActiveTab] = useState('all');
@@ -29,7 +30,15 @@ const ProductFAQs = () => {
         return matchesTab && matchesSearch;
     });
 
-    const confirmDelete = (id) => {
+    const confirmDelete = async (id) => {
+        const result = await showDeleteConfirmation(
+            'Delete FAQ?',
+            'Are you sure you want to delete this FAQ?'
+        );
+        if (!result.isConfirmed) {
+            setDeletingId(null);
+            return;
+        }
         setFaqs(faqs.filter(f => f.id !== id));
         setDeletingId(null);
         setOpenMenuId(null);

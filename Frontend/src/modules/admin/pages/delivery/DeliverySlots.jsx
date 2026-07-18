@@ -3,6 +3,7 @@ import { Clock, Plus, Edit, Trash2, Calendar, LayoutGrid, ArrowLeft, Loader2, Sa
 import { useTranslation } from 'react-i18next';
 import Swal from 'sweetalert2';
 import * as api from '../../api/deliverySlotApi';
+import { showDeleteConfirmation } from '../../../../common/utils/alertUtils';
 
 const DeliverySlots = () => {
     const { t } = useTranslation('admin_delivery');
@@ -88,14 +89,10 @@ const DeliverySlots = () => {
     };
 
     const handleDelete = async (id) => {
-        const result = await Swal.fire({
-            title: 'Delete this time window?',
-            text: "Customers won't see this slot anymore.",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#ef4444',
-            confirmButtonText: 'Delete Slot'
-        });
+        const result = await showDeleteConfirmation(
+            'Delete this time window?',
+            "Customers won't see this slot anymore."
+        );
 
         if (result.isConfirmed) {
             try {

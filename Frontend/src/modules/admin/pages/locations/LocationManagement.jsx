@@ -10,7 +10,7 @@ import {
   deleteAdminLocation
 } from '../../api/physicalLocationApi';
 import { toast } from 'react-toastify';
-import Swal from 'sweetalert2';
+import { showDeleteConfirmation } from '../../../../common/utils/alertUtils';
 
 const LocationManagement = () => {
   const { adminUser } = useAdminAuth();
@@ -92,15 +92,15 @@ const LocationManagement = () => {
   };
 
   const handleDelete = async (loc) => {
-    const result = await Swal.fire({
-      title: 'Delete Location?',
-      text: loc.assignedProduct ? 'This location is occupied. Unassign the product first.' : `"${loc.label}" will be permanently deleted.`,
-      icon: loc.assignedProduct ? 'error' : 'warning',
-      confirmButtonText: loc.assignedProduct ? 'OK' : 'Delete',
-      showCancelButton: !loc.assignedProduct,
-      confirmButtonColor: loc.assignedProduct ? '#3b82f6' : '#ef4444'
-    });
-    if (!result.isConfirmed || loc.assignedProduct) return;
+    if (loc.assignedProduct) {
+      toast.error('This location is occupied. Unassign the product first.');
+      return;
+    }
+    const result = await showDeleteConfirmation(
+      'Delete Location?',
+      `"${loc.label}" will be permanently deleted.`
+    );
+    if (!result.isConfirmed) return;
     try {
       await deleteAdminLocation(adminUser.token, loc._id);
       toast.success('Location deleted');

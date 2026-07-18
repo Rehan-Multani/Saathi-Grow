@@ -157,6 +157,8 @@
     "street_placeholder": "Street / Full Address",
     "city": "City",
     "city_placeholder": "City",
+    "delivery_radius": "Delivery Area Radius",
+    "delivery_radius_hint": "Products from this store will only show to customers within this distance (KM).",
     "logo": "Store Logo",
     "logo_upload": "Upload Logo",
     "status": "Status",

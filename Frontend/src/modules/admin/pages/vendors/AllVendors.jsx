@@ -5,12 +5,12 @@ import { useTranslation } from 'react-i18next';
 import { getVendors, deleteVendor, updateVendor } from '../../api/vendorApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { toast } from 'react-toastify';
-import Swal from 'sweetalert2';
 import VendorDetailsModal from '../../components/vendors/VendorDetailsModal';
 import VendorEditModal from '../../components/vendors/VendorEditModal';
 import ContactVendorModal from '../../components/vendors/ContactVendorModal';
 import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
 import { pageInfoData } from '../../../../common/data/pageInfoData';
+import { showDeleteConfirmation } from '../../../../common/utils/alertUtils';
 
 const AllVendors = () => {
     const { t } = useTranslation('admin_vendors');
@@ -58,31 +58,20 @@ const AllVendors = () => {
         }
     };
 
-    const handleDelete = (id) => {
-        Swal.fire({
-            title: t('all_vendors.alerts.delete_title', { defaultValue: 'Delete Vendor?' }),
-            text: t('all_vendors.alerts.delete_text', { defaultValue: 'This will remove the vendor from the list.' }),
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#ef4444',
-            cancelButtonColor: '#94a3b8',
-            confirmButtonText: t('form.delete', { defaultValue: 'Yes, delete' }),
-            customClass: {
-                popup: 'rounded-3xl border-none shadow-2xl',
-                confirmButton: 'rounded-xl px-6 py-2.5 font-bold uppercase text-xs tracking-widest',
-                cancelButton: 'rounded-xl px-6 py-2.5 font-bold uppercase text-xs tracking-widest'
+    const handleDelete = async (id) => {
+        const result = await showDeleteConfirmation(
+            t('all_vendors.alerts.delete_title', { defaultValue: 'Delete Vendor?' }),
+            t('all_vendors.alerts.delete_text', { defaultValue: 'This will remove the vendor from the list.' })
+        );
+        if (result.isConfirmed) {
+            try {
+                await deleteVendor(adminUser.token, id);
+                toast.success(t('all_vendors.alerts.delete_success', { defaultValue: 'Vendor deleted successfully' }));
+                fetchVendors();
+            } catch (error) {
+                toast.error('Failed to delete vendor');
             }
-        }).then(async (result) => {
-            if (result.isConfirmed) {
-                try {
-                    await deleteVendor(adminUser.token, id);
-                    toast.success(t('all_vendors.alerts.delete_success', { defaultValue: 'Vendor deleted successfully' }));
-                    fetchVendors();
-                } catch (error) {
-                    toast.error('Failed to delete vendor');
-                }
-            }
-        });
+        }
     };
 
     const filteredVendors = vendors.filter(v => 

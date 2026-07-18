@@ -171,8 +171,25 @@ const ProfileSettings = () => {
         }
     };
 
+    const handleDocUpload = async (field, file) => {
+        if (!file) return;
+        const formData = new FormData();
+        formData.append(field, file);
+        setUploading(true);
+        try {
+            await updateDeliveryProfile(token, formData);
+            await fetchProfile();
+            toast.success('Document updated!');
+        } catch (error) {
+            toast.error(error?.response?.data?.message || 'Upload failed');
+        } finally {
+            setUploading(false);
+        }
+    };
+
     const menuItems = [
         { id: 'personal', icon: <User size={18} />, label: 'Personal information', sub: `${profile?.name || 'N/A'}, ${profile?.email || 'No email'}`, color: 'text-[#028A0F]' },
+        { id: 'documents', icon: <FileText size={18} />, label: 'Documents', sub: 'Aadhar, License & RC', color: 'text-indigo-500' },
         { id: 'vehicle', icon: <Truck size={18} />, label: 'Vehicle details', sub: `${profile?.vehicleType || 'N/A'} - ${profile?.vehicleNumber || 'Pending'}`, color: 'text-orange-500' },
         { id: 'bank', icon: <CreditCard size={18} />, label: 'Bank details', sub: profile?.bankDetails?.bankName ? `${profile.bankDetails.bankName} - **** ${profile.bankDetails.accountNumber?.slice(-4)}` : 'Bank details not added', color: 'text-emerald-500' },
         { id: 'history', icon: <History size={18} />, label: 'Order history', sub: 'View completed missions', color: 'text-blue-500', isLink: true, path: '/delivery/history' },
@@ -240,6 +257,48 @@ const ProfileSettings = () => {
                                 <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">{field.label}</p>
                                 <p className="text-sm font-medium text-slate-800 dark:text-zinc-100">{field.value || 'N/A'}</p>
                             </div>
+                        </div>
+                    ))}
+                </div>
+            ),
+            documents: (
+                <div className="space-y-4">
+                    <p className="text-[10px] text-slate-400 font-medium">Upload clear photos of your documents. Admin uses these for verification.</p>
+                    {[
+                        { key: 'aadhar', label: 'Aadhar Card', url: profile?.aadharImage, required: true },
+                        { key: 'license', label: 'Driving License', url: profile?.licenseImage, required: true },
+                        { key: 'rc', label: 'RC Card', url: profile?.rcImage, required: false },
+                    ].map((doc) => (
+                        <div key={doc.key} className="p-3 rounded-2xl border border-slate-100 dark:border-zinc-800 bg-slate-50/50 dark:bg-zinc-900/30 space-y-3">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm font-bold text-slate-800 dark:text-zinc-100">
+                                        {doc.label} {doc.required && <span className="text-rose-500">*</span>}
+                                    </p>
+                                    <p className="text-[9px] font-bold uppercase tracking-tighter text-slate-400">
+                                        {doc.url ? 'Uploaded' : 'Not uploaded'}
+                                    </p>
+                                </div>
+                                <label className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-white bg-[#028A0F] rounded-xl cursor-pointer hover:bg-[#026b0c] transition-all">
+                                    {uploading ? '...' : (doc.url ? 'Replace' : 'Upload')}
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        className="hidden"
+                                        disabled={uploading}
+                                        onChange={(e) => handleDocUpload(doc.key, e.target.files?.[0])}
+                                    />
+                                </label>
+                            </div>
+                            {doc.url ? (
+                                <a href={doc.url} target="_blank" rel="noopener noreferrer" className="block">
+                                    <img src={doc.url} alt={doc.label} className="w-full h-36 object-cover rounded-xl border border-slate-200 dark:border-zinc-700" />
+                                </a>
+                            ) : (
+                                <div className="h-24 rounded-xl border border-dashed border-slate-200 dark:border-zinc-700 flex items-center justify-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                    No image
+                                </div>
+                            )}
                         </div>
                     ))}
                 </div>

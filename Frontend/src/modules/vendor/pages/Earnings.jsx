@@ -8,6 +8,7 @@ import { useVendor } from '../contexts/VendorContext';
 import { formatCurrency } from '../../../common/utils/formatUtils';
 import * as vendorWalletApi from '../api/vendorWalletApi';
 import { toast } from 'react-toastify';
+import { showDeleteConfirmation } from '../../../common/utils/alertUtils';
 
 // ── Helpers ──────────────────────────────────────────────────────────────
 const STATUS_CONFIG = {
@@ -194,7 +195,11 @@ const Earnings = () => {
     };
 
     const handleBankDelete = async () => {
-        if (!window.confirm('Remove your saved bank account?')) return;
+        const result = await showDeleteConfirmation(
+            'Remove bank account?',
+            'Remove your saved bank account?'
+        );
+        if (!result.isConfirmed) return;
         try {
             await vendorWalletApi.deleteBankAccount(vendor.token);
             setBankAccount(null);

@@ -17,6 +17,13 @@ const orderSchema = new mongoose.Schema({
         price: Number,
         name: String,
         image: String,
+        weight: String,
+        selectedVariant: {
+            type: { type: String, default: '' },
+            value: { type: String, default: '' },
+            price: Number,
+            stock: Number
+        },
         physicalLocation: { type: String, default: null } // Shelf/rack label for warehouse picking
     }],
     subTotal: {

@@ -157,6 +157,8 @@
     "street_placeholder": "गली या पूरा पता लिखें",
     "city": "शहर",
     "city_placeholder": "अपना शहर लिखें",
+    "delivery_radius": "डिलीवरी एरिया रेडियस",
+    "delivery_radius_hint": "इस स्टोर के प्रोडक्ट्स सिर्फ इसी दूरी (KM) के अंदर के कस्टमर को दिखेंगे।",
     "logo": "लोगो (Logo)",
     "logo_upload": "लोगो अपलोड करें",
     "status": "स्थिति (Status)",

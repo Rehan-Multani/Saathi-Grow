@@ -9,6 +9,7 @@ import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
 import { API_BASE_URL } from '../../../config/apiConfig';
 import { useStaffAuth } from '../context/StaffAuthContext';
+import { showDeleteConfirmation } from '../../../common/utils/alertUtils';
 
 const Notifications = () => {
     const { staffUser } = useStaffAuth();
@@ -78,15 +79,10 @@ const Notifications = () => {
 
     const handleBulkDelete = async () => {
         if (selectedIds.length === 0) return;
-        const result = await Swal.fire({
-            title: 'Wipe Logs?',
-            text: `Clear ${selectedIds.length} items?`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#ef4444',
-            confirmButtonText: 'Yes, Wipe',
-            customClass: { popup: 'rounded-[1.5rem]' }
-        });
+        const result = await showDeleteConfirmation(
+            'Wipe Logs?',
+            `Clear ${selectedIds.length} items?`
+        );
         if (!result.isConfirmed) return;
         setUpdating(true);
         try {

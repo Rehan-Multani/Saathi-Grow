@@ -54,9 +54,9 @@
   "messages": {
     "create_success": "Record created successfully!",
     "update_success": "Record updated successfully!",
-    "delete_success": "Record removed from catalog",
-    "delete_confirm_title": "Are you sure?",
-    "delete_confirm_text": "Do you want to delete '{{name}}'? This cannot be undone.",
+    "delete_success": "Category and related data removed",
+    "delete_confirm_title": "Delete category?",
+    "delete_confirm_text": "Deleting '{{name}}' will also permanently remove its subcategories, linked brands, and products. This cannot be undone.",
     "name_required": "Please provide a valid name",
     "image_size_error": "Image size should be less than 2MB",
     "load_failed": "Failed to load records from server"

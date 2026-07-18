@@ -340,12 +340,40 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-50">
-                                        {displayOrder.items?.map((item, i) => (
+                                        {displayOrder.items?.map((item, i) => {
+                                            const weight =
+                                                item.selectedVariant?.value ||
+                                                item.weight ||
+                                                (item.product?.unitValue != null
+                                                    ? `${item.product.unitValue} ${item.product.unitType || ''}`.trim()
+                                                    : '') ||
+                                                (String(item.name || '').match(/\(([^)]+)\)\s*$/)?.[1] || '');
+                                            const displayName = weight
+                                                ? (item.name || '').replace(
+                                                    new RegExp(`\\s*\\(${weight.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\)\\s*$`, 'i'),
+                                                    ''
+                                                  ).trim() || item.name
+                                                : item.name;
+                                            const fullLabel = [item.name, weight].filter(Boolean).join(' · ');
+
+                                            return (
                                             <tr key={i}>
                                                 <td className="px-4 py-3">
-                                                    <div className="flex items-center gap-2">
-                                                        <img src={item.image || 'https://placehold.co/40'} className="w-8 h-8 rounded border border-slate-100 object-cover" />
-                                                        <div className="font-bold text-slate-700 truncate max-w-[150px]">{item.name}</div>
+                                                    <div className="flex items-center gap-2 min-w-0">
+                                                        <img src={item.image || 'https://placehold.co/40'} className="w-8 h-8 rounded border border-slate-100 object-cover shrink-0" />
+                                                        <div className="min-w-0 max-w-[180px]">
+                                                            <div
+                                                                className="font-bold text-slate-700 truncate cursor-default"
+                                                                title={fullLabel || displayName}
+                                                            >
+                                                                {displayName}
+                                                            </div>
+                                                            {weight ? (
+                                                                <div className="text-[10px] text-slate-400 font-semibold mt-0.5 uppercase tracking-wide">
+                                                                    {weight}
+                                                                </div>
+                                                            ) : null}
+                                                        </div>
                                                     </div>
                                                 </td>
                                                 <td className="px-4 py-3 text-center print:hidden">
@@ -363,7 +391,8 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
                                                 <td className="px-4 py-3 text-center font-bold text-slate-900">{item.quantity}</td>
                                                 <td className="px-4 py-3 text-right font-bold text-slate-900">₹{item.price * item.quantity}</td>
                                             </tr>
-                                        ))}
+                                            );
+                                        })}
                                     </tbody>
                                 </table>
                             </div>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { 
-    X, Shield, User, Smartphone, BadgeCheck, AlertCircle, Save, Loader2, Info, RefreshCw
+    X, Shield, User, Smartphone, BadgeCheck, AlertCircle, Save, Loader2, Info, RefreshCw, FileText, ExternalLink
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -30,18 +30,22 @@ const DeliveryPartnerEditModal = ({ show, onHide, partner, onSave }) => {
 
     if (!show || !partner) return null;
 
+    const documents = [
+        { label: 'Aadhar Card', url: partner.aadharImage },
+        { label: 'Driving License', url: partner.licenseImage },
+        { label: 'RC Card', url: partner.rcImage },
+    ];
+
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            {/* Backdrop */}
             <div 
                 className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" 
                 onClick={onHide}
             />
 
-            {/* Modal Content */}
-            <div className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200 animate-in zoom-in duration-300">
+            <div className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200 animate-in zoom-in duration-300 max-h-[90vh] flex flex-col">
                 {/* Header */}
-                <div className="p-6 border-b border-slate-50 bg-slate-50/30 flex justify-between items-center">
+                <div className="p-6 border-b border-slate-50 bg-slate-50/30 flex justify-between items-center shrink-0">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100 shadow-sm">
                             <Shield size={20} />
@@ -59,12 +63,12 @@ const DeliveryPartnerEditModal = ({ show, onHide, partner, onSave }) => {
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-8 space-y-8">
+                <form onSubmit={handleSubmit} className="p-8 space-y-8 overflow-y-auto">
                     {/* Rider Preview */}
                     <div className="flex items-center gap-4 bg-slate-50/50 p-5 rounded-2xl border border-slate-100 ring-4 ring-white shadow-inner">
-                        <div className="w-14 h-14 rounded-2xl bg-white border border-slate-200 p-1 overflow-hidden shadow-sm">
+                        <div className="w-14 h-14 rounded-2xl bg-white border border-slate-200 p-1 overflow-hidden shadow-sm shrink-0">
                             {partner.profileImage ? (
-                                <img src={partner.profileImage} className="w-full h-full object-cover rounded-xl" />
+                                <img src={partner.profileImage} className="w-full h-full object-cover rounded-xl" alt="" />
                             ) : (
                                 <div className="w-full h-full flex items-center justify-center text-slate-200 font-bold text-xl">{partner.name.charAt(0)}</div>
                             )}
@@ -76,6 +80,37 @@ const DeliveryPartnerEditModal = ({ show, onHide, partner, onSave }) => {
                                 <div className="w-1 h-1 bg-slate-300 rounded-full"></div>
                                 <span className="text-[10px] text-slate-400 font-bold tracking-tight">{partner.phone}</span>
                             </div>
+                        </div>
+                    </div>
+
+                    {/* Submitted Documents */}
+                    <div className="space-y-3">
+                        <div className="flex items-center gap-2 text-[11px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+                            <FileText size={12} /> Submitted Documents
+                        </div>
+                        <div className="grid grid-cols-3 gap-3">
+                            {documents.map((doc) => (
+                                <div key={doc.label} className="space-y-1.5">
+                                    <span className="block text-[9px] font-bold text-slate-400 uppercase tracking-widest text-center">{doc.label}</span>
+                                    {doc.url ? (
+                                        <a
+                                            href={doc.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="block relative group rounded-xl overflow-hidden border border-slate-200 hover:border-blue-400 transition-all bg-slate-50"
+                                        >
+                                            <img src={doc.url} alt={doc.label} className="w-full h-24 object-cover" />
+                                            <div className="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/40 transition-all flex items-center justify-center">
+                                                <ExternalLink size={14} className="text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                                            </div>
+                                        </a>
+                                    ) : (
+                                        <div className="h-24 rounded-xl border border-dashed border-slate-200 bg-slate-50 flex items-center justify-center text-[8px] font-bold text-slate-300 uppercase tracking-widest text-center px-1">
+                                            Not uploaded
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
                         </div>
                     </div>
 

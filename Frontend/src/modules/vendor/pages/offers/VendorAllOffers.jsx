@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useVendor } from '../../contexts/VendorContext';
 import { getVendorOffers, deleteVendorOffer } from '../../api/vendorOfferApi';
+import { showDeleteConfirmation } from '../../../../common/utils/alertUtils';
 
 const VendorAllOffers = () => {
   const navigate = useNavigate();
@@ -28,7 +29,11 @@ const VendorAllOffers = () => {
   useEffect(() => { fetchData(); }, [fetchData]);
 
   const handleDelete = async (id, title) => {
-    if (!window.confirm(`Remove banner offer "${title}"? This action cannot be undone.`)) return;
+    const result = await showDeleteConfirmation(
+      'Delete offer?',
+      `Remove banner offer "${title}"? This action cannot be undone.`
+    );
+    if (!result.isConfirmed) return;
     try {
       await deleteVendorOffer(token, id);
       setOffers(prev => prev.filter(o => o._id !== id));

@@ -30,9 +30,12 @@ export const StoreProvider = ({ children }) => {
 
           if (stores && stores.length > 0) {
             const nearestStore = stores[0];
-            // Auto-select nearest store if none selected or if location changed
-            // Requirement: User should not have option to select, nearest should be automatic.
-            if (!activeStore || activeStore.id !== nearestStore.id) {
+            const storeId = (s) => String(s.id || s._id);
+            const stillInRange = activeStore && stores.some(
+              (s) => storeId(s) === String(activeStore.id || activeStore._id)
+            );
+            // Always prefer nearest; also drop stale localStorage store outside radius
+            if (!stillInRange || !activeStore || storeId(activeStore) !== storeId(nearestStore)) {
                 setActiveStore(nearestStore);
             }
             setIsStoreOutOfRange(false);

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Save, Store, User, Phone, Mail, MapPin, Camera, X, Loader2, Shield, Search } from 'lucide-react';
+import { Save, Store, User, Phone, Mail, MapPin, Camera, X, Loader2, Shield, Search, CircleDot } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { updateVendor } from '../../api/vendorApi';
+import { updateVendor, getVendorById } from '../../api/vendorApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { toast } from 'react-toastify';
 import GoogleMapsInput from '../../../../common/components/forms/GoogleMapsInput';
@@ -10,6 +10,7 @@ const VendorEditModal = ({ show, onHide, vendor, onSave }) => {
     const { t } = useTranslation('admin_vendors');
     const { adminUser } = useAdminAuth();
     const [loading, setLoading] = useState(false);
+    const [loadingVendor, setLoadingVendor] = useState(false);
     const [formData, setFormData] = useState({
         storeName: '',
         ownerName: '',
@@ -26,44 +27,68 @@ const VendorEditModal = ({ show, onHide, vendor, onSave }) => {
             }
         },
         description: '',
-        status: 'Pending'
+        status: 'Pending',
+        deliveryRadius: 20
     });
     const [logoFile, setLogoFile] = useState(null);
     const [logoPreview, setLogoPreview] = useState(null);
 
+    const applyVendorToForm = (v) => {
+        if (!v) return;
+        setFormData({
+            storeName: v.storeName || '',
+            ownerName: v.ownerName || '',
+            email: v.email || '',
+            phone: v.phone || '',
+            address: v.address && typeof v.address === 'object' ? {
+                street: v.address.street || '',
+                city: v.address.city || '',
+                state: v.address.state || '',
+                zipCode: v.address.zipCode || '',
+                location: v.address.location || {
+                    type: 'Point',
+                    coordinates: [0, 0]
+                }
+            } : {
+                street: v.address || '',
+                city: '',
+                state: '',
+                zipCode: '',
+                location: {
+                    type: 'Point',
+                    coordinates: [0, 0]
+                }
+            },
+            description: v.description || '',
+            status: v.status || 'Pending',
+            deliveryRadius: v.deliveryRadius ?? 20
+        });
+        setLogoPreview(v.logo || null);
+        setLogoFile(null);
+    };
+
     useEffect(() => {
-        if (vendor && show) {
-            setFormData({
-                storeName: vendor.storeName || '',
-                ownerName: vendor.ownerName || '',
-                email: vendor.email || '',
-                phone: vendor.phone || '',
-                address: vendor.address && typeof vendor.address === 'object' ? {
-                    street: vendor.address.street || '',
-                    city: vendor.address.city || '',
-                    state: vendor.address.state || '',
-                    zipCode: vendor.address.zipCode || '',
-                    location: vendor.address.location || {
-                        type: 'Point',
-                        coordinates: [0, 0]
-                    }
-                } : {
-                    street: vendor.address || '',
-                    city: '',
-                    state: '',
-                    zipCode: '',
-                    location: {
-                        type: 'Point',
-                        coordinates: [0, 0]
-                    }
-                },
-                description: vendor.description || '',
-                status: vendor.status || 'Pending'
-            });
-            setLogoPreview(vendor.logo || null);
-            setLogoFile(null);
-        }
-    }, [vendor, show]);
+        if (!vendor || !show) return;
+
+        // Seed from list row immediately, then load full record (includes deliveryRadius)
+        applyVendorToForm(vendor);
+
+        let cancelled = false;
+        const loadFullVendor = async () => {
+            if (!adminUser?.token || !vendor._id) return;
+            setLoadingVendor(true);
+            try {
+                const full = await getVendorById(adminUser.token, vendor._id);
+                if (!cancelled) applyVendorToForm(full);
+            } catch (err) {
+                console.error('Failed to load vendor details for edit:', err);
+            } finally {
+                if (!cancelled) setLoadingVendor(false);
+            }
+        };
+        loadFullVendor();
+        return () => { cancelled = true; };
+    }, [vendor, show, adminUser?.token]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -73,6 +98,9 @@ const VendorEditModal = ({ show, onHide, vendor, onSave }) => {
         } else if (name === 'phone') {
             const cleanedValue = value.replace(/\D/g, '').slice(0, 10);
             setFormData(prev => ({ ...prev, [name]: cleanedValue }));
+        } else if (name === 'deliveryRadius') {
+            const cleanedValue = value.replace(/\D/g, '').slice(0, 3);
+            setFormData(prev => ({ ...prev, [name]: cleanedValue === '' ? '' : Number(cleanedValue) }));
         } else {
             setFormData(prev => ({ ...prev, [name]: value }));
         }
@@ -106,6 +134,11 @@ const VendorEditModal = ({ show, onHide, vendor, onSave }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        const radius = Number(formData.deliveryRadius);
+        if (!Number.isFinite(radius) || radius < 1) {
+            toast.error('Delivery radius must be at least 1 KM');
+            return;
+        }
         setLoading(true);
         try {
             const data = new FormData();
@@ -113,7 +146,7 @@ const VendorEditModal = ({ show, onHide, vendor, onSave }) => {
                 if (key === 'address') {
                     data.append(key, JSON.stringify(formData[key]));
                 } else {
-                    data.append(key, formData[key]);
+                    data.append(key, String(formData[key]));
                 }
             });
             if (logoFile) data.append('logo', logoFile);
@@ -153,7 +186,12 @@ const VendorEditModal = ({ show, onHide, vendor, onSave }) => {
                 </div>
 
                 {/* Body */}
-                <div className="p-10 space-y-10 overflow-y-auto scrollbar-thin grow">
+                <div className="p-10 space-y-10 overflow-y-auto scrollbar-thin grow relative">
+                    {loadingVendor && (
+                        <div className="absolute inset-0 bg-white/60 z-10 flex items-center justify-center">
+                            <Loader2 size={28} className="animate-spin text-blue-600" />
+                        </div>
+                    )}
                     {/* Basic Info */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div className="space-y-2">
@@ -234,6 +272,25 @@ const VendorEditModal = ({ show, onHide, vendor, onSave }) => {
                                 className="w-full bg-white border border-slate-100 rounded-xl py-2.5 px-4 text-xs font-bold text-slate-700 outline-none focus:border-blue-500 transition-all font-sans shadow-sm"
                             />
                         </div>
+                        <div className="space-y-2">
+                            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
+                                <CircleDot size={14} /> {t('form.delivery_radius')}
+                            </label>
+                            <div className="relative">
+                                <input
+                                    type="text"
+                                    name="deliveryRadius"
+                                    inputMode="numeric"
+                                    value={formData.deliveryRadius}
+                                    onChange={handleChange}
+                                    placeholder="20"
+                                    className="w-full bg-white border border-slate-100 rounded-xl py-2.5 px-4 pr-14 text-xs font-bold text-slate-700 outline-none focus:border-blue-500 transition-all font-sans shadow-sm"
+                                    required
+                                />
+                                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400 uppercase">KM</span>
+                            </div>
+                            <p className="text-[10px] text-slate-400 font-medium ml-1">{t('form.delivery_radius_hint')}</p>
+                        </div>
                     </div>
 
                     {/* Status & Logo */}
@@ -270,7 +327,7 @@ const VendorEditModal = ({ show, onHide, vendor, onSave }) => {
                     <button type="button" onClick={onHide} className="px-8 py-3.5 text-[10px] font-bold text-slate-500 bg-white border border-slate-200 rounded-[1.25rem] hover:bg-slate-50 transition-all active:scale-95 shadow-sm uppercase tracking-widest">{t('form.cancel')}</button>
                     <button
                         type="submit"
-                        disabled={loading}
+                        disabled={loading || loadingVendor}
                         className="px-10 py-3.5 bg-blue-600 text-white rounded-[1.25rem] text-[10px] font-bold tracking-widest hover:bg-blue-700 active:scale-95 transition-all shadow-xl shadow-blue-100 uppercase flex items-center gap-3 border-none"
                     >
                         {loading ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}

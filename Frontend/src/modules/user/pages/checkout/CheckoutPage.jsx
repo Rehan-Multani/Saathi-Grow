@@ -167,6 +167,7 @@ const CheckoutPage = () => {
                     price: item.price,
                     name: item.name,
                     image: item.image,
+                    weight: item.weight || item.selectedVariant?.value || null,
                     selectedVariant: item.selectedVariant || null
                 }));
                 const computed = await orderApi.calculateBill(token, items, {
@@ -280,6 +281,7 @@ const CheckoutPage = () => {
                 price: item.price,
                 name: item.name,
                 image: item.image,
+                weight: item.weight || item.selectedVariant?.value || null,
                 selectedVariant: item.selectedVariant || null
             })),
             shippingAddress: {
@@ -326,6 +328,7 @@ const CheckoutPage = () => {
                     price: item.price,
                     name: item.name,
                     image: item.image,
+                    weight: item.weight || item.selectedVariant?.value || null,
                     selectedVariant: item.selectedVariant || null
                 }));
                 const rpPayload = await orderApi.createRazorpayOrder(

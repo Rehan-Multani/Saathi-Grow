@@ -3,6 +3,7 @@ import { Search, Plus, Phone, Truck, Edit, Trash2, ChevronLeft, ChevronRight, Lo
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import DeliveryPartnerEditModal from '../../components/delivery/DeliveryPartnerEditModal';
+import DeleteRiderModal from '../../components/delivery/DeleteRiderModal';
 import Swal from 'sweetalert2';
 import * as api from '../../api/adminDeliveryApi';
 import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
@@ -17,6 +18,9 @@ const DeliveryPartners = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [showEditModal, setShowEditModal] = useState(false);
     const [selectedPartner, setSelectedPartner] = useState(null);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [partnerToDelete, setPartnerToDelete] = useState(null);
+    const [deleting, setDeleting] = useState(false);
 
     // Pagination State
     const [page, setPage] = useState(1);
@@ -58,7 +62,7 @@ const DeliveryPartners = () => {
     }, [searchTerm]);
 
     useEffect(() => {
-        if (showEditModal) {
+        if (showEditModal || showDeleteModal) {
             document.body.style.overflow = 'hidden';
         } else {
             document.body.style.overflow = 'unset';
@@ -66,42 +70,46 @@ const DeliveryPartners = () => {
         return () => {
             document.body.style.overflow = 'unset';
         };
-    }, [showEditModal]);
+    }, [showEditModal, showDeleteModal]);
 
-    const handleDelete = (id, name) => {
-        Swal.fire({
-            title: t('partners.delete_confirm_title'),
-            text: t('partners.delete_confirm_text', { name }),
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#ef4444',
-            cancelButtonColor: '#94a3b8',
-            confirmButtonText: 'Yes, Delete',
-            cancelButtonText: 'Cancel'
-        }).then(async (result) => {
-            if (result.isConfirmed) {
-                try {
-                    await api.deleteDeliveryPartner(id);
-                    fetchPartners();
-                    Swal.fire({
-                        title: t('partners.delete_success'),
-                        icon: 'success',
-                        timer: 1500,
-                        showConfirmButton: false
-                    });
-                } catch (err) {
-                    Swal.fire({
-                        title: 'Failed to delete rider',
-                        icon: 'error'
-                    });
-                }
-            }
-        });
+    const handleDeleteClick = (partner) => {
+        setPartnerToDelete(partner);
+        setShowDeleteModal(true);
     };
 
-    const handleEdit = (partner) => {
+    const handleDeleteConfirm = async () => {
+        if (!partnerToDelete?._id) return;
+        setDeleting(true);
+        try {
+            await api.deleteDeliveryPartner(partnerToDelete._id);
+            setShowDeleteModal(false);
+            setPartnerToDelete(null);
+            fetchPartners();
+            Swal.fire({
+                title: t('partners.delete_success'),
+                icon: 'success',
+                timer: 1500,
+                showConfirmButton: false
+            });
+        } catch (err) {
+            Swal.fire({
+                title: 'Failed to delete rider',
+                icon: 'error'
+            });
+        } finally {
+            setDeleting(false);
+        }
+    };
+
+    const handleEdit = async (partner) => {
         setSelectedPartner(partner);
         setShowEditModal(true);
+        try {
+            const full = await api.getDeliveryPartnerById(partner._id);
+            setSelectedPartner(full);
+        } catch (err) {
+            console.error('Failed to load partner details for edit:', err);
+        }
     };
 
     const handleSave = async (updatedPartner) => {
@@ -258,7 +266,7 @@ const DeliveryPartners = () => {
                                                         <Edit size={16} />
                                                     </button>
                                                     <button
-                                                        onClick={() => handleDelete(p._id, p.name)}
+                                                        onClick={() => handleDeleteClick(p)}
                                                         className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all active:scale-95"
                                                         title="Delete Rider"
                                                     >
@@ -338,6 +346,19 @@ const DeliveryPartners = () => {
                 onHide={() => setShowEditModal(false)}
                 partner={selectedPartner}
                 onSave={handleSave}
+            />
+
+            <DeleteRiderModal
+                show={showDeleteModal}
+                onHide={() => {
+                    if (!deleting) {
+                        setShowDeleteModal(false);
+                        setPartnerToDelete(null);
+                    }
+                }}
+                riderName={partnerToDelete?.name || ''}
+                onConfirm={handleDeleteConfirm}
+                loading={deleting}
             />
             
             <style dangerouslySetInnerHTML={{ __html: `

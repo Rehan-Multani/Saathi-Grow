@@ -9,7 +9,7 @@ const Skeleton = ({ className }) => {
 };
 
 export const ProductCardSkeleton = () => (
-    <div className="bg-white dark:bg-[#111111] rounded-lg sm:rounded-xl p-2 sm:p-5 border border-gray-100 dark:border-white/10 flex flex-col gap-1 sm:gap-3 h-full shadow-sm">
+    <div className="bg-white dark:bg-[#111111] rounded-lg sm:rounded-xl p-2 border border-gray-100 dark:border-white/10 flex flex-col gap-1 h-full shadow-sm">
         <Skeleton className="aspect-square w-full rounded-md sm:rounded-lg" />
         <div className="flex flex-col gap-2 px-1">
             <Skeleton className="h-3 sm:h-4 w-5/6 rounded" />

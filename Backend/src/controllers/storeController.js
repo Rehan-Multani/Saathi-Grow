@@ -3,47 +3,62 @@ import Vendor from '../models/Vendor.js';
 import GlobalSetting from '../models/GlobalSetting.js';
 import { getGoogleDistances, calculateDistance, reverseGeocode } from '../services/locationService.js';
 
-// @desc    Get nearby branches and vendors with Google Maps verification
+const resolveStoreRadiusKm = (store, globalDefaultKm) => {
+  const r = Number(store?.deliveryRadius);
+  return Number.isFinite(r) && r > 0 ? r : globalDefaultKm;
+};
+
+// @desc    Get nearby branches and vendors within each store's admin-set delivery radius
 // @route   GET /api/user/stores/nearby
 // @access  Public
 export const getNearbyStores = async (req, res) => {
   try {
     const settings = await GlobalSetting.findOne();
-    const globalMaxRadius = (settings?.maxDeliveryRadius || 25) * 1000; // default 25km if not set
-
-    // Admin decided radius is the absolute authority
-    const radius = globalMaxRadius;
+    const globalDefaultKm = settings?.maxDeliveryRadius || 20;
     const { lat, lng } = req.query;
-    const MAX_ROAD_DISTANCE_KM = radius / 1000; // in km as per Admin's config
 
     if (!lat || !lng) {
       return res.status(400).json({ message: 'Latitude and longitude are required' });
     }
 
-    const userCoordinates = [parseFloat(lng), parseFloat(lat)];
+    const userLat = parseFloat(lat);
+    const userLng = parseFloat(lng);
+    const userCoordinates = [userLng, userLat];
 
-    // 1. First fetch candidates via fast MongoDB geospatial query
+    // Query bound = largest configured store radius (so large-area hubs are not missed)
+    const [branchMax, vendorMax] = await Promise.all([
+      Branch.findOne({ isActive: true }).sort({ deliveryRadius: -1 }).select('deliveryRadius').lean(),
+      Vendor.findOne({ status: 'Active' }).sort({ deliveryRadius: -1 }).select('deliveryRadius').lean()
+    ]);
+    const searchCeilingKm = Math.max(
+      globalDefaultKm,
+      Number(branchMax?.deliveryRadius) || 0,
+      Number(vendorMax?.deliveryRadius) || 0,
+      20
+    );
+    const searchMaxMeters = searchCeilingKm * 1000 + 5000;
+
     const nearbyBranches = await Branch.find({
       isActive: true,
       'address.location': {
         $near: {
           $geometry: { type: 'Point', coordinates: userCoordinates },
-          $maxDistance: parseInt(radius) + 5000 // 5km buffer for road distance variations
+          $maxDistance: searchMaxMeters
         }
       }
-    }).limit(10).lean();
+    }).limit(50).lean();
 
     const nearbyVendors = await Vendor.find({
       status: 'Active',
       'address.location': {
         $near: {
           $geometry: { type: 'Point', coordinates: userCoordinates },
-          $maxDistance: parseInt(radius) + 5000
+          $maxDistance: searchMaxMeters
         }
       }
-    }).limit(10).lean();
+    }).limit(50).lean();
 
-    let allCandidates = [
+    const allCandidates = [
       ...nearbyBranches.map(b => ({ ...b, storeType: 'branch' })),
       ...nearbyVendors.map(v => ({ ...v, storeType: 'vendor' }))
     ];
@@ -52,49 +67,52 @@ export const getNearbyStores = async (req, res) => {
       return res.json([]);
     }
 
-    // 2. Use Google Maps Distance Matrix for high-precision "Zone" filtering
     const destinations = allCandidates.map(c => c.address?.location?.coordinates).filter(Boolean);
     const googleData = await getGoogleDistances(userCoordinates, destinations);
 
     let stores = [];
 
     if (googleData) {
-      // Filter and enrich with road distance (Time removed as per user request)
       allCandidates.forEach((candidate, idx) => {
         const roadInfo = googleData[idx];
-        if (roadInfo && roadInfo.distance <= MAX_ROAD_DISTANCE_KM) {
+        const storeRadiusKm = resolveStoreRadiusKm(candidate, globalDefaultKm);
+        if (roadInfo && roadInfo.distance <= storeRadiusKm) {
           stores.push({
             id: candidate._id,
             name: candidate.storeName || candidate.name,
             type: candidate.storeType,
             location: candidate.address?.location?.coordinates,
             address: candidate.address,
-            roadDistance: roadInfo.distance.toFixed(1), // in KM
+            deliveryRadius: storeRadiusKm,
+            roadDistance: roadInfo.distance.toFixed(1),
             isNearby: true
           });
         }
       });
     } else {
-      // Fallback to Euclidean if Google fails (e.g. invalid API key)
       console.warn('[STORES] Google Distance Matrix failed, falling back to Euclidean mapping');
-      stores = allCandidates.map(candidate => {
-        const destCoords = candidate.address?.location?.coordinates;
-        // Calculate haversine distance as a fallback
-        const dist = destCoords ? calculateDistance(lat, lng, destCoords[1], destCoords[0]) : 0;
-
-        return {
-          id: candidate._id,
-          name: candidate.storeName || candidate.name,
-          type: candidate.storeType,
-          location: destCoords,
-          address: candidate.address,
-          roadDistance: dist.toFixed(1),
-          isNearby: true
-        };
-      });
+      stores = allCandidates
+        .map(candidate => {
+          const destCoords = candidate.address?.location?.coordinates;
+          const dist = destCoords
+            ? calculateDistance(userLat, userLng, destCoords[1], destCoords[0])
+            : Infinity;
+          const storeRadiusKm = resolveStoreRadiusKm(candidate, globalDefaultKm);
+          if (dist > storeRadiusKm) return null;
+          return {
+            id: candidate._id,
+            name: candidate.storeName || candidate.name,
+            type: candidate.storeType,
+            location: destCoords,
+            address: candidate.address,
+            deliveryRadius: storeRadiusKm,
+            roadDistance: dist.toFixed(1),
+            isNearby: true
+          };
+        })
+        .filter(Boolean);
     }
 
-    // Sort by distance
     stores.sort((a, b) => (parseFloat(a.roadDistance) || 0) - (parseFloat(b.roadDistance) || 0));
 
     res.json(stores);

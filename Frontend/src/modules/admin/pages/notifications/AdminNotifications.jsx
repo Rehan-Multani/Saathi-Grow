@@ -5,6 +5,7 @@ import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
 import { getMyNotifications, markAsRead, markAllRead, deleteNotifications } from '../../api/notificationApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
+import { showDeleteConfirmation } from '../../../../common/utils/alertUtils';
 
 const AdminNotifications = () => {
     const { t } = useTranslation('admin_notifications');
@@ -78,15 +79,10 @@ const AdminNotifications = () => {
     };
 
     const handleDelete = async (idsToDelete) => {
-        const result = await Swal.fire({
-            title: t('admin_inbox.delete_confirm_title'),
-            text: t('admin_inbox.delete_confirm_msg'),
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#ef4444',
-            cancelButtonColor: '#94a3b8',
-            confirmButtonText: t('admin_inbox.delete')
-        });
+        const result = await showDeleteConfirmation(
+            t('admin_inbox.delete_confirm_title'),
+            t('admin_inbox.delete_confirm_msg')
+        );
 
         if (result.isConfirmed) {
             try {

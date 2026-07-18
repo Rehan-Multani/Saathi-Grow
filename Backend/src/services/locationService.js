@@ -1,11 +1,17 @@
 import Branch from '../models/Branch.js';
 import Vendor from '../models/Vendor.js';
 import Product from '../models/Product.js';
+import GlobalSetting from '../models/GlobalSetting.js';
 import axios from 'axios';
 import { GOOGLE_MAPS_BASE_URL } from '../config/serviceUrls.js';
 
 const GOOGLE_MAPS_DISTANCEMATRIX_URL = 'https://maps.googleapis.com/maps/api/distancematrix/json';
 const getApiKey = () => process.env.GOOGLE_MAPS_API;
+
+const resolveStoreRadiusKm = (store, globalDefaultKm) => {
+  const r = Number(store?.deliveryRadius);
+  return Number.isFinite(r) && r > 0 ? r : globalDefaultKm;
+};
 
 /**
  * Validates stock availability for a list of items at a specific branch
@@ -53,102 +59,110 @@ export const findOptimalSource = async (coordinates, items) => {
   if (!coordinates || !Array.isArray(coordinates) || coordinates.length !== 2) return null;
 
   try {
-    // 1. Find nearby branches (within 20km)
+    const settings = await GlobalSetting.findOne();
+    const globalDefaultKm = settings?.maxDeliveryRadius || 20;
+
+    const [branchMax, vendorMax] = await Promise.all([
+      Branch.findOne({ isActive: true }).sort({ deliveryRadius: -1 }).select('deliveryRadius').lean(),
+      Vendor.findOne({ status: 'Active' }).sort({ deliveryRadius: -1 }).select('deliveryRadius').lean()
+    ]);
+    const searchCeilingKm = Math.max(
+      globalDefaultKm,
+      Number(branchMax?.deliveryRadius) || 0,
+      Number(vendorMax?.deliveryRadius) || 0,
+      20
+    );
+    const searchMaxMeters = searchCeilingKm * 1000 + 5000;
+
     const nearbyBranches = await Branch.find({
       isActive: true,
       'address.location': {
         $near: {
           $geometry: { type: 'Point', coordinates },
-          $maxDistance: 20000 // 20km
+          $maxDistance: searchMaxMeters
         }
       }
-    }).limit(5);
+    }).limit(20);
 
-    // 2. Find nearby vendors (within 20km)
     const nearbyVendors = await Vendor.find({
       status: 'Active',
       'address.location': {
         $near: {
           $geometry: { type: 'Point', coordinates },
-          $maxDistance: 20000 // 20km
+          $maxDistance: searchMaxMeters
         }
       }
-    }).limit(5);
+    }).limit(20);
 
     const candidates = [];
 
-    // Check stock for branches
     for (const branch of nearbyBranches) {
       const hasStock = await checkBranchStock(branch._id, items);
       if (hasStock) {
-        candidates.push({ type: 'branch', id: branch._id, location: branch.address.location.coordinates, doc: branch });
+        candidates.push({
+          type: 'branch',
+          id: branch._id,
+          location: branch.address.location.coordinates,
+          radiusKm: resolveStoreRadiusKm(branch, globalDefaultKm),
+          doc: branch
+        });
       }
     }
 
-    // Check stock for vendors
     for (const vendor of nearbyVendors) {
       const hasStock = await checkVendorStock(vendor._id, items);
       if (hasStock) {
-        candidates.push({ type: 'vendor', id: vendor._id, location: vendor.address.location.coordinates, doc: vendor });
+        candidates.push({
+          type: 'vendor',
+          id: vendor._id,
+          location: vendor.address.location.coordinates,
+          radiusKm: resolveStoreRadiusKm(vendor, globalDefaultKm),
+          doc: vendor
+        });
       }
     }
 
     if (candidates.length === 0) {
-      // 2.5 Fallback: Search again without distance constraints if proximity fails
-      console.log('[SOURCE-FALLBACK] No nearby source found within 20km. Searching globally...');
-      const allActiveBranches = await Branch.find({ isActive: true }).limit(20);
-      const allActiveVendors = await Vendor.find({ status: 'Active' }).limit(20);
-
-      for (const branch of allActiveBranches) {
-        if (await checkBranchStock(branch._id, items)) {
-          candidates.push({ type: 'branch', id: branch._id, location: branch.address?.location?.coordinates || [0, 0], doc: branch });
-        }
-      }
-      for (const vendor of allActiveVendors) {
-        if (await checkVendorStock(vendor._id, items)) {
-          candidates.push({ type: 'vendor', id: vendor._id, location: vendor.address?.location?.coordinates || [0, 0], doc: vendor });
-        }
-      }
-    }
-
-    if (candidates.length === 0) {
-      console.error('[SOURCE-FATAL] No source found globally with sufficient stock for these items');
+      console.error('[SOURCE-FATAL] No in-radius source with sufficient stock');
       return null;
     }
 
-    // 3. Filter and Sort using Google Maps Distance Matrix for accuracy
     const apiKey = getApiKey();
     if (candidates.length > 0 && apiKey) {
       console.log(`[SOURCE-DEBUG] Verifying ${candidates.length} candidates with Google Distance Matrix`);
       const googleDistances = await getGoogleDistances(coordinates, candidates.map(c => c.location));
 
       if (googleDistances) {
-        // Map actual road distances back to our candidates
         candidates.forEach((c, idx) => {
-          c.roadDistance = googleDistances[idx].distance;
+          c.roadDistance = googleDistances[idx]?.distance ?? Infinity;
         });
 
-        // Filter those strictly within 20km road distance if any exist
-        const withinRadius = candidates.filter(c => c.roadDistance <= 20);
+        const withinRadius = candidates.filter(c => c.roadDistance <= c.radiusKm);
         if (withinRadius.length > 0) {
           withinRadius.sort((a, b) => a.roadDistance - b.roadDistance);
-          console.log(`[SOURCE-CHOSEN] Road Distance: ${withinRadius[0].roadDistance}km`);
+          console.log(`[SOURCE-CHOSEN] Road Distance: ${withinRadius[0].roadDistance}km (radius ${withinRadius[0].radiusKm}km)`);
           return withinRadius[0];
-        } else {
-          console.log('[SOURCE-WARN] No candidate within 20km road distance. Picking closest available.');
         }
+        console.log('[SOURCE-WARN] No candidate within its own delivery radius.');
+        return null;
       }
     }
 
-    // 4. Fallback Sort by Euclidean distance if Google fails or none are within 20km
-    candidates.sort((a, b) => {
-      const distA = calculateDistance(coordinates[1], coordinates[0], a.location[1], a.location[0]);
-      const distB = calculateDistance(coordinates[1], coordinates[0], b.location[1], b.location[0]);
-      return distA - distB;
+    // Euclidean fallback — still respect each store's radius
+    const withinEuclidean = candidates.filter(c => {
+      const dist = calculateDistance(coordinates[1], coordinates[0], c.location[1], c.location[0]);
+      c.roadDistance = dist;
+      return dist <= c.radiusKm;
     });
 
-    const chosen = candidates[0];
-    console.log(`[SOURCE-CHOSEN] Type: ${chosen.type}, ID: ${chosen.id} (Euclidean: ${calculateDistance(coordinates[1], coordinates[0], chosen.location[1], chosen.location[0]).toFixed(2)}km)`);
+    if (withinEuclidean.length === 0) {
+      console.error('[SOURCE-FATAL] No source within configured delivery radii');
+      return null;
+    }
+
+    withinEuclidean.sort((a, b) => a.roadDistance - b.roadDistance);
+    const chosen = withinEuclidean[0];
+    console.log(`[SOURCE-CHOSEN] Type: ${chosen.type}, ID: ${chosen.id} (Euclidean: ${chosen.roadDistance.toFixed(2)}km, radius ${chosen.radiusKm}km)`);
     return chosen;
   } catch (error) {
     console.error('Error in findOptimalSource:', error);

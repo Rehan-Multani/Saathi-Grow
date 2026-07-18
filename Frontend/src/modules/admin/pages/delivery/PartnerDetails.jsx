@@ -278,6 +278,34 @@ const PartnerDetails = () => {
                         </div>
                     </div>
 
+                    {/* KYC Documents */}
+                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                        <div className="p-5 border-b border-slate-100 bg-slate-50/30">
+                            <h3 className="text-sm font-bold text-slate-900 border-b-2 border-blue-500 pb-1 inline-block">KYC Documents</h3>
+                        </div>
+                        <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-5">
+                            {[
+                                { label: 'Aadhar Card', url: partner.aadharImage },
+                                { label: 'Driving License', url: partner.licenseImage },
+                                { label: 'RC Card', url: partner.rcImage },
+                            ].map((doc) => (
+                                <div key={doc.label} className="space-y-2">
+                                    <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest">{doc.label}</span>
+                                    {doc.url ? (
+                                        <a href={doc.url} target="_blank" rel="noopener noreferrer" className="block group">
+                                            <img src={doc.url} alt={doc.label} className="w-full h-40 object-cover rounded-xl border border-slate-200 group-hover:border-blue-400 transition-all" />
+                                            <span className="text-[9px] font-bold text-blue-600 uppercase tracking-widest mt-1 inline-block">View full size</span>
+                                        </a>
+                                    ) : (
+                                        <div className="h-40 rounded-xl border border-dashed border-slate-200 bg-slate-50 flex items-center justify-center text-[10px] font-bold text-slate-300 uppercase tracking-widest">
+                                            Not uploaded
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
                     {/* Duty Log / Real-time Status */}
                     <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                         <div className="p-5 border-b border-slate-100 bg-slate-50/30 flex justify-between items-center">

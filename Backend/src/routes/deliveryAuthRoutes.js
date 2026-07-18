@@ -13,16 +13,16 @@ import {
   validateDeliveryOtpRequestPayload,
   validateDeliveryOtpVerifyPayload,
 } from '../middleware/requestValidation.js';
-import { deliveryUpload } from '../config/cloudinary.js';
+import { deliveryPartnerUploadFields } from '../config/cloudinary.js';
 
 const router = express.Router();
 
-router.post('/register', registerPartner);
+router.post('/register', deliveryPartnerUploadFields, registerPartner);
 router.post('/request-otp', validateDeliveryOtpRequestPayload, requestOTP);
 router.post('/verify-otp', validateDeliveryOtpVerifyPayload, verifyOTP);
 
 router.get('/profile', protectDeliveryPartner, getProfile);
-router.put('/profile', protectDeliveryPartner, deliveryUpload.single('profileImage'), updateProfile);
+router.put('/profile', protectDeliveryPartner, deliveryPartnerUploadFields, updateProfile);
 router.delete('/profile', protectDeliveryPartner, deleteProfile);
 router.put('/change-password', protectDeliveryPartner, changePassword);
 

@@ -23,7 +23,7 @@ import {
   cancelDeliveryRun
 } from '../controllers/deliveryRunController.js';
 import { protectStoreManager, requirePermission } from '../middleware/authMiddleware.js';
-import { upload } from '../config/cloudinary.js';
+import { deliveryPartnerUploadFields } from '../config/cloudinary.js';
 import { sensitiveAdminActionLimiter, auditAction, idempotencyGuard } from '../middleware/securityMiddleware.js';
 
 const router = express.Router();
@@ -38,7 +38,7 @@ const deliveryAuth = (req, res, next) => {
 // Register the Admin/Vendor endpoints
 router.route('/')
   .get(protectStoreManager, deliveryAuth, getDeliveryPartners)
-  .post(protectStoreManager, deliveryAuth, idempotencyGuard(), sensitiveAdminActionLimiter, upload.single('profileImage'), auditAction('DELIVERY_PARTNER_CREATE'), addDeliveryPartner);
+  .post(protectStoreManager, deliveryAuth, idempotencyGuard(), sensitiveAdminActionLimiter, deliveryPartnerUploadFields, auditAction('DELIVERY_PARTNER_CREATE'), addDeliveryPartner);
 
 // Dispatch & Settlement routes (Specific paths first)
 router.get('/unassigned-orders', protectStoreManager, deliveryAuth, getUnassignedOrders);

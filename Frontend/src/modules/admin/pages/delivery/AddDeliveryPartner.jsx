@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
     User, Mail, Phone, Save, ArrowLeft, 
-    Truck, Camera, Info, ShieldCheck, CreditCard, ChevronRight, Loader2, CheckCircle, Package, Store, MapPin
+    Truck, Camera, Info, ShieldCheck, CreditCard, ChevronRight, Loader2, CheckCircle, Package, Store, MapPin, IdCard, FileText, Car
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -22,10 +22,14 @@ const AddDeliveryPartner = () => {
         password: Math.random().toString(36).slice(-8).toUpperCase(),
         vehicleType: 'Bike',
         vehicleNumber: '',
-        profileImage: null
+        profileImage: null,
+        aadhar: null,
+        license: null,
+        rc: null,
     });
 
     const [previewImage, setPreviewImage] = useState(null);
+    const [docPreviews, setDocPreviews] = useState({ aadhar: null, license: null, rc: null });
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -64,13 +68,22 @@ const AddDeliveryPartner = () => {
         }
     };
 
-
+    const handleDocChange = (key) => (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        setFormData(prev => ({ ...prev, [key]: file }));
+        setDocPreviews(prev => ({ ...prev, [key]: URL.createObjectURL(file) }));
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         
         if (!formData.name || !formData.phone || (!formData.password && !formData.phone)) {
             toast.warning("Essential rider data is missing");
+            return;
+        }
+        if (!formData.aadhar || !formData.license) {
+            toast.warning("Aadhar card and Driving License are required");
             return;
         }
 
@@ -246,6 +259,28 @@ const AddDeliveryPartner = () => {
                                         className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:border-blue-500 focus:bg-white transition-all text-xs font-bold text-slate-700 shadow-sm"
                                     />
                                 </div>
+                            </div>
+
+                            <div className="space-y-3 pt-4 border-t border-slate-50">
+                                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">KYC Documents</p>
+                                {[
+                                    { key: 'aadhar', label: 'Aadhar Card *', icon: <IdCard size={14} /> },
+                                    { key: 'license', label: 'Driving License *', icon: <FileText size={14} /> },
+                                    { key: 'rc', label: 'RC Card (optional)', icon: <Car size={14} /> },
+                                ].map((doc) => (
+                                    <label key={doc.key} className="flex items-center gap-3 p-3 rounded-xl border border-dashed border-slate-200 bg-slate-50 cursor-pointer hover:border-blue-300 transition-all">
+                                        <div className="w-10 h-10 rounded-lg bg-white border border-slate-100 flex items-center justify-center overflow-hidden text-blue-600 shrink-0">
+                                            {docPreviews[doc.key] ? (
+                                                <img src={docPreviews[doc.key]} alt="" className="w-full h-full object-cover" />
+                                            ) : doc.icon}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-[10px] font-bold text-slate-700 uppercase tracking-tight">{doc.label}</p>
+                                            <p className="text-[9px] text-slate-400 truncate">{formData[doc.key]?.name || 'Upload image'}</p>
+                                        </div>
+                                        <input type="file" accept="image/*" className="hidden" onChange={handleDocChange(doc.key)} />
+                                    </label>
+                                ))}
                             </div>
                         </div>
 

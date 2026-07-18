@@ -32,9 +32,27 @@ export const enrichItemsWithLocations = async (items) => {
   return Promise.all(items.map(async (item) => {
     try {
       const productId = item.product?._id || item.product;
-      const product = await Product.findById(productId).select('physicalLocation').lean();
+      const product = await Product.findById(productId).select('physicalLocation unitValue unitType').lean();
+      const variantValue = item.selectedVariant?.value || '';
+      const weight =
+        item.weight ||
+        variantValue ||
+        (product?.unitValue != null
+          ? `${product.unitValue} ${product.unitType || ''}`.trim()
+          : '') ||
+        null;
+
       return {
         ...item,
+        weight,
+        selectedVariant: item.selectedVariant?.value
+          ? {
+              type: item.selectedVariant.type || '',
+              value: item.selectedVariant.value,
+              price: item.selectedVariant.price,
+              stock: item.selectedVariant.stock
+            }
+          : undefined,
         physicalLocation: product?.physicalLocation || item.physicalLocation || null
       };
     } catch (_) {
@@ -62,12 +80,14 @@ const validateStoreDistance = async (storeId, storeType, userLocation) => {
       storeCoords[1], storeCoords[0]
     );
 
-    // Dynamic Hard Guard from Admin Settings
+    // Per-store radius set by admin (fallback to global max)
     const settings = await GlobalSetting.findOne();
-    const maxRadius = settings?.maxDeliveryRadius || 25;
+    const globalDefault = settings?.maxDeliveryRadius || 20;
+    const configured = Number(store.deliveryRadius);
+    const maxRadius = Number.isFinite(configured) && configured > 0 ? configured : globalDefault;
 
     if (distance > maxRadius) {
-      throw new Error(`Store range validation failed. Distance: ${distance.toFixed(1)}km exceeds the allowed ${maxRadius}km limit.`);
+      throw new Error(`Store range validation failed. Distance: ${distance.toFixed(1)}km exceeds this store's ${maxRadius}km delivery area.`);
     }
   } catch (error) {
     throw error;

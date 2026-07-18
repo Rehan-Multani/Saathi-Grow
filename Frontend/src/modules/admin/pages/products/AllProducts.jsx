@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Search, Plus, Upload, Edit, Trash2, QrCode, Filter, Store, Package, Sparkles, ChevronLeft, ChevronRight, History, X, Download, FileText } from 'lucide-react';
+import { Search, Plus, Upload, Edit, Trash2, QrCode, Filter, Store, Sparkles, ChevronLeft, ChevronRight, History, X, Download, FileText } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import ProductEditModal from '../../../../common/components/products/ProductEditModal';
 import RestockModal from '../../../../common/components/products/RestockModal';
@@ -497,7 +497,7 @@ const AllProducts = () => {
                                         <td className="px-6 py-4">
                                             <Link to={`/admin/products/${p._id}`} className="flex items-center gap-4 group/item">
                                                 <div className="w-10 h-10 bg-slate-50 rounded-lg flex items-center justify-center p-1 border group-hover/item:border-blue-400 transition-all shadow-sm">
-                                                    {p.image ? <img src={p.image} className="w-full h-full object-contain group-hover/item:scale-110 transition-transform" /> : <Package size={20} className="text-slate-300" />}
+                                                    {p.image ? <img src={p.image} className="w-full h-full object-contain group-hover/item:scale-110 transition-transform" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/assets/logo_fav.png'; }} /> : <img src="/assets/logo_fav.png" alt="" className="w-full h-full object-contain" />}
                                                 </div>
                                                 <div className="min-w-0">
                                                     <div className="text-sm font-semibold text-slate-900 truncate group-hover/item:text-blue-600 transition-colors">{p.name}</div>
@@ -716,7 +716,7 @@ const AllProducts = () => {
                                     ))}
                                 </div>
                                 <p className="text-[10px] text-rose-500 font-semibold mt-2">* Required fields</p>
-                                <p className="text-[10px] text-slate-500 mt-1.5">Product image is <span className="font-bold">optional</span> for bulk upload — add images later from Edit Product.</p>
+                                <p className="text-[10px] text-slate-500 mt-1.5">Product image is <span className="font-bold">optional</span> — if missing, SG logo is used by default.</p>
                             </div>
 
                             {/* Step 2: Upload File */}

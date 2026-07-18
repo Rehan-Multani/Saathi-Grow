@@ -386,7 +386,11 @@ input.plain-input:focus {
 
 /* SweetAlert2 Select Overflow Fix */
 .swal2-select { max-width: 100% !important; box-sizing: border-box !important; margin: 1em auto !important; }
-.swal2-popup { overflow-x: hidden !important; }
+.swal2-popup {
+  overflow-x: hidden !important;
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
 
 /* Maximum Priority Fix for Modal Layering */
 .modal-backdrop {

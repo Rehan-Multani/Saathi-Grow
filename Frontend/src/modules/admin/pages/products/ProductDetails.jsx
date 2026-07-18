@@ -12,6 +12,7 @@ import { getProductById, deleteProduct, updateProduct } from '../../api/productA
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { toast } from 'react-toastify';
 import ProductEditModal from '../../../../common/components/products/ProductEditModal';
+import { showDeleteConfirmation } from '../../../../common/utils/alertUtils';
 
 const ProductDetails = () => {
     const { id } = useParams();
@@ -43,7 +44,11 @@ const ProductDetails = () => {
     }, [adminUser?.token, id, fetchProduct]);
 
     const handleDelete = async () => {
-        if (window.confirm('Are you sure you want to delete this product?')) {
+        const result = await showDeleteConfirmation(
+            'Delete product?',
+            'Are you sure you want to permanently delete this product?'
+        );
+        if (result.isConfirmed) {
             try {
                 await deleteProduct(adminUser.token, id);
                 toast.success('Product deleted successfully');

@@ -152,24 +152,33 @@ export const updateSubCategory = async (req, res) => {
   }
 };
 
-// @desc    Delete subcategory
+// @desc    Delete subcategory (cascades to linked products)
 // @route   DELETE /api/admin/subcategories/:id
 // @access  Private (Admin)
 export const deleteSubCategory = async (req, res) => {
   try {
     const subCategory = await SubCategory.findById(req.params.id);
-    if (subCategory) {
-      // Check if any products are using this subcategory name
-      const productsCount = await Product.countDocuments({ subCategory: subCategory.name });
-      if (productsCount > 0) {
-        return res.status(400).json({ message: 'Cannot delete subcategory because products are linked to it' });
-      }
-
-      await subCategory.deleteOne();
-      res.json({ message: 'Subcategory removed' });
-    } else {
-      res.status(404).json({ message: 'Subcategory not found' });
+    if (!subCategory) {
+      return res.status(404).json({ message: 'Subcategory not found' });
     }
+
+    const subNameRegex = new RegExp(
+      `^${String(subCategory.name).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`,
+      'i'
+    );
+
+    const productResult = await Product.deleteMany({
+      $or: [
+        { subCategory: subNameRegex },
+        { subCategory: subCategory._id.toString() }
+      ]
+    });
+
+    await subCategory.deleteOne();
+    res.json({
+      message: 'Subcategory and linked products removed',
+      deletedProducts: productResult.deletedCount || 0
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

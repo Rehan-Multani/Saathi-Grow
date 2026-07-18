@@ -97,6 +97,14 @@ const productImageUpload = multer({ storage: adminStorage, ...productUploadOpts 
 const complaintUpload = multer({ storage: complaintStorage,...uploadOpts });
 const returnUpload    = multer({ storage: returnStorage,   ...uploadOpts });
 
+/** Multipart fields for delivery partner profile + KYC docs */
+const deliveryPartnerUploadFields = deliveryUpload.fields([
+  { name: 'profileImage', maxCount: 1 },
+  { name: 'aadhar', maxCount: 1 },
+  { name: 'license', maxCount: 1 },
+  { name: 'rc', maxCount: 1 },
+]);
+
 // Memory-based upload (used for programmatic Cloudinary streaming)
 const memoryUpload = multer({
   storage: multer.memoryStorage(),
@@ -130,6 +138,7 @@ export {
   upload,
   userUpload,
   deliveryUpload,
+  deliveryPartnerUploadFields,
   productUpload,
   complaintUpload,
   returnUpload,

@@ -4,6 +4,7 @@ import Swal from 'sweetalert2';
 import axios from 'axios';
 import { useStoreManagerAuth } from './context/StoreManagerAuthContext';
 import { API_BASE_URL } from '../../config/apiConfig';
+import { showDeleteConfirmation } from '../../common/utils/alertUtils';
 
 const StaffManagement = () => {
     const { managerUser } = useStoreManagerAuth();
@@ -127,14 +128,10 @@ const StaffManagement = () => {
     };
 
     const handleDelete = async (id) => {
-        const result = await Swal.fire({
-            title: 'Remove Staff?',
-            text: "This action will permanently remove this member from the branch.",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#ef4444',
-            confirmButtonText: 'Yes, Remove'
-        });
+        const result = await showDeleteConfirmation(
+            'Remove Staff?',
+            'This action will permanently remove this member from the branch.'
+        );
 
         if (result.isConfirmed) {
             try {

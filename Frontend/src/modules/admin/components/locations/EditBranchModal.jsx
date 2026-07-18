@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Save, Store, Phone, Mail, MapPin, X, Hash, Upload, Shield, CheckCircle2, Loader2 } from 'lucide-react';
+import { Save, Store, Phone, Mail, MapPin, X, Hash, Upload, Shield, CheckCircle2, Loader2, CircleDot } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import GoogleMapsInput from '../../../../common/components/forms/GoogleMapsInput';
 
@@ -12,6 +12,7 @@ const EditBranchModal = ({ show, onHide, branch, onSave }) => {
         phone: '',
         email: '',
         isActive: true,
+        deliveryRadius: 20,
         address: {
             street: '',
             city: '',
@@ -34,6 +35,7 @@ const EditBranchModal = ({ show, onHide, branch, onSave }) => {
                 phone: branch.phone || '',
                 email: branch.email || '',
                 isActive: branch.isActive ?? true,
+                deliveryRadius: branch.deliveryRadius ?? 20,
                 address: branch.address && typeof branch.address === 'object' ? branch.address : {
                     street: branch.address || '',
                     city: '',
@@ -67,6 +69,9 @@ const EditBranchModal = ({ show, onHide, branch, onSave }) => {
                 ...prev,
                 [parent]: { ...prev[parent], [child]: value }
             }));
+        } else if (name === 'deliveryRadius') {
+            const cleaned = value.replace(/\D/g, '').slice(0, 3);
+            setFormData(prev => ({ ...prev, [name]: cleaned === '' ? '' : Number(cleaned) }));
         } else {
             setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
         }
@@ -287,6 +292,24 @@ const EditBranchModal = ({ show, onHide, branch, onSave }) => {
                                         className="w-full px-4 py-2 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 transition-all text-xs font-bold text-slate-700 shadow-sm"
                                         required
                                     />
+                                </div>
+                                <div className="md:col-span-2 space-y-1.5">
+                                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-tight ml-1 flex items-center gap-1.5">
+                                        <CircleDot size={12} /> {t('form.delivery_radius')}
+                                    </label>
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            name="deliveryRadius"
+                                            inputMode="numeric"
+                                            value={formData.deliveryRadius}
+                                            onChange={handleChange}
+                                            className="w-full px-4 py-2 pr-14 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 transition-all text-xs font-bold text-slate-700 shadow-sm"
+                                            required
+                                        />
+                                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400 uppercase">KM</span>
+                                    </div>
+                                    <p className="text-[9px] text-slate-400 font-medium ml-1">{t('form.delivery_radius_hint')}</p>
                                 </div>
                             </div>
                         </div>

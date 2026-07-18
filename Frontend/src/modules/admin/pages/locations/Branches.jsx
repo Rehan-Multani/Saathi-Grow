@@ -10,6 +10,7 @@ import Swal from 'sweetalert2';
 import { toast } from 'react-toastify';
 import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
 import { pageInfoData } from '../../../../common/data/pageInfoData';
+import { showDeleteConfirmation } from '../../../../common/utils/alertUtils';
 
 const Branches = () => {
     const { t } = useTranslation('admin_locations');
@@ -82,49 +83,26 @@ const Branches = () => {
     };
 
     const handleDelete = async (id, name) => {
-        const prevBodyOverflow = document.body.style.overflow;
-        const prevHtmlOverflow = document.documentElement.style.overflow;
+        const result = await showDeleteConfirmation(
+            t('messages.delete_confirm_title'),
+            t('messages.delete_confirm_msg', { name })
+        );
 
-        Swal.fire({
-            title: t('messages.delete_confirm_title'),
-            text: t('messages.delete_confirm_msg', { name }),
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#ef4444',
-            cancelButtonColor: '#94a3b8',
-            confirmButtonText: 'Yes, Delete',
-            cancelButtonText: 'Cancel',
-            allowOutsideClick: false,
-            heightAuto: false,
-            scrollbarPadding: false,
-            didOpen: () => {
-                document.body.style.overflow = 'hidden';
-                document.documentElement.style.overflow = 'hidden';
-            },
-            willClose: () => {
-                document.body.style.overflow = prevBodyOverflow || '';
-                document.documentElement.style.overflow = prevHtmlOverflow || '';
+        if (result.isConfirmed) {
+            try {
+                await deleteBranch(adminUser.token, id);
+                fetchBranchesData();
+                Swal.fire({
+                    title: t('messages.delete_success_title'),
+                    text: t('messages.delete_success_msg'),
+                    icon: 'success',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+            } catch (error) {
+                toast.error(t('messages.delete_error'));
             }
-        }).then(async (result) => {
-            document.body.style.overflow = prevBodyOverflow || '';
-            document.documentElement.style.overflow = prevHtmlOverflow || '';
-
-            if (result.isConfirmed) {
-                try {
-                    await deleteBranch(adminUser.token, id);
-                    fetchBranchesData();
-                    Swal.fire({
-                        title: t('messages.delete_success_title'),
-                        text: t('messages.delete_success_msg'),
-                        icon: 'success',
-                        timer: 1500,
-                        showConfirmButton: false
-                    });
-                } catch (error) {
-                    toast.error(t('messages.delete_error'));
-                }
-            }
-        });
+        }
     };
 
     const handleToggleStatus = async (branch) => {
@@ -266,9 +244,11 @@ const Branches = () => {
                                                     <Edit size={16} />
                                                 </button>
                                                 <button
-                                                    onClick={() => handleDelete(b._id, b.name)}
-                                                    className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all active:scale-95"
-                                                    title="Delete"
+                                                    type="button"
+                                                    disabled
+                                                    className="p-2 text-slate-300 bg-slate-50 rounded-lg cursor-not-allowed opacity-50"
+                                                    title="Delete disabled"
+                                                    aria-disabled="true"
                                                 >
                                                     <Trash2 size={16} />
                                                 </button>

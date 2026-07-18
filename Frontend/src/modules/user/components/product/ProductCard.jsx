@@ -136,7 +136,7 @@ const ProductCard = memo(({ product, isCompact = false, customTheme, imgPadding,
 
   return (
     <div
-      className="rounded-lg sm:rounded-xl p-2 sm:p-5 shadow-[0_4px_12px_rgba(0,0,0,0.08)] md:shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-gray-200/60 dark:border-white/10 hover:shadow-lg active:shadow-md transition-all duration-500 flex flex-col gap-1 sm:gap-3 h-auto md:h-full group relative overflow-hidden mb-1 md:ring-0 md:!bg-white dark:md:!bg-[#111111] hover:-translate-y-1.5 hover:scale-[1.02]"
+      className="rounded-lg sm:rounded-xl p-2 shadow-[0_4px_12px_rgba(0,0,0,0.08)] md:shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-gray-200/60 dark:border-white/10 hover:shadow-lg active:shadow-md transition-all duration-500 flex flex-col gap-1 h-auto md:h-full group relative overflow-hidden mb-1 md:ring-0 md:!bg-white dark:md:!bg-[#111111] hover:-translate-y-1.5 hover:scale-[1.02]"
       style={{
         background: isDarkMode ? '#111111' : (customTheme?.bgColor || '#ffffff'),
         borderColor: customTheme ? `${customTheme.themeColor}30` : undefined,
@@ -196,7 +196,7 @@ const ProductCard = memo(({ product, isCompact = false, customTheme, imgPadding,
         </Link>
       </div>
 
-      <div className="flex flex-col flex-grow px-1.5 sm:px-2">
+      <div className="flex flex-col flex-grow px-1.5">
         {/* Title */}
         <Link to={`/product/${productId}`} className="z-10">
           <div
