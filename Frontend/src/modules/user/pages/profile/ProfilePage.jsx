@@ -10,7 +10,7 @@ import { API_BASE_URL } from '../../../../config/apiConfig';
 import ImageSourceModal from '../../../../common/components/modals/ImageSourceModal';
 import { showDeleteConfirmation, showSuccessAlert, showErrorAlert } from '../../../../common/utils/alertUtils';
 import { buildReferralSharePayload } from '../../utils/referralUtils';
-import { useShop } from '../../context/ShopContext';
+import { useShop, useShopUI } from '../../context/ShopContext';
 
 const ProfilePage = () => {
     const navigate = useNavigate();
@@ -20,6 +20,7 @@ const ProfilePage = () => {
 
     const { isDarkMode, toggleTheme } = useTheme();
     const { settings: appSettings } = useShop();
+    const { setIsBottomSheetOpen } = useShopUI();
     const [notificationsEnabled, setNotificationsEnabled] = React.useState(true);
     const [isImageModalOpen, setIsImageModalOpen] = useState(false);
     const fileInputRef = React.useRef(null);
@@ -166,6 +167,7 @@ const ProfilePage = () => {
         // Always show in-app invite sheet (cleaner on Flutter WebView than system share scrapes)
         setShowShareApps(false);
         setShowShareModal(true);
+        setIsBottomSheetOpen(true);
     };
 
     const copyText = async (text, key = 'all') => {
@@ -269,6 +271,18 @@ const ProfilePage = () => {
         // Always show app chooser first (Flutter WebView often lacks a real OS share sheet).
         setShowShareApps((prev) => !prev);
     };
+
+    const closeShareModal = () => {
+        setShowShareModal(false);
+        setShowShareApps(false);
+        setIsBottomSheetOpen(false);
+    };
+
+    useEffect(() => {
+        if (!showShareModal) return undefined;
+        setIsBottomSheetOpen(true);
+        return () => setIsBottomSheetOpen(false);
+    }, [showShareModal, setIsBottomSheetOpen]);
 
     const openEditModal = () => {
         setEditName(user?.name || '');
@@ -541,35 +555,41 @@ const ProfilePage = () => {
 
             {/* Share / Invite Modal — mobile WebView safe layout */}
             {showShareModal && (
-                <div className="fixed inset-0 z-[120] flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm p-0 sm:p-4 animate-in fade-in duration-200">
-                    <div className="bg-white dark:bg-[#141414] rounded-t-3xl sm:rounded-3xl w-full max-w-md max-h-[88vh] shadow-2xl border border-gray-100 dark:border-white/10 animate-in slide-in-from-bottom sm:zoom-in-95 duration-200 flex flex-col overflow-hidden">
-                        <div className="flex justify-between items-center px-5 py-4 border-b border-gray-100 dark:border-white/10 shrink-0">
-                            <h3 className="text-base font-bold text-gray-900 dark:text-gray-100 uppercase tracking-widest">Invite Friends</h3>
+                <div
+                    className="fixed inset-0 z-[1100] flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm p-0 sm:p-4 animate-in fade-in duration-200"
+                    onClick={closeShareModal}
+                >
+                    <div
+                        className="bg-white dark:bg-[#141414] rounded-t-3xl sm:rounded-3xl w-full max-w-md shadow-2xl border border-gray-100 dark:border-white/10 animate-in slide-in-from-bottom sm:zoom-in-95 duration-200 flex flex-col overflow-hidden"
+                        style={{
+                            maxHeight: 'min(92dvh, calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)))',
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="flex justify-between items-center px-4 sm:px-5 py-3 sm:py-4 border-b border-gray-100 dark:border-white/10 shrink-0">
+                            <h3 className="text-sm sm:text-base font-bold text-gray-900 dark:text-gray-100 uppercase tracking-widest">Invite Friends</h3>
                             <button
                                 type="button"
-                                onClick={() => {
-                                    setShowShareModal(false);
-                                    setShowShareApps(false);
-                                }}
+                                onClick={closeShareModal}
                                 className="text-gray-400 hover:text-red-500 transition-colors bg-gray-50 dark:bg-white/5 p-2 rounded-full"
                             >
                                 <X size={18} />
                             </button>
                         </div>
 
-                        <div className="px-5 py-4 space-y-4 overflow-y-auto overscroll-contain flex-1 min-h-0 pb-[max(1rem,env(safe-area-inset-bottom))]">
-                            <p className="text-[13px] leading-relaxed text-gray-500 dark:text-gray-400">
+                        <div className="px-4 sm:px-5 py-3 sm:py-4 space-y-3 sm:space-y-4 overflow-y-auto overscroll-contain flex-1 min-h-0">
+                            <p className="text-[12px] sm:text-[13px] leading-relaxed text-gray-500 dark:text-gray-400">
                                 Share your referral code. Friends who join with it are tagged to you.
                             </p>
 
-                            <div className="bg-[#eefaf1] dark:bg-[#0c831f]/10 rounded-2xl px-4 py-4 text-center">
+                            <div className="bg-[#eefaf1] dark:bg-[#0c831f]/10 rounded-2xl px-4 py-3 sm:py-4 text-center">
                                 <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">Your code</p>
-                                <p className="text-2xl font-black text-[#0c831f] tracking-[0.2em]">{user?.referralCode || '—'}</p>
+                                <p className="text-xl sm:text-2xl font-black text-[#0c831f] tracking-[0.2em]">{user?.referralCode || '—'}</p>
                             </div>
 
-                            <div className="space-y-2.5">
+                            <div className="space-y-2">
                                 {sharePayload?.playStoreLink && (
-                                    <div className="flex items-center gap-2.5 rounded-2xl border border-gray-100 dark:border-white/10 bg-gray-50 dark:bg-white/5 px-3 py-3 min-w-0">
+                                    <div className="flex items-center gap-2.5 rounded-2xl border border-gray-100 dark:border-white/10 bg-gray-50 dark:bg-white/5 px-3 py-2.5 sm:py-3 min-w-0">
                                         <div className="min-w-0 flex-1">
                                             <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Play Store</p>
                                             <p className="text-[12px] font-semibold text-gray-700 dark:text-gray-200 truncate">Android app download</p>
@@ -577,7 +597,7 @@ const ProfilePage = () => {
                                         <button
                                             type="button"
                                             onClick={() => copyText(sharePayload.playStoreLink, 'play')}
-                                            className="shrink-0 h-10 w-10 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-white/10 flex items-center justify-center text-[#0c831f]"
+                                            className="shrink-0 h-9 w-9 sm:h-10 sm:w-10 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-white/10 flex items-center justify-center text-[#0c831f]"
                                             aria-label="Copy Play Store link"
                                         >
                                             {copiedKey === 'play' ? <Check size={16} /> : <Copy size={16} />}
@@ -586,7 +606,7 @@ const ProfilePage = () => {
                                 )}
 
                                 {sharePayload?.appStoreLink && (
-                                    <div className="flex items-center gap-2.5 rounded-2xl border border-gray-100 dark:border-white/10 bg-gray-50 dark:bg-white/5 px-3 py-3 min-w-0">
+                                    <div className="flex items-center gap-2.5 rounded-2xl border border-gray-100 dark:border-white/10 bg-gray-50 dark:bg-white/5 px-3 py-2.5 sm:py-3 min-w-0">
                                         <div className="min-w-0 flex-1">
                                             <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">App Store</p>
                                             <p className="text-[12px] font-semibold text-gray-700 dark:text-gray-200 truncate">iOS app download</p>
@@ -594,7 +614,7 @@ const ProfilePage = () => {
                                         <button
                                             type="button"
                                             onClick={() => copyText(sharePayload.appStoreLink, 'ios')}
-                                            className="shrink-0 h-10 w-10 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-white/10 flex items-center justify-center text-[#0c831f]"
+                                            className="shrink-0 h-9 w-9 sm:h-10 sm:w-10 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-white/10 flex items-center justify-center text-[#0c831f]"
                                             aria-label="Copy App Store link"
                                         >
                                             {copiedKey === 'ios' ? <Check size={16} /> : <Copy size={16} />}
@@ -602,7 +622,7 @@ const ProfilePage = () => {
                                     </div>
                                 )}
 
-                                <div className="flex items-center gap-2.5 rounded-2xl border border-gray-100 dark:border-white/10 bg-gray-50 dark:bg-white/5 px-3 py-3 min-w-0">
+                                <div className="flex items-center gap-2.5 rounded-2xl border border-gray-100 dark:border-white/10 bg-gray-50 dark:bg-white/5 px-3 py-2.5 sm:py-3 min-w-0">
                                     <div className="min-w-0 flex-1">
                                         <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Web invite</p>
                                         <p className="text-[12px] font-semibold text-gray-700 dark:text-gray-200 truncate">{referralLink || '—'}</p>
@@ -610,7 +630,7 @@ const ProfilePage = () => {
                                     <button
                                         type="button"
                                         onClick={() => copyText(referralLink, 'web')}
-                                        className="shrink-0 h-10 w-10 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-white/10 flex items-center justify-center text-[#0c831f]"
+                                        className="shrink-0 h-9 w-9 sm:h-10 sm:w-10 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-white/10 flex items-center justify-center text-[#0c831f]"
                                         aria-label="Copy web invite link"
                                     >
                                         {copiedKey === 'web' ? <Check size={16} /> : <Copy size={16} />}
@@ -618,82 +638,84 @@ const ProfilePage = () => {
                                 </div>
                             </div>
 
-                            <div className="space-y-2.5 pt-1">
-                                <button
-                                    type="button"
-                                    onClick={handleCopyReferralLink}
-                                    className="w-full py-3.5 rounded-2xl font-bold text-center text-white bg-[#0c831f] hover:bg-[#0a6b19] transition-colors flex items-center justify-center gap-2"
-                                >
-                                    {linkCopied ? <Check size={18} /> : <Copy size={18} />}
-                                    {linkCopied ? 'Copied full invite' : 'Copy full invite'}
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={handleShareViaAppsClick}
-                                    className="w-full py-3.5 rounded-2xl font-bold text-center text-[#0c831f] bg-[#eefaf1] dark:bg-[#0c831f]/15 hover:bg-[#dff5e4] transition-colors flex items-center justify-center gap-2"
-                                >
-                                    <Share2 size={18} />
-                                    Share via apps
-                                </button>
-
-                                {showShareApps && (
-                                    <div className="rounded-2xl border border-gray-100 dark:border-white/10 bg-gray-50 dark:bg-white/5 p-3.5 space-y-3 animate-in fade-in slide-in-from-bottom-2 duration-200">
-                                        <p className="text-[11px] font-bold uppercase tracking-widest text-gray-400 text-center">
-                                            Choose an app
-                                        </p>
-                                        <div className="grid grid-cols-4 gap-2.5">
-                                            <button
-                                                type="button"
-                                                onClick={() => shareViaApp('whatsapp')}
-                                                className="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-white dark:hover:bg-white/10 transition-colors"
-                                            >
-                                                <span className="h-12 w-12 rounded-2xl bg-[#25D366] text-white flex items-center justify-center shadow-sm">
-                                                    <MessageCircle size={22} strokeWidth={2.25} />
-                                                </span>
-                                                <span className="text-[10px] font-bold text-gray-700 dark:text-gray-200">WhatsApp</span>
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => shareViaApp('telegram')}
-                                                className="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-white dark:hover:bg-white/10 transition-colors"
-                                            >
-                                                <span className="h-12 w-12 rounded-2xl bg-[#229ED9] text-white flex items-center justify-center shadow-sm">
-                                                    <Send size={20} strokeWidth={2.25} />
-                                                </span>
-                                                <span className="text-[10px] font-bold text-gray-700 dark:text-gray-200">Telegram</span>
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => shareViaApp('sms')}
-                                                className="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-white dark:hover:bg-white/10 transition-colors"
-                                            >
-                                                <span className="h-12 w-12 rounded-2xl bg-[#0c831f] text-white flex items-center justify-center shadow-sm">
-                                                    <Phone size={20} strokeWidth={2.25} />
-                                                </span>
-                                                <span className="text-[10px] font-bold text-gray-700 dark:text-gray-200">SMS</span>
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => shareViaApp('email')}
-                                                className="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-white dark:hover:bg-white/10 transition-colors"
-                                            >
-                                                <span className="h-12 w-12 rounded-2xl bg-[#EA4335] text-white flex items-center justify-center shadow-sm">
-                                                    <Mail size={20} strokeWidth={2.25} />
-                                                </span>
-                                                <span className="text-[10px] font-bold text-gray-700 dark:text-gray-200">Email</span>
-                                            </button>
-                                        </div>
+                            {showShareApps && (
+                                <div className="rounded-2xl border border-gray-100 dark:border-white/10 bg-gray-50 dark:bg-white/5 p-3 space-y-3 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                                    <p className="text-[11px] font-bold uppercase tracking-widest text-gray-400 text-center">
+                                        Choose an app
+                                    </p>
+                                    <div className="grid grid-cols-4 gap-2">
                                         <button
                                             type="button"
-                                            onClick={handleNativeShare}
-                                            className="w-full py-2.5 rounded-xl text-[12px] font-bold text-[#0c831f] bg-white dark:bg-white/10 border border-[#0c831f]/20 flex items-center justify-center gap-2"
+                                            onClick={() => shareViaApp('whatsapp')}
+                                            className="flex flex-col items-center gap-1.5 p-1.5 rounded-xl hover:bg-white dark:hover:bg-white/10 transition-colors"
                                         >
-                                            <Share2 size={15} />
-                                            More apps
+                                            <span className="h-11 w-11 rounded-2xl bg-[#25D366] text-white flex items-center justify-center shadow-sm">
+                                                <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true">
+                                                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.435 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+                                                </svg>
+                                            </span>
+                                            <span className="text-[10px] font-bold text-gray-700 dark:text-gray-200">WhatsApp</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => shareViaApp('telegram')}
+                                            className="flex flex-col items-center gap-1.5 p-1.5 rounded-xl hover:bg-white dark:hover:bg-white/10 transition-colors"
+                                        >
+                                            <span className="h-11 w-11 rounded-2xl bg-[#229ED9] text-white flex items-center justify-center shadow-sm">
+                                                <Send size={18} strokeWidth={2.25} />
+                                            </span>
+                                            <span className="text-[10px] font-bold text-gray-700 dark:text-gray-200">Telegram</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => shareViaApp('sms')}
+                                            className="flex flex-col items-center gap-1.5 p-1.5 rounded-xl hover:bg-white dark:hover:bg-white/10 transition-colors"
+                                        >
+                                            <span className="h-11 w-11 rounded-2xl bg-[#0c831f] text-white flex items-center justify-center shadow-sm">
+                                                <MessageCircle size={20} strokeWidth={2.25} />
+                                            </span>
+                                            <span className="text-[10px] font-bold text-gray-700 dark:text-gray-200">SMS</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => shareViaApp('email')}
+                                            className="flex flex-col items-center gap-1.5 p-1.5 rounded-xl hover:bg-white dark:hover:bg-white/10 transition-colors"
+                                        >
+                                            <span className="h-11 w-11 rounded-2xl bg-[#EA4335] text-white flex items-center justify-center shadow-sm">
+                                                <Mail size={18} strokeWidth={2.25} />
+                                            </span>
+                                            <span className="text-[10px] font-bold text-gray-700 dark:text-gray-200">Email</span>
                                         </button>
                                     </div>
-                                )}
-                            </div>
+                                    <button
+                                        type="button"
+                                        onClick={handleNativeShare}
+                                        className="w-full py-2.5 rounded-xl text-[12px] font-bold text-[#0c831f] bg-white dark:bg-white/10 border border-[#0c831f]/20 flex items-center justify-center gap-2"
+                                    >
+                                        <Share2 size={15} />
+                                        More apps
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="shrink-0 px-4 sm:px-5 pt-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] space-y-2 border-t border-gray-100 dark:border-white/10 bg-white dark:bg-[#141414]">
+                            <button
+                                type="button"
+                                onClick={handleCopyReferralLink}
+                                className="w-full py-3 sm:py-3.5 rounded-2xl font-bold text-center text-white bg-[#0c831f] hover:bg-[#0a6b19] transition-colors flex items-center justify-center gap-2"
+                            >
+                                {linkCopied ? <Check size={18} /> : <Copy size={18} />}
+                                {linkCopied ? 'Copied full invite' : 'Copy full invite'}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleShareViaAppsClick}
+                                className="w-full py-3 sm:py-3.5 rounded-2xl font-bold text-center text-[#0c831f] bg-[#eefaf1] dark:bg-[#0c831f]/15 hover:bg-[#dff5e4] transition-colors flex items-center justify-center gap-2"
+                            >
+                                <Share2 size={18} />
+                                Share via apps
+                            </button>
                         </div>
                     </div>
                 </div>
