@@ -3,6 +3,7 @@ import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import * as Icons from 'lucide-react';
 import { staffSidebarMenu } from '../data/staffSidebarMenu';
 import { useStaffAuth } from '../context/StaffAuthContext';
+import { hasStaffPermission } from '../utils/staffPermissions';
 import logo from '../../../assets/logo_fav.png';
 
 const StaffSidebar = ({ showMobile, onClose }) => {
@@ -17,12 +18,18 @@ const StaffSidebar = ({ showMobile, onClose }) => {
 
         const permissions = Array.isArray(staffUser.permissions) ? staffUser.permissions : [];
         if (item.title === 'Manage Staff') {
-            return staffUser.role === 'Store Manager' || permissions.includes('MANAGE_STAFF');
+            return staffUser.role === 'Store Manager' || hasStaffPermission(permissions, 'MANAGE_STAFF');
         }
 
         const permissionCode = item.permission;
-        if (!permissionCode || permissionCode === 'VIEW_DASHBOARD') return true;
-        return permissions.includes(permissionCode);
+        if (!permissionCode) return true;
+
+        // Show parent menu if any submenu item is accessible
+        if (item.submenu?.length) {
+            return item.submenu.some((sub) => hasStaffPermission(permissions, sub.permission));
+        }
+
+        return hasStaffPermission(permissions, permissionCode);
     };
 
     useEffect(() => {

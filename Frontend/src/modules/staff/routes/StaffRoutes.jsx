@@ -19,6 +19,7 @@ import StaffPOS from '../pages/StaffPOS';
 import Notifications from '../pages/Notifications';
 import StaffReports from '../pages/reports/StaffReports';
 import StaffVyaparReport from '../pages/reports/StaffVyaparReport';
+import { hasStaffPermission } from '../utils/staffPermissions';
 
 const PlaceholderPage = ({ title }) => (
     <div className="p-4 text-center d-flex flex-column align-items-center justify-content-center" style={{ minHeight: '60vh' }}>
@@ -49,7 +50,7 @@ const ProtectedStaffRoute = () => {
 const ProtectedStaffModuleRoute = ({ permission, children }) => {
     const { staffUser } = useStaffAuth();
     const permissions = Array.isArray(staffUser?.permissions) ? staffUser.permissions : [];
-    if (!permissions.includes(permission)) {
+    if (!hasStaffPermission(permissions, permission)) {
         return <Navigate to="/staff/dashboard" replace />;
     }
     return children;

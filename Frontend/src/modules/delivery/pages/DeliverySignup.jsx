@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Phone, User, Mail, Bike, Hash, ArrowRight, Zap, CheckCircle, Upload, IdCard, FileText, Car } from 'lucide-react';
+import { Phone, User, Mail, Bike, Hash, ArrowRight, Zap, CheckCircle, Upload, IdCard, FileText, Car, MapPin } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
 import { registerDeliveryPartner } from '../api/deliveryAuthApi';
@@ -46,6 +46,7 @@ const DeliverySignup = () => {
     name: '',
     phone: '',
     email: '',
+    city: '',
     vehicleType: 'Bike',
     vehicleNumber: '',
   });
@@ -70,13 +71,17 @@ const DeliverySignup = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!form.name.trim()) return toast.error('Please enter your full name');
     if (form.phone.length !== 10) return toast.error('Enter a valid 10-digit phone number');
+    if (!form.city.trim()) return toast.error('Please enter your base city / location');
+    if (!form.vehicleType) return toast.error('Please select a vehicle type');
 
-    if (form.vehicleNumber) {
-      const vehicleRegex = /^[A-Z]{2}[0-9]{2}[A-Z]{2}[0-9]{4}$/;
-      if (!vehicleRegex.test(form.vehicleNumber)) {
-        return toast.error('Vehicle number must be in format: 2 Letters, 2 Digits, 2 Letters, 4 Digits (e.g. MP09AB1234)');
-      }
+    const vehicleRegex = /^[A-Z]{2}[0-9]{2}[A-Z]{2}[0-9]{4}$/;
+    if (!form.vehicleNumber.trim()) {
+      return toast.error('Please enter your vehicle number');
+    }
+    if (!vehicleRegex.test(form.vehicleNumber)) {
+      return toast.error('Vehicle number must be in format: 2 Letters, 2 Digits, 2 Letters, 4 Digits (e.g. MP09AB1234)');
     }
 
     if (!docs.aadhar) return toast.error('Please upload your Aadhar card');
@@ -86,11 +91,12 @@ const DeliverySignup = () => {
     setLoading(true);
     try {
       const data = new FormData();
-      data.append('name', form.name);
+      data.append('name', form.name.trim());
       data.append('phone', form.phone);
       if (form.email) data.append('email', form.email);
+      data.append('city', form.city.trim());
       data.append('vehicleType', form.vehicleType);
-      if (form.vehicleNumber) data.append('vehicleNumber', form.vehicleNumber);
+      data.append('vehicleNumber', form.vehicleNumber);
       data.append('aadhar', docs.aadhar);
       data.append('license', docs.license);
       if (docs.rc) data.append('rc', docs.rc);
@@ -154,7 +160,9 @@ const DeliverySignup = () => {
         <div className="bg-white dark:bg-[#1e293b] py-8 px-6 shadow-2xl shadow-gray-200/50 dark:shadow-none rounded-3xl border border-gray-100 dark:border-white/5 transition-all duration-300">
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2 px-1">Full Name</label>
+              <label className="block text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2 px-1">
+                Full Name <span className="text-rose-500">*</span>
+              </label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
                   <User size={17} className="text-gray-400 group-focus-within:text-[#028A0F] transition-colors" />
@@ -164,7 +172,9 @@ const DeliverySignup = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2 px-1">Phone Number</label>
+              <label className="block text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2 px-1">
+                Phone Number <span className="text-rose-500">*</span>
+              </label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
                   <Phone size={17} className="text-gray-400 group-focus-within:text-[#028A0F] transition-colors" />
@@ -186,12 +196,26 @@ const DeliverySignup = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2 px-1">Vehicle Type</label>
+              <label className="block text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2 px-1">
+                Base City / Location <span className="text-rose-500">*</span>
+              </label>
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
+                  <MapPin size={17} className="text-gray-400 group-focus-within:text-[#028A0F] transition-colors" />
+                </div>
+                <input name="city" type="text" required value={form.city} onChange={handleChange} placeholder="e.g. Udaipur, RJ" className="block w-full pl-11 pr-4 py-4 rounded-2xl font-bold transition-all delivery-input outline-none" />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2 px-1">
+                Vehicle Type <span className="text-rose-500">*</span>
+              </label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
                   <Bike size={17} className="text-gray-400 group-focus-within:text-[#028A0F] transition-colors" />
                 </div>
-                <select name="vehicleType" value={form.vehicleType} onChange={handleChange} className="block w-full pl-11 pr-4 py-4 rounded-2xl font-bold transition-all delivery-input outline-none appearance-none">
+                <select name="vehicleType" required value={form.vehicleType} onChange={handleChange} className="block w-full pl-11 pr-4 py-4 rounded-2xl font-bold transition-all delivery-input outline-none appearance-none">
                   {VEHICLE_TYPES.map((type) => (
                     <option key={type} value={type}>{type}</option>
                   ))}
@@ -201,13 +225,13 @@ const DeliverySignup = () => {
 
             <div>
               <label className="block text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2 px-1">
-                Vehicle Number <span className="normal-case font-medium text-gray-300 dark:text-gray-600">(optional)</span>
+                Vehicle Number <span className="text-rose-500">*</span>
               </label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
                   <Hash size={17} className="text-gray-400 group-focus-within:text-[#028A0F] transition-colors" />
                 </div>
-                <input name="vehicleNumber" type="text" maxLength={10} value={form.vehicleNumber} onChange={(e) => setForm((p) => ({ ...p, vehicleNumber: e.target.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase() }))} placeholder="MP09AB1234" className="block w-full pl-11 pr-4 py-4 rounded-2xl font-bold transition-all delivery-input outline-none uppercase tracking-widest" />
+                <input name="vehicleNumber" type="text" required maxLength={10} value={form.vehicleNumber} onChange={(e) => setForm((p) => ({ ...p, vehicleNumber: e.target.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase() }))} placeholder="MP09AB1234" className="block w-full pl-11 pr-4 py-4 rounded-2xl font-bold transition-all delivery-input outline-none uppercase tracking-widest" />
               </div>
             </div>
 

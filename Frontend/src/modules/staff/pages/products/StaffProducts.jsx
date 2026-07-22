@@ -118,8 +118,26 @@ const StaffProducts = () => {
 
     const activeFiltersCount = [selectedCategory, selectedBrand].filter(Boolean).length;
 
+    const getPageNumbers = () => {
+        const pages = [];
+        const maxButtons = 5;
+        if (totalPages <= maxButtons) {
+            for (let i = 1; i <= totalPages; i++) pages.push(i);
+            return pages;
+        }
+        let start = Math.max(1, page - 2);
+        let end = Math.min(totalPages, start + maxButtons - 1);
+        start = Math.max(1, end - maxButtons + 1);
+        if (start > 1) pages.push(1, start > 2 ? '...' : 2);
+        for (let i = start; i <= end; i++) {
+            if (!pages.includes(i)) pages.push(i);
+        }
+        if (end < totalPages) pages.push(end < totalPages - 1 ? '...' : totalPages - 1, totalPages);
+        return [...new Set(pages)];
+    };
+
     return (
-        <div className="space-y-6 animate-in fade-in duration-500 overflow-x-hidden text-left">
+        <div className="space-y-6 animate-in fade-in duration-500 overflow-x-hidden text-left min-w-0 max-w-full">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 text-left px-1">
                 <div className="space-y-2">
                     <h1 className="text-3xl font-black text-slate-900 tracking-tight uppercase italic font-black leading-none text-left">Product List</h1>
@@ -193,8 +211,8 @@ const StaffProducts = () => {
                 </div>
             </div>
 
-            <div className="bg-white border border-slate-200 rounded-[2.5rem] shadow-sm overflow-hidden min-h-[500px] flex flex-col group p-4 lg:p-6 text-left">
-                <div className="overflow-x-auto custom-scrollbar flex-1">
+            <div className="bg-white border border-slate-200 rounded-[2.5rem] shadow-sm overflow-hidden min-h-[500px] flex flex-col group p-4 lg:p-6 text-left min-w-0 max-w-full">
+                <div className="overflow-x-auto custom-scrollbar flex-1 min-w-0">
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-slate-50/50">
@@ -356,11 +374,11 @@ const StaffProducts = () => {
 
                 {/* Pagination */}
                 {!loading && totalPages > 1 && (
-                    <div className="px-8 py-8 border-t border-slate-50 bg-slate-50/10 flex flex-col sm:flex-row justify-between items-center gap-6">
+                    <div className="px-4 sm:px-8 py-6 sm:py-8 border-t border-slate-50 bg-slate-50/10 flex flex-col sm:flex-row justify-between items-center gap-4 shrink-0">
                         <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap italic font-black text-left">
                             Showing <span className="text-slate-900 font-black">{products.length}</span> of <span className="text-slate-900 font-black">{totalProducts}</span> deployments
                         </div>
-                        <div className="flex items-center gap-2 overflow-x-auto pb-1 max-w-full">
+                        <div className="flex items-center gap-2 flex-wrap justify-center sm:justify-end max-w-full">
                             <button 
                                 onClick={() => updateParams({ page: Math.max(1, page - 1) })}
                                 disabled={page === 1}
@@ -368,15 +386,19 @@ const StaffProducts = () => {
                             >
                                 Prev
                             </button>
-                            <div className="flex items-center gap-1.5 mx-2 shrink-0">
-                                {[...Array(totalPages)].map((_, i) => (
-                                    <button
-                                        key={i + 1}
-                                        onClick={() => updateParams({ page: i + 1 })}
-                                        className={`w-10 h-10 rounded-xl text-[11px] font-black transition-all shadow-sm font-black ${page === i + 1 ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'bg-white text-slate-400 border border-slate-200 hover:border-blue-200'}`}
-                                    >
-                                        {i + 1}
-                                    </button>
+                            <div className="flex items-center gap-1.5 flex-wrap justify-center">
+                                {getPageNumbers().map((p, i) => (
+                                    p === '...' ? (
+                                        <span key={`ellipsis-${i}`} className="w-10 h-10 flex items-center justify-center text-slate-400 text-xs font-black">...</span>
+                                    ) : (
+                                        <button
+                                            key={p}
+                                            onClick={() => updateParams({ page: p })}
+                                            className={`w-10 h-10 rounded-xl text-[11px] font-black transition-all shadow-sm font-black ${page === p ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'bg-white text-slate-400 border border-slate-200 hover:border-blue-200'}`}
+                                        >
+                                            {p}
+                                        </button>
+                                    )
                                 ))}
                             </div>
                             <button 

@@ -81,8 +81,8 @@ const StaffLayout = () => {
                 onClose={() => setShowMobileSidebar(false)}
             />
 
-            <div className={`flex-1 flex flex-col min-h-screen transition-all duration-500 lg:ml-[260px] w-full`}>
-                <header className="h-[70px] bg-white/80 backdrop-blur-md border-b border-slate-100 sticky top-0 z-40 px-6 flex items-center justify-between shadow-sm shadow-slate-200/50">
+            <div className={`flex-1 flex flex-col min-h-screen min-w-0 transition-all duration-500 lg:ml-[260px] w-full max-w-full`}>
+                <header className="h-[70px] w-full bg-white/80 backdrop-blur-md border-b border-slate-100 sticky top-0 z-40 px-6 flex items-center justify-between shadow-sm shadow-slate-200/50 shrink-0">
                     <div className="flex items-center gap-4">
                         <button
                             className="lg:hidden p-2 rounded-xl text-slate-600 hover:bg-slate-100 transition-colors"
@@ -205,7 +205,7 @@ const StaffLayout = () => {
                     </div>
                 </header>
 
-                <main className="flex-1 p-6 md:p-8 overflow-x-hidden relative">
+                <main className="flex-1 p-6 md:p-8 overflow-x-hidden overflow-y-auto relative min-w-0 max-w-full">
                     {/* Page Content Entry Animation Wrapper */}
                     <div className="animate-in fade-in slide-in-from-bottom-3 duration-700">
                         <Outlet />

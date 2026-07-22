@@ -17,26 +17,29 @@ export const StaffAuthProvider = ({ children }) => {
     }, []);
 
     const refreshProfile = useCallback(async () => {
-        if (!staffUser?.token) return;
+        const token = staffUser?.token;
+        if (!token) return;
         try {
             const { getProfile } = await import('../../../common/api/adminApi');
-            const data = await getProfile(staffUser.token);
-            const updatedUser = { ...data, token: staffUser.token };
-            setStaffUser(updatedUser);
-            localStorage.setItem('saathigro_staff', JSON.stringify(updatedUser));
+            const data = await getProfile(token);
+            setStaffUser((prev) => {
+                const updatedUser = { ...data, token: prev?.token || token };
+                localStorage.setItem('saathigro_staff', JSON.stringify(updatedUser));
+                return updatedUser;
+            });
         } catch (error) {
             console.error('Failed to refresh staff profile:', error);
-            if (error.response?.status === 401) {
-                staffLogout();
-            }
         }
-    }, [staffUser?.token, staffLogout]);
+    }, [staffUser?.token]);
 
     useEffect(() => {
-        if (staffUser?.token) {
-            refreshProfile();
-        }
-    }, [refreshProfile]);
+        if (!staffUser?.token) return;
+        refreshProfile();
+
+        const onFocus = () => refreshProfile();
+        window.addEventListener('focus', onFocus);
+        return () => window.removeEventListener('focus', onFocus);
+    }, [staffUser?.token, refreshProfile]);
 
     const staffLogin = useCallback(async (email, password) => {
         try {
@@ -63,7 +66,7 @@ export const StaffAuthProvider = ({ children }) => {
     }, [staffUser?.token]);
 
     return (
-        <StaffAuthContext.Provider value={{ staffUser, staffLogin, staffLogout, staffUpdateProfile: updateProfile }}>
+        <StaffAuthContext.Provider value={{ staffUser, staffLogin, staffLogout, staffUpdateProfile: updateProfile, refreshStaffProfile: refreshProfile }}>
             {children}
         </StaffAuthContext.Provider>
     );

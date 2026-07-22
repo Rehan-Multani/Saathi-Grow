@@ -71,8 +71,6 @@ export const requestOTP = async (req, res) => {
       success: true,
       message: 'OTP sent successfully',
       expiresIn: 600, // 10 minutes
-      // In development, we can return OTP
-      otp: process.env.NODE_ENV === 'development' ? otp : undefined
     });
   } catch (error) {
     console.error('Request OTP Error:', error);

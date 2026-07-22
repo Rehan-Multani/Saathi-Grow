@@ -19,6 +19,7 @@ const AddDeliveryPartner = () => {
         name: '',
         phone: '',
         email: '',
+        city: '',
         password: Math.random().toString(36).slice(-8).toUpperCase(),
         vehicleType: 'Bike',
         vehicleNumber: '',
@@ -205,6 +206,21 @@ const AddDeliveryPartner = () => {
                                                 className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 transition-all text-xs font-bold text-slate-700 shadow-sm"
                                             />
                                         </div>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-1.5">
+                                    <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Base City / Location</label>
+                                    <div className="relative group">
+                                        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors pointer-events-none" size={14} />
+                                        <input
+                                            type="text"
+                                            name="city"
+                                            value={formData.city}
+                                            onChange={handleChange}
+                                            placeholder="e.g. Udaipur, RJ"
+                                            className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 transition-all text-xs font-bold text-slate-700 shadow-sm"
+                                        />
                                     </div>
                                 </div>
                             </div>

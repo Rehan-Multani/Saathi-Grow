@@ -3,6 +3,23 @@ import generateToken from '../utils/generateToken.js';
 import { sendWelcomeEmail, sendResetPasswordEmail } from '../services/emailService.js';
 import crypto from 'crypto';
 
+const STAFF_ALLOWED_PERMISSIONS = [
+  'VIEW_DASHBOARD',
+  'VIEW_ORDERS',
+  'MANAGE_ORDERS',
+  'MANAGE_REFUNDS_RETURNS',
+  'VIEW_PRODUCTS',
+  'MANAGE_PRODUCTS',
+  'MANAGE_INVENTORY',
+  'VIEW_CUSTOMERS',
+  'VIEW_REPORTS',
+  'MANAGE_STAFF',
+  'MANAGE_POS_BILLING',
+];
+
+const filterStaffPermissions = (permissions = []) =>
+  permissions.filter((p) => STAFF_ALLOWED_PERMISSIONS.includes(p));
+
 // @desc    Admin Login
 // @route   POST /api/admin/login
 // @access  Public
@@ -209,16 +226,6 @@ export const createAdmin = async (req, res) => {
     let finalBranchId = branchId;
 
     // Allowed permissions for non-Super Admin roles
-    const ALLOWED_PERMISSIONS = [
-      'VIEW_ORDERS',
-      'MANAGE_ORDERS',
-      'MANAGE_REFUNDS_RETURNS',
-      'VIEW_PRODUCTS',
-      'MANAGE_INVENTORY',
-      'VIEW_CUSTOMERS',
-      'MANAGE_POS_BILLING'
-    ];
-
     let finalPermissions = permissions || [];
 
     // Hierarchy Enforcement:
@@ -242,8 +249,7 @@ export const createAdmin = async (req, res) => {
       }
     }
 
-    // Filter permissions to only allowed ones
-    finalPermissions = finalPermissions.filter(p => ALLOWED_PERMISSIONS.includes(p));
+    finalPermissions = filterStaffPermissions(finalPermissions);
 
     const admin = await Admin.create({
       name,
@@ -284,22 +290,10 @@ export const updateAdmin = async (req, res) => {
       return res.status(403).json({ message: 'Not authorized to edit Admin accounts' });
     }
 
-    // Allowed permissions for staff/managers
-    const ALLOWED_PERMISSIONS = [
-      'VIEW_DASHBOARD',
-      'VIEW_ORDERS',
-      'MANAGE_ORDERS',
-      'MANAGE_REFUNDS_RETURNS',
-      'VIEW_PRODUCTS',
-      'MANAGE_PRODUCTS',
-      'MANAGE_INVENTORY',
-      'VIEW_CUSTOMERS',
-      'VIEW_REPORTS',
-      'MANAGE_STAFF',
-      'MANAGE_POS_BILLING'
-    ];
-
-    // Hierarchy Enforcement:
+    // Filter and update permissions
+    if (req.body.permissions) {
+      admin.permissions = filterStaffPermissions(req.body.permissions);
+    }
     if (req.admin.role !== 'Admin') {
       // Non-Admins can only edit staff in THEIR branch
       if (admin.role !== 'Staff' || admin.branchId?.toString() !== req.admin.branchId?.toString()) {
@@ -337,12 +331,7 @@ export const updateAdmin = async (req, res) => {
 
     admin.role = req.body.role || admin.role;
 
-    // Filter and update permissions
-    if (req.body.permissions) {
-      admin.permissions = req.body.permissions.filter(p => ALLOWED_PERMISSIONS.includes(p));
-    }
-
-    // Branch ID validation and casting
+    // Hierarchy Enforcement:
     if (req.body.branchId !== undefined) {
       const willBeActive = req.body.isActive ?? admin.isActive;
       if ((req.body.branchId === '' || req.body.branchId === null) && willBeActive) {

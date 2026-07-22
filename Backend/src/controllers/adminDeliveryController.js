@@ -31,7 +31,7 @@ const getPaginationParams = (query = {}) => {
 // @access  Private (Admin)
 export const addDeliveryPartner = async (req, res) => {
   try {
-    const { name, phone, email, password, vehicleType, vehicleNumber } = req.body;
+    const { name, phone, email, password, city, vehicleType, vehicleNumber } = req.body;
 
     const partnerExists = await DeliveryPartner.findOne({ phone });
 
@@ -53,6 +53,7 @@ export const addDeliveryPartner = async (req, res) => {
       name,
       phone,
       email,
+      city: city?.trim() || undefined,
       password: password || undefined,
       vehicleType,
       vehicleNumber,
@@ -168,7 +169,7 @@ export const updateDeliveryPartnerStatus = async (req, res) => {
 // @access  Private (Admin)
 export const updateDeliveryPartner = async (req, res) => {
   try {
-    const { name, phone, authStatus, vehicleType, vehicleNumber, email } = req.body;
+    const { name, phone, authStatus, vehicleType, vehicleNumber, email, city } = req.body;
     const partner = await DeliveryPartner.findById(req.params.id);
 
     if (partner) {
@@ -178,6 +179,7 @@ export const updateDeliveryPartner = async (req, res) => {
       partner.vehicleType = vehicleType || partner.vehicleType;
       partner.vehicleNumber = vehicleNumber || partner.vehicleNumber;
       partner.email = email || partner.email;
+      if (city !== undefined) partner.city = city.trim();
 
       const updatedPartner = await partner.save();
       res.json(updatedPartner);

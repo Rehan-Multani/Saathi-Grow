@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Mail, Phone, Lock, Briefcase, Save, ArrowLeft, Shield, Store, CheckCircle2, Loader2, Info } from 'lucide-react';
+import { User, Mail, Phone, Lock, Briefcase, Save, ArrowLeft, Shield, Store, CheckCircle2, Loader2, Info, Eye, EyeOff } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { createStaff } from '../../api/adminApi';
@@ -14,6 +14,8 @@ const AddStaff = () => {
     const navigate = useNavigate();
     const { adminUser } = useAdminAuth();
     const [loading, setLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [branches, setBranches] = useState([]);
     const [formData, setFormData] = useState({
         firstName: '',
@@ -230,26 +232,46 @@ const AddStaff = () => {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <div className="space-y-1.5">
                                 <label className="text-[11px] font-bold text-slate-500 ml-1">{t('add.form.label_password')}</label>
-                                <input
-                                    type="password"
-                                    placeholder="••••••••"
-                                    className={`w-full bg-slate-50/50 border ${errors.password ? 'border-rose-400 ring-4 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:bg-white'} rounded-xl py-2.5 px-4 text-sm font-medium outline-none transition-all`}
-                                    value={formData.password}
-                                    onChange={handleChange}
-                                    name="password"
-                                />
+                                <div className="relative group">
+                                    <input
+                                        type={showPassword ? 'text' : 'password'}
+                                        placeholder="••••••••"
+                                        className={`w-full bg-slate-50/50 border ${errors.password ? 'border-rose-400 ring-4 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:bg-white'} rounded-xl py-2.5 pl-4 pr-11 text-sm font-medium outline-none transition-all`}
+                                        value={formData.password}
+                                        onChange={handleChange}
+                                        name="password"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword((prev) => !prev)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-blue-500 transition-colors"
+                                        aria-label={showPassword ? 'Hide password' : 'Show password'}
+                                    >
+                                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                    </button>
+                                </div>
                                 {errors.password ? <p className="text-[10px] text-rose-500 font-bold ml-1">{errors.password}</p> : <p className="text-[9px] text-slate-400 font-medium ml-1">At least 8 characters</p>}
                             </div>
                             <div className="space-y-1.5">
                                 <label className="text-[11px] font-bold text-slate-500 ml-1">Confirm Password</label>
-                                <input
-                                    type="password"
-                                    placeholder="••••••••"
-                                    className={`w-full bg-slate-50/50 border ${errors.confirmPassword ? 'border-rose-400 ring-4 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:bg-white'} rounded-xl py-2.5 px-4 text-sm font-medium outline-none transition-all`}
-                                    value={formData.confirmPassword}
-                                    onChange={handleChange}
-                                    name="confirmPassword"
-                                />
+                                <div className="relative group">
+                                    <input
+                                        type={showConfirmPassword ? 'text' : 'password'}
+                                        placeholder="••••••••"
+                                        className={`w-full bg-slate-50/50 border ${errors.confirmPassword ? 'border-rose-400 ring-4 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:bg-white'} rounded-xl py-2.5 pl-4 pr-11 text-sm font-medium outline-none transition-all`}
+                                        value={formData.confirmPassword}
+                                        onChange={handleChange}
+                                        name="confirmPassword"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowConfirmPassword((prev) => !prev)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-blue-500 transition-colors"
+                                        aria-label={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
+                                    >
+                                        {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                    </button>
+                                </div>
                                 {errors.confirmPassword && <p className="text-[10px] text-rose-500 font-bold ml-1">{errors.confirmPassword}</p>}
                             </div>
                         </div>

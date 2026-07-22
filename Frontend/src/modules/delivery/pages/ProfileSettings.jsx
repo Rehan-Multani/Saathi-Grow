@@ -43,7 +43,7 @@ const ProfileSettings = () => {
     const [selectedView, setSelectedView] = useState('menu');
     const [isEditing, setIsEditing] = useState(false);
     const [saving, setSaving] = useState(false);
-    const [editData, setEditData] = useState({ name: '', email: '', phone: '' });
+    const [editData, setEditData] = useState({ name: '', email: '', phone: '', city: '' });
     const [isEditingVehicle, setIsEditingVehicle] = useState(false);
     const [savingVehicle, setSavingVehicle] = useState(false);
     const [vehicleData, setVehicleData] = useState({ vehicleType: '', vehicleNumber: '' });
@@ -85,7 +85,7 @@ const ProfileSettings = () => {
     };
 
     const handleEditStart = () => {
-        setEditData({ name: profile?.name || '', email: profile?.email || '', phone: profile?.phone || '' });
+        setEditData({ name: profile?.name || '', email: profile?.email || '', phone: profile?.phone || '', city: profile?.city || '' });
         setIsEditing(true);
     };
 
@@ -96,6 +96,7 @@ const ProfileSettings = () => {
             formData.append('name', editData.name);
             formData.append('email', editData.email);
             formData.append('phone', editData.phone);
+            formData.append('city', editData.city);
             await updateDeliveryProfile(token, formData);
             await fetchProfile();
             setIsEditing(false);
@@ -226,6 +227,7 @@ const ProfileSettings = () => {
                         { label: 'Full name', key: 'name', icon: <User size={16} />, editable: true },
                         { label: 'Email address', key: 'email', icon: <Mail size={16} />, editable: true, type: 'email' },
                         { label: 'Phone number', key: 'phone', icon: <Phone size={16} />, editable: true, type: 'tel' },
+                        { label: 'Base location', key: 'city', icon: <MapPin size={16} />, editable: true },
                     ].map((field, i) => (
                         <div key={i} className="flex items-center gap-3 py-2.5 border-b border-slate-50 dark:border-zinc-800/30">
                             <div className="text-[#028A0F] opacity-70 shrink-0">{field.icon}</div>
@@ -236,6 +238,7 @@ const ProfileSettings = () => {
                                         type={field.type || 'text'}
                                         value={editData[field.key]}
                                         onChange={e => setEditData(prev => ({ ...prev, [field.key]: e.target.value }))}
+                                        placeholder={field.key === 'city' ? 'e.g. Udaipur, RJ' : undefined}
                                         className="w-full text-sm font-medium text-slate-800 dark:text-white bg-slate-50 dark:bg-zinc-850 border border-slate-200 dark:border-zinc-700 rounded-lg px-2 py-1 outline-none focus:border-[#028A0F] transition-colors"
                                     />
                                 ) : (
@@ -247,9 +250,18 @@ const ProfileSettings = () => {
 
                     {/* Read-only fields */}
                     {[
-                        { label: 'Joined date', value: 'January 2024', icon: <Calendar size={16} /> },
-                        { label: 'Total missions', value: '1,284', icon: <Truck size={16} /> },
-                        { label: 'Base location', value: profile?.city || 'Indore, MP', icon: <MapPin size={16} /> },
+                        {
+                            label: 'Joined date',
+                            value: profile?.createdAt
+                                ? new Date(profile.createdAt).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })
+                                : 'N/A',
+                            icon: <Calendar size={16} />,
+                        },
+                        {
+                            label: 'Total missions',
+                            value: (profile?.totalDeliveries ?? 0).toLocaleString('en-IN'),
+                            icon: <Truck size={16} />,
+                        },
                     ].map((field, i) => (
                         <div key={i} className="flex items-center gap-3 py-2.5 border-b border-slate-50 dark:border-zinc-800/30">
                             <div className="text-[#028A0F] opacity-70">{field.icon}</div>

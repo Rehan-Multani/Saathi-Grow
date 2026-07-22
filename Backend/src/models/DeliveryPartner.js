@@ -24,6 +24,10 @@ const deliveryPartnerSchema = new mongoose.Schema({
         lowercase: true,
         trim: true
     },
+    city: {
+        type: String,
+        trim: true
+    },
     password: {
         type: String,
         required: false

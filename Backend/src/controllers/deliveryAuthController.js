@@ -40,10 +40,33 @@ const applyUploadedDocs = async (partner, files, singleFile) => {
 // @access  Public
 export const registerPartner = async (req, res) => {
   try {
-    const { name, phone, email, vehicleType, vehicleNumber } = req.body;
+    const { name, phone, email, city, vehicleType, vehicleNumber } = req.body;
 
-    if (!name || !phone) {
+    if (!name?.trim() || !phone) {
       return res.status(400).json({ message: 'Name and phone are required' });
+    }
+
+    if (!city?.trim()) {
+      return res.status(400).json({ message: 'Base location / city is required' });
+    }
+
+    if (!vehicleType?.trim()) {
+      return res.status(400).json({ message: 'Vehicle type is required' });
+    }
+
+    const validVehicleTypes = ['Bike', 'EV', 'Cycle', 'Other'];
+    if (!validVehicleTypes.includes(vehicleType)) {
+      return res.status(400).json({ message: 'Invalid vehicle type' });
+    }
+
+    if (!vehicleNumber?.trim()) {
+      return res.status(400).json({ message: 'Vehicle number is required' });
+    }
+
+    const vehicleRegex = /^[A-Z]{2}[0-9]{2}[A-Z]{2}[0-9]{4}$/;
+    const normalizedVehicleNumber = vehicleNumber.trim().toUpperCase();
+    if (!vehicleRegex.test(normalizedVehicleNumber)) {
+      return res.status(400).json({ message: 'Vehicle number must be in format: MP09AB1234' });
     }
 
     if (!/^\d{10}$/.test(phone)) {
@@ -65,8 +88,9 @@ export const registerPartner = async (req, res) => {
       name: name.trim(),
       phone,
       email: email?.trim().toLowerCase() || undefined,
-      vehicleType: vehicleType || 'Bike',
-      vehicleNumber: vehicleNumber?.trim().toUpperCase() || undefined,
+      city: city.trim(),
+      vehicleType: vehicleType.trim(),
+      vehicleNumber: normalizedVehicleNumber,
       authStatus: 'Unverified',
       dutyStatus: 'Offline',
       assignmentStatus: 'Free',
@@ -148,7 +172,6 @@ export const requestOTP = async (req, res) => {
       success: true,
       message: 'OTP sent successfully',
       expiresIn: 600,
-      otp: process.env.NODE_ENV === 'development' || isTestNumber ? otp : undefined
     });
   } catch (error) {
     console.error('Request OTP Error:', error);
@@ -281,6 +304,8 @@ export const updateProfile = async (req, res) => {
     if (partner) {
       partner.name = req.body.name || partner.name;
       partner.email = req.body.email || partner.email;
+      partner.phone = req.body.phone || partner.phone;
+      if (req.body.city !== undefined) partner.city = req.body.city.trim();
       partner.vehicleNumber = req.body.vehicleNumber || partner.vehicleNumber;
       if (req.body.vehicleType) partner.vehicleType = req.body.vehicleType;
 
