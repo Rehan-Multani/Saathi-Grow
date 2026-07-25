@@ -4,7 +4,10 @@ import { SMSINDIAHUB_BASE_URL } from '../config/serviceUrls.js';
 class SMSIndiaHubService {
   constructor() {
     this.apiKey = process.env.SMSINDIAHUB_API_KEY;
-    this.senderId = process.env.SMSINDIA_HUB_SENDER_ID || 'SMSHUB';
+    this.senderId = process.env.SMSINDIA_HUB_SENDER_ID || process.env.SMSINDIAHUB_SENDER_ID;
+    this.entityId = process.env.SMSINDIAHUB_ENTITY_ID;
+    this.templateId = process.env.SMSINDIAHUB_TEMPLATE_ID;
+    this.brandName = process.env.SMSINDIAHUB_BRAND_NAME || 'SaathiGro';
     this.baseUrl = SMSINDIAHUB_BASE_URL;
   }
 
@@ -16,26 +19,38 @@ class SMSIndiaHubService {
     return '91' + digits.slice(-10);
   }
 
+  buildOtpMessage(otp) {
+    // Exact DLT template (Manage Template):
+    // Welcome to the ##var## powered by Appzeto.Your OTP for registration is ##var##.BGADEC
+    return `Welcome to the ${this.brandName} powered by Appzeto.Your OTP for registration is ${otp}.BGADEC`;
+  }
+
   async sendOTP(phone, otp) {
-    // Template: Welcome to Saathi-Grow! Your OTP for verification is {#var#}. - Saathi-Grow Team
-    const message = `Welcome to the SaathiGro powered by SMSINDIAHUB.Your OTP for registration is ${otp}`;
-    
-    // Fire and forget - don't await this in the main controller to prevent timeouts from blocking users
-    this.sendSMS(phone, message).catch(err => {
+    const message = this.buildOtpMessage(otp);
+
+    // Fire and forget - don't block OTP API response on SMS gateway latency
+    this.sendSMS(phone, message).catch((err) => {
       console.error('🔥 [SMS-Background-Queue] Final failure:', err.message);
     });
-    
+
     return { success: true, queued: true };
   }
 
   async sendSMS(phone, message) {
     try {
       const apiKey = this.apiKey || process.env.SMSINDIAHUB_API_KEY;
-      const senderId = this.senderId || process.env.SMSINDIAHUB_SENDER_ID;
+      const senderId = this.senderId || process.env.SMSINDIA_HUB_SENDER_ID || process.env.SMSINDIAHUB_SENDER_ID;
+      const entityId = this.entityId || process.env.SMSINDIAHUB_ENTITY_ID;
+      const templateId = this.templateId || process.env.SMSINDIAHUB_TEMPLATE_ID;
 
       if (!apiKey) {
         console.warn('⚠️ [SMSIndiaHub] Missing API Key. SMS NOT SENT.');
         return { success: false, error: 'Missing API Key' };
+      }
+
+      if (!senderId) {
+        console.warn('⚠️ [SMSIndiaHub] Missing Sender ID. SMS NOT SENT.');
+        return { success: false, error: 'Missing Sender ID' };
       }
 
       const normalizedPhone = this.normalizePhoneNumber(phone);
@@ -47,29 +62,36 @@ class SMSIndiaHubService {
         msg: message,
         fl: '0',
         dc: '0',
-        gwid: '2'
+        gwid: '2', // Transactional / OTP route
       });
 
+      // DLT params (from Manage SenderId / Manage Template screens)
+      if (entityId) params.set('EntityID', entityId);
+      if (templateId) params.set('TemplateID', templateId);
+
       const apiUrl = `${this.baseUrl}?${params.toString()}`;
-      console.log(`📨 [SMSIndiaHub] Dispatching to ${normalizedPhone}...`);
+      console.log(`📨 [SMSIndiaHub] Dispatching to ${normalizedPhone} | sender="${senderId}" | template="${templateId || 'n/a'}"`);
+      console.log(`📝 [SMSIndiaHub] Message: ${message}`);
 
       const response = await axios.get(apiUrl, {
         headers: { 'User-Agent': 'SaathiGro/1.0' },
-        timeout: 8000 // Slightly shorter timeout to fail faster
+        timeout: 15000,
       });
 
-      // SMSIndiaHub sometimes returns response as string or JSON
       const responseData = typeof response.data === 'string' ? response.data : JSON.stringify(response.data);
       console.log(`📡 [SMSIndiaHub] Raw Response: ${responseData}`);
 
-      if (responseData.includes('ErrorCode="000"') || responseData.includes('ErrorCode:000') || responseData.includes('"ErrorCode":"000"')) {
+      if (
+        responseData.includes('ErrorCode="000"') ||
+        responseData.includes('ErrorCode:000') ||
+        responseData.includes('"ErrorCode":"000"')
+      ) {
         console.log('✅ SMS Sent Successfully');
         return { success: true, response: responseData };
-      } else {
-        console.error('❌ SMS Failed:', responseData);
-        return { success: false, error: responseData };
       }
 
+      console.error('❌ SMS Failed:', responseData);
+      return { success: false, error: responseData };
     } catch (error) {
       console.error('❌ SMS Service Error:', error.message);
       return { success: false, error: error.message };
