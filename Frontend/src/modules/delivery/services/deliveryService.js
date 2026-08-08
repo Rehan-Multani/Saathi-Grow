@@ -17,8 +17,8 @@ export const updatePartnerStatus = async (token, status) => {
     return data;
 };
 
-export const updatePartnerLocation = async (token, longitude, latitude) => {
-    const { data } = await axios.post(`${API_URL}/delivery/location`, { longitude, latitude }, getAuthHeaders(token));
+export const updatePartnerLocation = async (token, longitude, latitude, accuracy = null, heading = null) => {
+    const { data } = await axios.post(`${API_URL}/delivery/location`, { longitude, latitude, accuracy, heading }, getAuthHeaders(token));
     return data;
 };
 

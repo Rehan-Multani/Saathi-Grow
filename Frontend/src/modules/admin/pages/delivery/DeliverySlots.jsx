@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import Swal from 'sweetalert2';
 import * as api from '../../api/deliverySlotApi';
 import { showDeleteConfirmation } from '../../../../common/utils/alertUtils';
+import { getAdminSettings, updateAdminSettings } from '../../../../common/api/settingApi';
 
 const DeliverySlots = () => {
     const { t } = useTranslation('admin_delivery');
@@ -12,6 +13,8 @@ const DeliverySlots = () => {
     const [refreshing, setRefreshing] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [selectedSlot, setSelectedSlot] = useState(null);
+    const [deliverySettings, setDeliverySettings] = useState(null);
+    const [savingImmediate, setSavingImmediate] = useState(false);
     const [formData, setFormData] = useState({
         label: '',
         startTime: '06:00',
@@ -39,7 +42,25 @@ const DeliverySlots = () => {
 
     useEffect(() => {
         fetchSlots();
-    }, []);
+        if (!isVendor) {
+            getAdminSettings().then(setDeliverySettings).catch((error) => console.error('Settings fetch failed', error));
+        }
+    }, [isVendor]);
+
+    const toggleImmediateDelivery = async () => {
+        if (!deliverySettings || savingImmediate) return;
+        setSavingImmediate(true);
+        try {
+            const updated = await updateAdminSettings(null, {
+                immediateDeliveryEnabled: !deliverySettings.immediateDeliveryEnabled
+            });
+            setDeliverySettings(updated);
+        } catch (error) {
+            Swal.fire({ title: 'Unable to update Immediate Delivery', text: error.response?.data?.message, icon: 'error' });
+        } finally {
+            setSavingImmediate(false);
+        }
+    };
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -139,6 +160,20 @@ const DeliverySlots = () => {
                     )}
                 </div>
             </div>
+
+            {!isVendor && deliverySettings && (
+                <div className="mb-5 flex items-center justify-between gap-4 bg-white border border-slate-200 rounded-lg px-5 py-4 shadow-sm">
+                    <div>
+                        <p className="text-sm font-bold text-slate-900">Immediate Delivery</p>
+                        <p className="text-xs text-slate-500 mt-1">Allow customers to request delivery as soon as possible.</p>
+                    </div>
+                    <button type="button" role="switch" aria-checked={deliverySettings.immediateDeliveryEnabled}
+                        disabled={savingImmediate} onClick={toggleImmediateDelivery} title="Toggle Immediate Delivery"
+                        className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${deliverySettings.immediateDeliveryEnabled ? 'bg-emerald-500' : 'bg-slate-300'} disabled:opacity-50`}>
+                        <span className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow transition-all ${deliverySettings.immediateDeliveryEnabled ? 'left-6' : 'left-1'}`} />
+                    </button>
+                </div>
+            )}
 
             {/* List Table */}
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden animate-in fade-in duration-500">

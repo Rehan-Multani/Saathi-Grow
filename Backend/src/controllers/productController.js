@@ -433,15 +433,9 @@ export const getProducts = async (req, res) => {
 
     if (category) {
       const categoryList = Array.isArray(category) ? category : [category];
-      // Build a regex that matches if ANY of the category keywords match 
-      // This helps with typos like "Breakast" vs "Breakfast"
-      const categoryRegexes = categoryList.map(cat => {
-        const words = cat.trim().split(/[\s&\-_]+/).filter(w => w.length > 2);
-        if (words.length > 0) {
-          return new RegExp(words.map(w => escapeRegExp(w)).join('|'), 'i');
-        }
-        return new RegExp(escapeRegExp(cat.trim()), 'i');
-      });
+      const categoryRegexes = categoryList.map(
+        (cat) => new RegExp(`^${escapeRegExp(cat.trim())}$`, 'i')
+      );
       query.category = { $in: categoryRegexes };
     }
 
@@ -983,7 +977,9 @@ export const updateProduct = async (req, res) => {
       product.physicalLocation = req.body.physicalLocation || product.physicalLocation;
       product.category = req.body.category || product.category;
       product.subCategory = req.body.subCategory !== undefined ? req.body.subCategory : product.subCategory;
-      product.brandName = req.body.brandName || product.brandName;
+      if (req.body.brandName !== undefined) {
+        product.brandName = String(req.body.brandName || '').trim();
+      }
       product.vendor = req.body.vendor !== undefined ? (req.body.vendor || null) : product.vendor;
 
       // Update vendor stock/threshold if it's a vendor product

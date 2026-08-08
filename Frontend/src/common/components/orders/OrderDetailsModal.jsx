@@ -268,6 +268,25 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
                             </div>
 
                             {displayOrder.orderSource !== 'pos' && (
+                                <div className="mb-6 p-4 rounded-lg bg-emerald-50 border border-emerald-100">
+                                    <p className="text-[10px] font-bold text-emerald-600 uppercase mb-2 flex items-center gap-2">
+                                        <Clock size={14} /> Customer Delivery Time
+                                    </p>
+                                    <p className="text-sm font-bold text-slate-800">
+                                        {displayOrder.isImmediate
+                                            ? 'Immediate Delivery'
+                                            : (displayOrder.deliveryWindowSnapshot?.label || displayOrder.deliverySlotId?.label || displayOrder.deliverySlot || 'Not specified')}
+                                    </p>
+                                    {!displayOrder.isImmediate && displayOrder.deliveryWindowSnapshot?.startTime && (
+                                        <p className="text-xs text-slate-500 mt-1">
+                                            {displayOrder.deliveryWindowSnapshot.startTime} - {displayOrder.deliveryWindowSnapshot.endTime}
+                                            {displayOrder.deliveryWindowSnapshot.scheduledDate ? ` on ${displayOrder.deliveryWindowSnapshot.scheduledDate}` : ''}
+                                        </p>
+                                    )}
+                                </div>
+                            )}
+
+                            {displayOrder.orderSource !== 'pos' && (
                                 <div className="mb-6 p-4 rounded-lg bg-blue-50 border border-blue-100">
                                     <p className="text-[10px] font-bold text-blue-400 uppercase mb-3 flex items-center gap-2">
                                         <Truck size={14} /> Delivery Status
@@ -289,7 +308,7 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
                                                     onChange={e => setSelectedPartner(e.target.value)}
                                                 >
                                                     <option value="">Select Rider</option>
-                                                    {availablePartners.map(p => <option key={p._id} value={p._id}>{p.name}</option>)}
+                                                    {availablePartners.map(p => <option key={p._id} value={p._id}>{p.name} ({p.activeOrderCount || 0}/{p.maxActiveOrders || 10} parcels)</option>)}
                                                 </select>
                                                 <button
                                                     onClick={handleManualAssign}

@@ -114,7 +114,10 @@ const DeliveryPartners = () => {
 
     const handleSave = async (updatedPartner) => {
         try {
-            await api.updateDeliveryPartnerStatus(updatedPartner._id, updatedPartner.authStatus);
+            await api.updateDeliveryPartner(updatedPartner._id, {
+                authStatus: updatedPartner.authStatus,
+                maxActiveOrders: updatedPartner.maxActiveOrders
+            });
             fetchPartners();
             Swal.fire({
                 title: t('partners.update_success'),

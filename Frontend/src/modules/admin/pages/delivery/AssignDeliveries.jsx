@@ -595,7 +595,7 @@ const AssignDeliveries = () => {
                                         <AlertCircle size={28} className="text-slate-300" />
                                         <div>
                                             <p className="text-[11px] font-bold text-slate-500 uppercase">No riders in this area</p>
-                                            <p className="text-[10px] text-slate-400 mt-1">No free riders found within 20km of the delivery location</p>
+                                            <p className="text-[10px] text-slate-400 mt-1">No online rider has enough remaining parcel capacity.</p>
                                         </div>
                                     </div>
                                 ) : (
@@ -641,6 +641,10 @@ const AssignDeliveries = () => {
                                                                             </div>
                                                                         </>
                                                                     )}
+                                                                    <div className="w-1 h-1 bg-slate-200 rounded-full"></div>
+                                                                    <span className="text-[9px] font-bold text-blue-600">
+                                                                        {driver.activeOrderCount || 0}/{driver.maxActiveOrders || 10} parcels
+                                                                    </span>
                                                                 </div>
                                                             </div>
                                                         </div>

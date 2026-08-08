@@ -29,6 +29,7 @@ import * as orderApi from '../../api/orderApi';
 import * as walletApi from '../../api/walletApi';
 import { fetchDeliverySlots } from '../../api/orderApi';
 import { toast } from 'react-toastify';
+import { getPublicSettings } from '../../../../common/api/settingApi';
 
 const loadRazorpaySDK = () => {
     return new Promise((resolve) => {
@@ -56,6 +57,7 @@ const CheckoutPage = () => {
     const [selectedSlotLabel, setSelectedSlotLabel] = useState(null); // Display label
     const [isImmediate, setIsImmediate] = useState(true);          // Default = Immediate
     const [loadingSlots, setLoadingSlots] = useState(true);
+    const [deliverySettings, setDeliverySettings] = useState({ immediateDeliveryEnabled: true });
     
     // Promo Code States
     const [promoInput, setPromoInput] = useState('');
@@ -100,8 +102,14 @@ const CheckoutPage = () => {
 
         const loadSlots = async () => {
             try {
-                const data = await fetchDeliverySlots();
-                setDeliverySlots(data);
+                const [slots, settings] = await Promise.all([fetchDeliverySlots(), getPublicSettings()]);
+                setDeliverySlots(slots);
+                setDeliverySettings(settings);
+                if (!settings.immediateDeliveryEnabled) {
+                    setIsImmediate(false);
+                    setSelectedSlotId(slots[0]?._id || null);
+                    setSelectedSlotLabel(slots[0]?.label || null);
+                }
                 // Don't auto-select a slot — default is Immediate
             } catch (err) {
                 console.error('Slots fetch failed', err);
@@ -263,7 +271,14 @@ const CheckoutPage = () => {
             return;
         }
 
-        // Delivery timing is always valid — either Immediate or a chosen slot
+        if (isImmediate && !deliverySettings.immediateDeliveryEnabled) {
+            toast.error('Immediate delivery is currently unavailable. Please select a delivery slot.');
+            return;
+        }
+        if (!isImmediate && !selectedSlotId) {
+            toast.error('Please select an available delivery slot.');
+            return;
+        }
 
         const totalToPay = billDetails?.totalAmount || cartTotal;
 
@@ -336,7 +351,8 @@ const CheckoutPage = () => {
                     itemsToCheckout, 
                     appliedPromo?._id,
                     activeStore?.id,
-                    activeStore?.type
+                    activeStore?.type,
+                    { deliverySlotId: orderData.deliverySlotId, isImmediate: orderData.isImmediate }
                 );
 
                 const options = {
@@ -552,8 +568,7 @@ const CheckoutPage = () => {
                         </div>
                     ) : (
                         <div className="flex flex-wrap gap-2 px-1">
-                            {/* Immediate option — always shown first */}
-                            <div
+                            {deliverySettings.immediateDeliveryEnabled && <div
                                 onClick={() => { setIsImmediate(true); setSelectedSlotId(null); setSelectedSlotLabel(null); }}
                                 className={`px-4 py-2.5 rounded-2xl cursor-pointer border-2 transition-all flex flex-col items-center min-w-[110px] ${isImmediate
                                     ? 'border-[#0c831f] bg-green-50 dark:bg-green-500/10'
@@ -562,7 +577,7 @@ const CheckoutPage = () => {
                             >
                                 <span className={`text-[11px] font-black ${isImmediate ? 'text-[#0c831f]' : 'text-gray-900 dark:text-gray-200'}`}>⚡ Immediate</span>
                                 <span className="text-[8px] font-bold text-gray-400 mt-0.5 tracking-tight">ASAP Delivery</span>
-                            </div>
+                            </div>}
 
                             {/* Slot options */}
                             {deliverySlots.map((slot) => (
@@ -586,7 +601,9 @@ const CheckoutPage = () => {
 
                             {deliverySlots.length === 0 && (
                                 <p className="text-[10px] text-gray-400 font-medium px-1 pt-1">
-                                    No scheduled slots active. Immediate delivery only.
+                                    {deliverySettings.immediateDeliveryEnabled
+                                        ? 'No scheduled slots are currently available.'
+                                        : 'Delivery is currently unavailable. Please try again later.'}
                                 </p>
                             )}
                         </div>
@@ -594,9 +611,9 @@ const CheckoutPage = () => {
 
                     {/* Chosen timing summary */}
                     <p className="text-[9px] font-bold text-gray-400 mt-3 px-1 uppercase tracking-wider">
-                        {isImmediate
+                        {isImmediate && deliverySettings.immediateDeliveryEnabled
                             ? '⚡ Your order will be dispatched as soon as it is ready'
-                            : `🕐 Scheduled for delivery during: ${selectedSlotLabel}`
+                            : selectedSlotLabel ? `🕐 Scheduled for delivery during: ${selectedSlotLabel}` : 'Select an available delivery window'
                         }
                     </p>
                 </div>

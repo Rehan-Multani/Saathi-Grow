@@ -3,14 +3,14 @@ import axios from 'axios';
 
 const API_URL = `${API_BASE_URL}/orders`;
 
-export const createRazorpayOrder = async (token, items, promoId = null, storeId = null, storeType = null) => {
+export const createRazorpayOrder = async (token, items, promoId = null, storeId = null, storeType = null, deliveryTiming = {}) => {
   const response = await fetch(`${API_URL}/razorpay`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ items, promoId, storeId, storeType })
+    body: JSON.stringify({ items, promoId, storeId, storeType, ...deliveryTiming })
   });
   const data = await response.json();
   if (!response.ok) throw new Error(data.message || 'Failed to create Razorpay secure window');

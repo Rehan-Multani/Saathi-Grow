@@ -17,7 +17,6 @@ import useDeliveryStore from '../store/deliveryStore';
 import { getDeliveryDetail, updateDeliveryStatus, getRouteDirections } from '../services/deliveryService';
 import { useLocation } from '../../user/context/LocationContext';
 import { toast } from 'react-toastify';
-import useLocationTracking from '../hooks/useLocationTracking';
 import { useTheme } from '../../user/context/ThemeContext';
 import './live-tracking.css';
 import { ASSET_URLS } from '../../../constants/assetUrls';
@@ -30,6 +29,7 @@ const mapContainerStyle = {
     width: '100%',
     height: '100%'
 };
+const defaultMapCenter = { lat: 22.9734, lng: 78.6569 };
 
 const lightMapStyles = [
     { "featureType": "water", "elementType": "geometry", "stylers": [{ "color": "#e9e9e9" }, { "lightness": 17 }] },
@@ -156,7 +156,6 @@ const LiveTracking = () => {
         }
     }, [map, mapOptions]);
 
-    useLocationTracking(token, run?.status !== 'completed' && run?.status !== undefined, run?._id);
 
     const fetchDetail = async () => {
         if (!token || !id) return;
@@ -202,17 +201,16 @@ const LiveTracking = () => {
         }
     };
 
-    const partnerPos = useMemo(() => ({
-        lat: profile?.currentLocation?.coordinates?.[1] || 22.7196,
-        lng: profile?.currentLocation?.coordinates?.[0] || 75.8577
-    }), [profile]);
+    const partnerPos = useMemo(() => {
+        const coordinates = profile?.currentLocation?.coordinates;
+        if (!coordinates || coordinates.length !== 2 || (coordinates[0] === 0 && coordinates[1] === 0)) return null;
+        return { lat: coordinates[1], lng: coordinates[0] };
+    }, [profile]);
 
-    const partnerHeading = profile?.currentLocation?.heading || 0;
-
-    const runDestinationPos = useMemo(() => ({
-        lat: run?.branchId?.location?.coordinates?.[1] || 22.7196,
-        lng: run?.branchId?.location?.coordinates?.[0] || 75.8577
-    }), [run]);
+    const runDestinationPos = useMemo(() => {
+        const coordinates = run?.branchId?.address?.location?.coordinates || run?.branchId?.location?.coordinates;
+        return coordinates?.length === 2 ? { lat: coordinates[1], lng: coordinates[0] } : null;
+    }, [run]);
 
     const currentStop = run?.orders?.find(s => run.runType === 'return' ? s.status === 'pending' : (s.status === 'pending' || s.status === 'out_for_delivery'));
     const currentStopPos = useMemo(() => {
@@ -223,7 +221,7 @@ const LiveTracking = () => {
     // Fetch Route Path
     useEffect(() => {
         const fetchRoute = async () => {
-            if (!id || !token || partnerPos.lat === 0) return;
+            if (!id || !token || !partnerPos) return;
             const dest = (run?.status === 'in_progress' && currentStopPos) ? currentStopPos : runDestinationPos;
             if (!dest) return;
 
@@ -236,11 +234,11 @@ const LiveTracking = () => {
             } catch {}
         };
         fetchRoute();
-    }, [id, run?.status, run?.runType, partnerPos.lat, partnerPos.lng, currentStopPos, runDestinationPos, token]);
+    }, [id, run?.status, run?.runType, partnerPos?.lat, partnerPos?.lng, currentStopPos, runDestinationPos, token]);
 
     // Trimming & Auto-fit
     useEffect(() => {
-        if (!routeCoordinates.length) return;
+        if (!routeCoordinates.length || !partnerPos) return;
         const dest = routeCoordinates[routeCoordinates.length - 1];
         if (getDistance(partnerPos, dest) < 150) { setTrimmedRoute([]); return; }
         let minD = Infinity, idx = 0;
@@ -268,7 +266,7 @@ const LiveTracking = () => {
             <div className={`flex-1 w-full h-full relative transition-all duration-500 ${isExpanded ? 'opacity-40 scale-105' : 'opacity-100'}`}>
                 <GoogleMap
                     mapContainerStyle={mapContainerStyle}
-                    center={partnerPos}
+                    center={partnerPos || currentStopPos || runDestinationPos || defaultMapCenter}
                     zoom={15}
                     onLoad={onLoad}
                     onUnmount={onUnmount}
@@ -276,19 +274,19 @@ const LiveTracking = () => {
                 >
                     <MapController 
                         map={map}
-                        center={partnerPos} 
+                        center={partnerPos || currentStopPos || runDestinationPos || defaultMapCenter}
                         destination={currentStopPos || runDestinationPos} 
                         routeCoords={trimmedRoute}
                         isFOLLOWING={isFOLLOWING} 
                     />
-                    <MarkerF
+                    {partnerPos && <MarkerF
                         position={partnerPos}
                         icon={{
                             url: bikeImgUrl,
                             scaledSize: new window.google.maps.Size(45, 45),
                             anchor: new window.google.maps.Point(22.5, 22.5)
                         }}
-                    />
+                    />}
                     
                     {isReturn ? (
                         <>

@@ -100,6 +100,10 @@ const deliveryPartnerSchema = new mongoose.Schema({
             default: [0, 0]
         }
     },
+    locationUpdatedAt: { type: Date, default: null },
+    currentLocationAccuracy: { type: Number, default: null },
+    currentHeading: { type: Number, default: null },
+    maxActiveOrders: { type: Number, default: 10, min: 1, max: 50 },
     activeOrder: {
         // Legacy: used by old 1-to-1 assignment. Kept for backward compat.
         type: mongoose.Schema.Types.ObjectId,

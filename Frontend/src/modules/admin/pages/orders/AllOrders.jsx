@@ -702,6 +702,7 @@ const AllOrders = () => {
                                 <th className="px-6 py-4">{t('table.id')}</th>
                                 <th className="px-6 py-4">{t('table.customer')}</th>
                                 <th className="px-6 py-4">{t('table.date')}</th>
+                                <th className="px-6 py-4">Delivery Time</th>
                                 <th className="px-6 py-4">{t('table.payment')}</th>
                                 <th className="px-6 py-4">{t('table.status')}</th>
                                 <th className="px-6 py-4 text-right">{t('table.amount')}</th>
@@ -712,7 +713,7 @@ const AllOrders = () => {
                             {loading ? (
                                 Array(5).fill(0).map((_, i) => (
                                     <tr key={i} className="animate-pulse">
-                                        <td colSpan="8" className="px-6 py-4"><div className="h-10 bg-slate-50 rounded w-full"></div></td>
+                                        <td colSpan="9" className="px-6 py-4"><div className="h-10 bg-slate-50 rounded w-full"></div></td>
                                     </tr>
                                 ))
                             ) : orders.length > 0 ? (
@@ -742,6 +743,16 @@ const AllOrders = () => {
                                                 <Calendar size={14} className="text-slate-400" />
                                                 {new Date(order.createdAt).toLocaleDateString()}
                                             </div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="text-xs font-bold text-slate-700">
+                                                {order.isImmediate ? 'Immediate' : (order.deliveryWindowSnapshot?.label || order.deliverySlotId?.label || order.deliverySlot || 'Not specified')}
+                                            </div>
+                                            {!order.isImmediate && (order.deliveryWindowSnapshot?.startTime || order.deliverySlotId?.startTime) && (
+                                                <div className="text-[10px] text-slate-400 mt-1">
+                                                    {order.deliveryWindowSnapshot?.startTime || order.deliverySlotId?.startTime} - {order.deliveryWindowSnapshot?.endTime || order.deliverySlotId?.endTime}
+                                                </div>
+                                            )}
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="text-xs">
@@ -775,7 +786,7 @@ const AllOrders = () => {
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan="8" className="px-6 py-20 text-center">
+                                    <td colSpan="9" className="px-6 py-20 text-center">
                                         <div className="flex flex-col items-center text-slate-300">
                                             <Truck size={64} strokeWidth={1.5} />
                                             <p className="mt-4 text-sm font-bold text-slate-400">{t('empty.title')}</p>

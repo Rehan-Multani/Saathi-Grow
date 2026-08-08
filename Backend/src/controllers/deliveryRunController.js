@@ -4,6 +4,7 @@ import DeliveryPartner from '../models/DeliveryPartner.js';
 import DeliverySlot from '../models/DeliverySlot.js';
 import mongoose from 'mongoose';
 import { sendPushNotification } from '../services/notificationService.js';
+import { assertPartnerCapacity, syncPartnerAssignmentState } from '../services/deliveryCapacityService.js';
 
 // Google Maps setup for route optimization
 import axios from 'axios';
@@ -122,7 +123,8 @@ export const createDeliveryRun = async (req, res) => {
     const partner = await DeliveryPartner.findById(partnerId).session(session);
     if (!partner) throw new Error('Delivery Partner not found');
     if (partner.authStatus !== 'Active') throw new Error('Partner is not active');
-    if (partner.assignmentStatus !== 'Free') throw new Error('Partner is currently busy with another delivery/run');
+    if (partner.dutyStatus !== 'Online') throw new Error('Partner is currently offline');
+    await assertPartnerCapacity(partner, orderIds.length, session);
 
     // 2. Validate Orders
     const orders = await Order.find({ _id: { $in: orderIds } })
@@ -390,20 +392,14 @@ export const cancelDeliveryRun = async (req, res) => {
       }
     }
 
-    // Free the partner
+    // Keep another active run focused when this partner has multiple assignments.
     const partner = await DeliveryPartner.findById(run.deliveryPartner).session(session);
-    if (partner && partner.activeRun && partner.activeRun.toString() === run._id.toString()) {
-      partner.assignmentStatus = 'Free';
-      partner.activeRun = null;
-      partner.currentStopIndex = 0;
-      await partner.save({ session });
-    }
-
     // Update run status
     run.status = 'cancelled';
     run.cancelledAt = new Date();
     run.cancelledBy = req.admin ? req.admin._id : (req.vendor ? req.vendor._id : null);
     await run.save({ session });
+    if (partner) await syncPartnerAssignmentState(partner, session, run._id);
 
     await session.commitTransaction();
     session.endSession();

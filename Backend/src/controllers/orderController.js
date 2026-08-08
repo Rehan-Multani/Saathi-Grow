@@ -26,6 +26,8 @@ import razorpayInstance, {
   parseRupeesToPaise,
   verifyCheckoutSignature
 } from '../services/razorpayVerificationService.js';
+import { validateAndBuildDeliveryTiming } from '../services/deliveryTimingService.js';
+import { assertPartnerCapacity } from '../services/deliveryCapacityService.js';
 // import { triggerAutoAssignmentForOrder } from './adminDeliveryController.js';
 
 /**
@@ -96,31 +98,6 @@ const validateStoreDistance = async (storeId, storeType, userLocation) => {
   } catch (error) {
     throw error;
   }
-  return true;
-};
-
-const validateSlotAvailability = async (deliverySlotId, isImmediate) => {
-  if (isImmediate) return true;
-  if (!deliverySlotId) throw new Error('Delivery slot ID is required for scheduled orders.');
-
-  const slot = await DeliverySlot.findById(deliverySlotId);
-  if (!slot || !slot.isActive) {
-    throw new Error('Selected delivery slot is no longer active or valid.');
-  }
-
-  const now = new Date();
-  const currentHour = now.getHours();
-  const currentMin = now.getMinutes();
-
-  const [endHour, endMin] = slot.endTime.split(':').map(Number);
-
-  // Buffer: Cannot select a slot that ends in less than 30 minutes
-  const isExpired = currentHour > endHour || (currentHour === endHour && currentMin >= (endMin - 30));
-
-  if (isExpired) {
-    throw new Error(`The selected slot (${slot.label}) has already passed or is too close to expiry. Please pick another or choose Immediate.`);
-  }
-
   return true;
 };
 
@@ -317,11 +294,13 @@ export const computeBillDetails = async (items, options = {}) => {
 // @access  Private
 export const createRazorpayOrder = async (req, res) => {
   try {
-    const { items, promoId } = req.body;
+    const { items, promoId, deliverySlotId, isImmediate } = req.body;
 
     if (!items || items.length === 0) {
       return res.status(400).json({ message: 'Cart items are required to calculate bill' });
     }
+
+    const deliveryTiming = await validateAndBuildDeliveryTiming(deliverySlotId, isImmediate);
 
     // 1. Stock Guard (Sprint 2: enforcing safety stock threshold)
     const { storeId, storeType } = req.body;
@@ -340,7 +319,9 @@ export const createRazorpayOrder = async (req, res) => {
       receipt: `sg_rcpt_${Date.now()}`,
       notes: {
         purpose: 'order_payment',
-        userId: String(req.user._id)
+        userId: String(req.user._id),
+        deliveryMode: deliveryTiming.isImmediate ? 'immediate' : 'scheduled',
+        deliverySlotId: deliveryTiming.deliverySlotId ? String(deliveryTiming.deliverySlotId) : ''
       }
     };
 
@@ -409,7 +390,7 @@ export const verifyRazorpayPayment = async (req, res) => {
     }
 
     // SLOT VALIDATION
-    await validateSlotAvailability(orderData.deliverySlotId, orderData.isImmediate);
+    const deliveryTiming = await validateAndBuildDeliveryTiming(orderData.deliverySlotId, orderData.isImmediate);
 
     // STOCK VALIDATION (Double Check)
     await validateStockAvailability(orderData.items, orderData.storeId, orderData.storeType);
@@ -426,6 +407,8 @@ export const verifyRazorpayPayment = async (req, res) => {
 
     const providerPurpose = paymentVerification.order?.notes?.purpose;
     const providerUserId = paymentVerification.order?.notes?.userId;
+    const providerDeliveryMode = paymentVerification.order?.notes?.deliveryMode;
+    const providerDeliverySlotId = paymentVerification.order?.notes?.deliverySlotId;
     const providerReceipt = String(paymentVerification.order?.receipt || '');
     if (providerPurpose && providerPurpose !== 'order_payment') {
       throw new PaymentVerificationError('Razorpay order is not an order payment', 409, 'PAYMENT_PURPOSE_MISMATCH');
@@ -435,6 +418,13 @@ export const verifyRazorpayPayment = async (req, res) => {
     }
     if (providerUserId && String(providerUserId) !== String(req.user._id)) {
       throw new PaymentVerificationError('Payment was initiated by a different customer', 403, 'PAYMENT_OWNERSHIP_MISMATCH');
+    }
+    const requestedMode = deliveryTiming.isImmediate ? 'immediate' : 'scheduled';
+    if (providerDeliveryMode && providerDeliveryMode !== requestedMode) {
+      throw new PaymentVerificationError('Delivery choice does not match the paid checkout', 409, 'DELIVERY_TIMING_MISMATCH');
+    }
+    if (providerDeliverySlotId && String(providerDeliverySlotId) !== String(deliveryTiming.deliverySlotId || '')) {
+      throw new PaymentVerificationError('Delivery slot does not match the paid checkout', 409, 'DELIVERY_TIMING_MISMATCH');
     }
 
     // Enrich items with physicalLocation for receiver picking
@@ -461,9 +451,7 @@ export const verifyRazorpayPayment = async (req, res) => {
       promoCode: computedBill.promoCode,
       discountAmount: computedBill.discountAmount,
       vendor: orderData.vendorId,
-      deliverySlot: orderData.deliverySlot,        // legacy label
-      deliverySlotId: orderData.deliverySlotId || null, // Sprint 2: ObjectId ref
-      isImmediate: orderData.isImmediate ?? true,       // Sprint 2: ASAP flag
+      ...deliveryTiming,
       razorpayOrderId: razorpayOrderId,
       razorpayPaymentId: razorpayPaymentId,
       razorpaySignature: razorpaySignature
@@ -980,7 +968,7 @@ export const createCODOrder = async (req, res) => {
     }
 
     // SLOT VALIDATION
-    await validateSlotAvailability(orderData.deliverySlotId, orderData.isImmediate);
+    const deliveryTiming = await validateAndBuildDeliveryTiming(orderData.deliverySlotId, orderData.isImmediate);
 
     // STOCK VALIDATION
     await validateStockAvailability(orderData.items, orderData.storeId, orderData.storeType);
@@ -1011,9 +999,7 @@ export const createCODOrder = async (req, res) => {
       promoCode: computedBill.promoCode,
       discountAmount: computedBill.discountAmount,
       vendor: orderData.vendorId,
-      deliverySlot: orderData.deliverySlot,        // legacy label
-      deliverySlotId: orderData.deliverySlotId || null, // Sprint 2: ObjectId ref
-      isImmediate: orderData.isImmediate ?? true,       // Sprint 2: ASAP flag
+      ...deliveryTiming,
     });
 
     // Dynamic Order Routing: Check if the order contains a vendor product first
@@ -1117,7 +1103,7 @@ export const createWalletOrder = async (req, res) => {
     const computedBill = await computeBillDetails(orderData.items, { promoId: orderData.promoId, userId: req.user._id });
 
     // SLOT VALIDATION
-    await validateSlotAvailability(orderData.deliverySlotId, orderData.isImmediate);
+    const deliveryTiming = await validateAndBuildDeliveryTiming(orderData.deliverySlotId, orderData.isImmediate);
 
     // Strip empty location bounds
     if (orderData.shippingAddress && (!orderData.shippingAddress.location || !orderData.shippingAddress.location.coordinates || orderData.shippingAddress.location.coordinates.length < 2)) {
@@ -1156,9 +1142,7 @@ export const createWalletOrder = async (req, res) => {
       promoCode: computedBill.promoCode,
       discountAmount: computedBill.discountAmount,
       vendor: orderData.vendorId,
-      deliverySlot: orderData.deliverySlot,        // legacy label
-      deliverySlotId: orderData.deliverySlotId || null, // Sprint 2: ObjectId ref
-      isImmediate: orderData.isImmediate ?? true,       // Sprint 2: ASAP flag
+      ...deliveryTiming,
     });
 
     // Dynamic Order Routing: Check if the order contains a vendor product first
@@ -1693,10 +1677,11 @@ export const getAllOrdersAdmin = async (req, res) => {
     // Run paginated results, total count, AND full-dataset aggregate stats in parallel
     const [orders, totalOrders, statsAgg] = await Promise.all([
       Order.find(query)
-        .select('orderId user posCustomer totalAmount status createdAt paymentMethod paymentStatus branchId vendor deliverySlot isImmediate orderSource promoCode discountAmount items')
+        .select('orderId user posCustomer totalAmount status createdAt paymentMethod paymentStatus branchId vendor deliverySlot deliverySlotId deliveryWindowSnapshot isImmediate orderSource promoCode discountAmount items')
         .populate('user', 'name email phone')
         .populate('branchId', 'name')
         .populate('vendor', 'storeName')
+        .populate('deliverySlotId', 'label startTime endTime')
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limitNumber)
@@ -2342,11 +2327,12 @@ export const createReturnBatch = async (req, res) => {
 
     await session.withTransaction(async () => {
       const partner = await DeliveryPartner.findById(partnerId).session(session);
-      if (!partner || partner.assignmentStatus !== 'Free') {
-        const err = new Error('Partner not found or busy');
+      if (!partner || partner.authStatus !== 'Active' || partner.dutyStatus !== 'Online') {
+        const err = new Error('Partner not found, inactive, or offline');
         err.statusCode = 400;
         throw err;
       }
+      await assertPartnerCapacity(partner, normalizedOrderIds.length, session);
 
       const orders = await Order.find({ _id: { $in: normalizedOrderIds } }).session(session);
       if (orders.length !== normalizedOrderIds.length) {

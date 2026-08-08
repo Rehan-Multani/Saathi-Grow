@@ -25,8 +25,8 @@ const mapContainerStyle = {
 };
 
 const center = {
-    lat: 22.7196,
-    lng: 75.8577
+    lat: 22.9734,
+    lng: 78.6569
 };
 
 const mapOptions = {
@@ -112,7 +112,6 @@ const DeliveryTracking = () => {
     const focusOnPartner = (delivery) => {
         setSelectedDelivery(delivery);
         const loc = delivery.deliveryPartnerId?.currentLocation?.coordinates;
-        const custLoc = delivery.shippingAddress?.location?.coordinates;
         
         if (loc && (loc[0] !== 0 || loc[1] !== 0)) {
             const position = { lat: loc[1], lng: loc[0] };
@@ -120,14 +119,6 @@ const DeliveryTracking = () => {
             if (map) {
                 map.panTo(position);
                 map.setZoom(16);
-            }
-        } else if (custLoc && (custLoc[0] !== 0 || custLoc[1] !== 0)) {
-            // Fallback to customer location if rider location is missing
-            const position = { lat: custLoc[1], lng: custLoc[0] };
-            setCurrentCenter(position);
-            if (map) {
-                map.panTo(position);
-                map.setZoom(15);
             }
         }
     };
@@ -159,14 +150,6 @@ const DeliveryTracking = () => {
                     setCurrentCenter(position);
                     map.panTo(position);
                     if (location.state?.riderId) map.setZoom(16);
-                } else {
-                    const custLoc = targetDelivery.shippingAddress?.location?.coordinates;
-                    if (custLoc && (custLoc[0] !== 0 || custLoc[1] !== 0)) {
-                        const position = { lat: custLoc[1], lng: custLoc[0] };
-                        setCurrentCenter(position);
-                        map.panTo(position);
-                        if (location.state?.riderId) map.setZoom(15);
-                    }
                 }
             }
         }
@@ -371,7 +354,11 @@ const DeliveryTracking = () => {
                                         </div>
                                         <div className="flex items-center justify-between text-[9px] font-bold uppercase tracking-widest">
                                             <span className="text-slate-400 flex items-center gap-1.5"><Clock size={10} /> Updated</span>
-                                            <span className="text-slate-700">{new Date(d.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                            <span className={`${d.deliveryPartnerId?.locationUpdatedAt && Date.now() - new Date(d.deliveryPartnerId.locationUpdatedAt).getTime() < 120000 ? 'text-emerald-600' : 'text-amber-600'}`}>
+                                                {d.deliveryPartnerId?.locationUpdatedAt
+                                                    ? new Date(d.deliveryPartnerId.locationUpdatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                                                    : 'Location unavailable'}
+                                            </span>
                                         </div>
                                     </div>
 
