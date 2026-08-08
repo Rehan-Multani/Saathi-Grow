@@ -127,6 +127,14 @@ const orderSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    deliveryWindowSnapshot: {
+        label: { type: String, default: null },
+        startTime: { type: String, default: null },
+        endTime: { type: String, default: null },
+        timezone: { type: String, default: 'Asia/Kolkata' },
+        scheduledDate: { type: String, default: null },
+        isImmediate: { type: Boolean, default: false }
+    },
     deliveryRunId: {
         // Link to the DeliveryRun batch this order was assigned to
         type: mongoose.Schema.Types.ObjectId,

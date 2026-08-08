@@ -415,7 +415,6 @@ const AddProduct = () => {
         const newErrors = {};
         if (!formData.name?.trim()) newErrors.name = 'Product name is required';
         if (!formData.category) newErrors.category = 'Category is required';
-        if (!formData.brandName) newErrors.brandName = 'Brand is required';
         if (!formData.description?.trim()) newErrors.description = 'Description is required';
         if (formData.basePrice === '' || formData.basePrice === null) newErrors.basePrice = 'Base price is required';
         if (formData.mrp === '' || formData.mrp === null) newErrors.mrp = 'MRP is required';
@@ -549,13 +548,13 @@ const AddProduct = () => {
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-sm font-semibold text-slate-700">{t('fields.brand')}<span className="text-red-500 ml-1">*</span></label>
+                                    <label className="text-sm font-semibold text-slate-700">{t('fields.brand')} <span className="text-slate-400 font-normal">(optional)</span></label>
                                     <div className={errors.brandName ? 'border border-red-500 rounded-xl' : ''}>
                                         <DownDropdown
                                             value={formData.brandName}
                                             onChange={val => { handleChange({ target: { name: 'brandName', value: val } }); if(errors.brandName) setErrors(p => ({...p, brandName: null})); }}
                                             options={filteredBrands.map(b => ({ value: b.name, label: b.name }))}
-                                            placeholder="Select Brand"
+                                            placeholder="No brand / Unbranded"
                                             disabled={!formData.category}
                                         />
                                     </div>

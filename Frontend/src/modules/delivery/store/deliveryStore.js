@@ -162,9 +162,9 @@ const useDeliveryStore = create((set, get) => ({
         }));
     },
 
-    updateLocation: async (token, longitude, latitude) => {
+    updateLocation: async (token, longitude, latitude, accuracy = null, heading = null) => {
         try {
-            await updatePartnerLocation(token, longitude, latitude);
+            await updatePartnerLocation(token, longitude, latitude, accuracy, heading);
             get().setLocalLocation(longitude, latitude);
         } catch (error) {
             console.error('Failed to update location:', error);

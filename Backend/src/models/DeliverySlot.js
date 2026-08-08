@@ -16,6 +16,12 @@ const deliverySlotSchema = new mongoose.Schema({
   isActive: {
     type: Boolean,
     default: true
+  },
+  maxOrders: {
+    type: Number,
+    default: 50,
+    min: 1,
+    max: 1000
   }
 }, {
   timestamps: true

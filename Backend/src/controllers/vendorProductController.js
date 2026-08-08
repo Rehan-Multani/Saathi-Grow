@@ -179,7 +179,9 @@ export const updateVendorProduct = async (req, res) => {
 
       product.mrp = req.body.mrp !== undefined ? Number(req.body.mrp) : product.mrp;
       product.category = req.body.category || product.category;
-      product.brandName = req.body.brandName || product.brandName;
+      if (req.body.brandName !== undefined) {
+        product.brandName = String(req.body.brandName || '').trim();
+      }
       product.unitType = req.body.unitType || product.unitType;
       product.unitValue = req.body.unitValue !== undefined ? Number(req.body.unitValue) : product.unitValue;
       product.physicalLocation = req.body.physicalLocation || product.physicalLocation;

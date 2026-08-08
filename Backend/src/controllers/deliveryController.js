@@ -6,6 +6,7 @@ import Order from '../models/Order.js';
 import Wallet from '../models/Wallet.js';
 import Transaction from '../models/Transaction.js';
 import DeliveryLocation from '../models/DeliveryLocation.js';
+import { syncPartnerAssignmentState } from '../services/deliveryCapacityService.js';
 import CashCollection from '../models/CashCollection.js';
 import { findOptimalSource } from '../services/locationService.js';
 import { creditVendorWallet, debitVendorWallet, creditAdminWallet, debitAdminWallet } from './orderController.js';
@@ -48,15 +49,25 @@ export const updateStatus = async (req, res) => {
 // @access  Private (Rider)
 export const updateLocation = async (req, res) => {
     try {
-        const { longitude, latitude } = req.body;
+        const { longitude, latitude, accuracy, heading } = req.body;
+        const lng = Number(longitude);
+        const lat = Number(latitude);
+        if (!Number.isFinite(lng) || !Number.isFinite(lat) || lng < -180 || lng > 180 || lat < -90 || lat > 90) {
+            return res.status(400).json({ message: 'Valid longitude and latitude are required' });
+        }
         const location = {
             type: 'Point',
-            coordinates: [longitude, latitude]
+            coordinates: [lng, lat]
         };
 
         const partner = await DeliveryPartner.findByIdAndUpdate(
             req.partner._id,
-            { currentLocation: location },
+            {
+                currentLocation: location,
+                locationUpdatedAt: new Date(),
+                currentLocationAccuracy: Number.isFinite(Number(accuracy)) ? Number(accuracy) : null,
+                currentHeading: Number.isFinite(Number(heading)) ? Number(heading) : null
+            },
             { new: true }
         );
 
@@ -381,10 +392,7 @@ export const updateDeliveryStatus = async (req, res) => {
                 trackingRef.remove().catch(err => console.error('[FIREBASE] Error removing tracking ref:', err));
             }
 
-            partner.assignmentStatus = 'Free';
-            partner.activeRun = null;
-            partner.currentStopIndex = 0;
-            await partner.save();
+            await syncPartnerAssignmentState(partner, null, run._id);
         }
 
         await run.save();

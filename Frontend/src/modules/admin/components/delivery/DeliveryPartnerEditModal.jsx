@@ -7,11 +7,13 @@ import { useTranslation } from 'react-i18next';
 const DeliveryPartnerEditModal = ({ show, onHide, partner, onSave }) => {
     const { t } = useTranslation('admin_delivery');
     const [authStatus, setAuthStatus] = useState('Active');
+    const [maxActiveOrders, setMaxActiveOrders] = useState(10);
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         if (partner) {
             setAuthStatus(partner.authStatus || 'Active');
+            setMaxActiveOrders(partner.maxActiveOrders || 10);
         }
     }, [partner]);
 
@@ -19,7 +21,7 @@ const DeliveryPartnerEditModal = ({ show, onHide, partner, onSave }) => {
         e.preventDefault();
         setLoading(true);
         try {
-            await onSave({ ...partner, authStatus });
+            await onSave({ ...partner, authStatus, maxActiveOrders: Number(maxActiveOrders) });
             onHide();
         } catch (error) {
             console.error("Update failed", error);
@@ -142,6 +144,16 @@ const DeliveryPartnerEditModal = ({ show, onHide, partner, onSave }) => {
                                 </button>
                             ))}
                         </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <label htmlFor="maxActiveOrders" className="text-[11px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+                            Active Parcel Capacity
+                        </label>
+                        <input id="maxActiveOrders" type="number" min="1" max="50" required value={maxActiveOrders}
+                            onChange={(event) => setMaxActiveOrders(event.target.value)}
+                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold outline-none focus:border-blue-500" />
+                        <p className="text-[10px] text-slate-400">Maximum parcels this rider may manage at the same time.</p>
                     </div>
 
                     <div className="p-5 bg-blue-50/50 rounded-2xl border border-blue-100 flex items-start gap-4">

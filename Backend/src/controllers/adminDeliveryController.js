@@ -5,6 +5,7 @@ import Vendor from '../models/Vendor.js';
 import Branch from '../models/Branch.js';
 import OrderDelivery from '../models/OrderDelivery.js';
 import DeliveryRun from '../models/DeliveryRun.js';
+import { assertPartnerCapacity, getPartnerActiveLoad, syncPartnerAssignmentState } from '../services/deliveryCapacityService.js';
 import CashCollection from '../models/CashCollection.js';
 import Admin from '../models/Admin.js';
 import { sendPushNotification } from '../services/notificationService.js';
@@ -20,6 +21,25 @@ const getPaginationParams = (query = {}) => {
   const pageNumber = Math.max(parseInt(query.page, 10) || 1, 1);
   const limitNumber = Math.min(Math.max(parseInt(query.limit, 10) || 20, 1), 100);
   return { hasPagination, pageNumber, limitNumber };
+};
+
+const findNearestPartnerWithCapacity = async (coordinates, session) => {
+  const candidates = await DeliveryPartner.find({
+    authStatus: 'Active',
+    dutyStatus: 'Online',
+    currentLocation: {
+      $near: {
+        $geometry: { type: 'Point', coordinates },
+        $maxDistance: 10000
+      }
+    }
+  }).limit(20).session(session);
+
+  for (const candidate of candidates) {
+    const { activeOrderCount } = await getPartnerActiveLoad(candidate._id, session);
+    if (activeOrderCount < (candidate.maxActiveOrders || 10)) return candidate;
+  }
+  return null;
 };
 
 /**
@@ -169,7 +189,7 @@ export const updateDeliveryPartnerStatus = async (req, res) => {
 // @access  Private (Admin)
 export const updateDeliveryPartner = async (req, res) => {
   try {
-    const { name, phone, authStatus, vehicleType, vehicleNumber, email, city } = req.body;
+    const { name, phone, authStatus, vehicleType, vehicleNumber, email, city, maxActiveOrders } = req.body;
     const partner = await DeliveryPartner.findById(req.params.id);
 
     if (partner) {
@@ -180,6 +200,13 @@ export const updateDeliveryPartner = async (req, res) => {
       partner.vehicleNumber = vehicleNumber || partner.vehicleNumber;
       partner.email = email || partner.email;
       if (city !== undefined) partner.city = city.trim();
+      if (maxActiveOrders !== undefined) {
+        const capacity = Number(maxActiveOrders);
+        if (!Number.isInteger(capacity) || capacity < 1 || capacity > 50) {
+          return res.status(400).json({ message: 'Parcel capacity must be between 1 and 50' });
+        }
+        partner.maxActiveOrders = capacity;
+      }
 
       const updatedPartner = await partner.save();
       res.json(updatedPartner);
@@ -322,11 +349,17 @@ export const getAvailablePartners = async (req, res) => {
 
     const partners = await DeliveryPartner.find({
       authStatus: 'Active',
-      assignmentStatus: 'Free',
       dutyStatus: 'Online'
     })
-      .select('name phone uniqueId vehicleType vehicleNumber profileImage authStatus dutyStatus assignmentStatus currentLocation activeOrder createdAt')
+      .select('name phone uniqueId vehicleType vehicleNumber profileImage authStatus dutyStatus assignmentStatus currentLocation locationUpdatedAt activeOrder maxActiveOrders createdAt')
       .lean();
+
+    const partnersWithCapacity = await Promise.all(partners.map(async (partner) => {
+      const { activeOrderCount } = await getPartnerActiveLoad(partner._id);
+      return { ...partner, activeOrderCount, remainingCapacity: Math.max(0, (partner.maxActiveOrders || 10) - activeOrderCount) };
+    }));
+    const requiredCapacity = String(orderIds || '').split(',').filter(Boolean).length || 1;
+    partners.splice(0, partners.length, ...partnersWithCapacity.filter((partner) => partner.remainingCapacity >= requiredCapacity));
 
     // If orderIds provided, sort partners by proximity to the delivery area
     if (orderIds) {
@@ -431,7 +464,8 @@ const performAssignment = async (orderId, partnerId, session) => {
   const partner = await DeliveryPartner.findById(partnerId).session(session);
   if (!partner) throw new Error('Delivery Partner not found');
   if (partner.authStatus !== 'Active') throw new Error('Partner is suspended or unverified');
-  if (partner.assignmentStatus !== 'Free') throw new Error('Partner is currently running an active order');
+  if (partner.dutyStatus !== 'Online') throw new Error('Partner is currently offline');
+  await assertPartnerCapacity(partner, 1, session);
 
   // 2. Generate Delivery Validation PIN (OTP)
   const securePin = generateOTP();
@@ -567,20 +601,7 @@ export const autoAssignOrder = async (req, res) => {
         throw err;
       }
 
-      const nearestPartner = await DeliveryPartner.findOne({
-        authStatus: 'Active',
-        assignmentStatus: 'Free',
-        dutyStatus: 'Online',
-        currentLocation: {
-          $near: {
-            $geometry: {
-              type: 'Point',
-              coordinates: pickupLocation.coordinates
-            },
-            $maxDistance: 10000
-          }
-        }
-      }).session(session);
+      const nearestPartner = await findNearestPartnerWithCapacity(pickupLocation.coordinates, session);
 
       if (!nearestPartner) {
         const err = new Error('No available delivery partners found near the pickup location');
@@ -624,20 +645,7 @@ export const triggerAutoAssignmentForOrder = async (orderId) => {
         return;
       }
 
-      const nearestPartner = await DeliveryPartner.findOne({
-        authStatus: 'Active',
-        assignmentStatus: 'Free',
-        dutyStatus: 'Online',
-        currentLocation: {
-          $near: {
-            $geometry: {
-              type: 'Point',
-              coordinates: pickupLocation.coordinates
-            },
-            $maxDistance: 10000 // 10km radius
-          }
-        }
-      }).session(session);
+      const nearestPartner = await findNearestPartnerWithCapacity(pickupLocation.coordinates, session);
 
       if (!nearestPartner) {
         console.log(`[AutoAssign] No near partner found for order ${orderId}`);
@@ -718,11 +726,7 @@ export const unassignOrderFromPartner = async (req, res) => {
       }
 
       if (partner) {
-        partner.assignmentStatus = 'Free';
-        partner.activeOrder = null;
-        partner.activeRun = null;
-        partner.currentStopIndex = 0;
-        await partner.save({ session });
+        await syncPartnerAssignmentState(partner, session, run?._id);
 
         // Notify Partner of Unassignment
         await sendPushNotification(partner._id, 'DeliveryPartner', {
@@ -764,7 +768,7 @@ export const getActiveDeliveries = async (req, res) => {
 
     const listQuery = Order.find(query)
       .select('orderId status shippingAddress totalAmount createdAt updatedAt deliveryPartnerId deliveryRunId vendor branchId user')
-      .populate('deliveryPartnerId', 'name phone currentLocation vehicleType vehicleNumber profileImage')
+      .populate('deliveryPartnerId', 'name phone currentLocation locationUpdatedAt currentLocationAccuracy vehicleType vehicleNumber profileImage')
       .populate('vendor', 'storeName address')
       .populate('branchId', 'name address')
       .populate('user', 'name phone')

@@ -20,7 +20,6 @@ import useDeliveryStore from '../store/deliveryStore';
 import useDelivery from '../hooks/useDelivery';
 import { useNavigate } from 'react-router-dom';
 import { formatCurrency } from '../../vendor/utils/formatDate';
-import mapImage from '../../../assets/image.png';
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
@@ -50,13 +49,24 @@ const DeliveryDashboard = () => {
     } = useDelivery();
 
     const isOnline = profile?.dutyStatus === 'Online';
-    const activeRun = useMemo(() => orders.find(r => r.status === 'assigned' || r.status === 'in_progress'), [orders]);
+    const activeRuns = useMemo(() => orders.filter(r => r.status === 'assigned' || r.status === 'in_progress'), [orders]);
+    const [selectedRunId, setSelectedRunId] = useState(null);
+    const activeRun = useMemo(
+        () => activeRuns.find((run) => run._id === selectedRunId) || activeRuns[0],
+        [activeRuns, selectedRunId]
+    );
     const currentStop = useMemo(() => {
         if (!activeRun) return null;
-        return activeRun.orders[activeRun.currentStopIndex || 0];
+        return activeRun.orders.find((stop) => ['pending', 'out_for_delivery'].includes(stop.status)) || activeRun.orders[0];
     }, [activeRun]);
 
-    const mapUrl = `https://maps.googleapis.com/maps/api/staticmap?center=22.7533,75.8948&zoom=14&size=600x300&maptype=roadmap&markers=color:black%7Clabel:S%7C22.7533,75.8948&markers=color:red%7Clabel:C%7C22.7196,75.8577&key=${GOOGLE_MAPS_API_KEY}`;
+    const destinationCoordinates = currentStop?.order?.shippingAddress?.location?.coordinates;
+    const destination = destinationCoordinates?.length === 2
+        ? { lat: destinationCoordinates[1], lng: destinationCoordinates[0] }
+        : null;
+    const mapUrl = destination && GOOGLE_MAPS_API_KEY
+        ? `https://maps.googleapis.com/maps/api/staticmap?center=${destination.lat},${destination.lng}&zoom=14&size=600x300&maptype=roadmap&markers=color:red%7Clabel:C%7C${destination.lat},${destination.lng}&key=${GOOGLE_MAPS_API_KEY}`
+        : null;
 
     useEffect(() => {
         const handleFirebaseMessage = (event) => {
@@ -170,6 +180,17 @@ const DeliveryDashboard = () => {
                     )}
                 </div>
 
+                {activeRuns.length > 1 && (
+                    <div className="flex gap-2 overflow-x-auto pb-1" aria-label="Assigned delivery runs">
+                        {activeRuns.map((run, index) => (
+                            <button key={run._id} type="button" onClick={() => setSelectedRunId(run._id)}
+                                className={`shrink-0 px-3 py-2 rounded-lg border text-[9px] font-black uppercase transition-colors ${activeRun?._id === run._id ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-600 border-slate-200'}`}>
+                                Run {index + 1} / {run.orders?.length || 0} parcels
+                            </button>
+                        ))}
+                    </div>
+                )}
+
                 {activeRun ? (
                     <div className="bg-white dark:bg-zinc-900 rounded-[2rem] border border-slate-100 dark:border-zinc-800/60 shadow-xl shadow-slate-200/50 dark:shadow-none overflow-hidden group">
                         {/* Compact Map Preview */}
@@ -188,19 +209,19 @@ const DeliveryDashboard = () => {
                                 <MapPin size={32} strokeWidth={1} />
                                 <span className="text-[10px] font-black uppercase tracking-widest opacity-40">Tactical Map Offline</span>
                             </div>
-                            <img
-                                src={mapImage}
+                            {mapUrl && <img
+                                src={mapUrl}
                                 alt=""
                                 className="absolute inset-0 w-full h-full object-cover grayscale-[0.3]"
                                 onError={(e) => e.target.style.display = 'none'}
-                            />
-                            <button
-                                onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=22.7196,75.8577`, '_blank')}
+                            />}
+                            {destination && <button
+                                onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${destination.lat},${destination.lng}`, '_blank')}
                                 className="navigate-btn-override absolute bottom-3 right-3 bg-slate-900 dark:bg-white text-white dark:text-zinc-900 p-3 shadow-xl active:scale-95 transition-all flex items-center gap-2"
                             >
                                 <Navigation size={12} fill="white" className="dark:fill-zinc-900" />
                                 <span className="text-[8px] font-black uppercase tracking-widest">Arriving Soon</span>
-                            </button>
+                            </button>}
                         </div>
 
                         <div className="p-3.5 pt-1.5 space-y-3">

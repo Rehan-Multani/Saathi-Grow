@@ -15,6 +15,7 @@ import {
 import { motion } from 'framer-motion';
 import { useNotifications } from './NotificationProvider';
 import useDeliveryStore from '../../store/deliveryStore';
+import useLocationTracking from '../useLocationTracking';
 
 const OPEN_ORDER_EVENT = 'delivery:open-order';
 
@@ -30,9 +31,12 @@ const DeliveryLayout = ({ children }) => {
         clearNotifications
     } = useNotifications();
     const profile = useDeliveryStore(state => state.profile);
+    const token = useDeliveryStore(state => state.token);
     const logout = useDeliveryStore(state => state.logout);
     const [isNotificationOpen, setIsNotificationOpen] = useState(false);
     const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
+    const activeRunId = location.pathname.match(/\/delivery\/run\/([^/]+)/)?.[1] || null;
+    useLocationTracking(token, Boolean(token && profile?.dutyStatus === 'Online'), activeRunId);
     const notificationPanelRef = useRef(null);
     useEffect(() => {
         let timeoutId;

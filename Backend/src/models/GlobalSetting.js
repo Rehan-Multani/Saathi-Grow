@@ -18,6 +18,9 @@ const globalSettingSchema = new mongoose.Schema({
   platformWalletBalance: { type: Number, default: 45280.50 }, // Track platform earnings
   maxDeliveryRadius: { type: Number, default: 20 }, // in KM
   autoInvoicingEnabled: { type: Boolean, default: true },
+  immediateDeliveryEnabled: { type: Boolean, default: true },
+  deliveryTimezone: { type: String, default: 'Asia/Kolkata', trim: true },
+  slotBookingCutoffMinutes: { type: Number, default: 30, min: 0, max: 240 },
 
   // Support & Social Settings
   supportPhone: { type: String, default: '+91 9636410100' },

@@ -46,36 +46,29 @@ const useLocationTracking = (token, isActive, activeOrderId = null) => {
         let watchId;
 
         if (isActive) {
-            requestWakeLock();
+            if (activeOrderId) requestWakeLock();
 
             if (navigator.geolocation) {
                 watchId = navigator.geolocation.watchPosition(
                     (position) => {
-                        const { longitude, latitude, speed } = position.coords;
+                        const { longitude, latitude, speed, accuracy } = position.coords;
                         const now = Date.now();
+                        let heading = position.coords.heading || 0;
+                        if (prevLocation.current && (!heading || heading === 0)) {
+                            heading = calculateBearing(prevLocation.current.latitude, prevLocation.current.longitude, latitude, longitude);
+                        }
+                        prevLocation.current = { latitude, longitude };
 
                         // 1. UPDATE THE UI LOCALLY AND INSTANTLY (Smooth Animations for Rider View)
                         setLocalLocation(longitude, latitude);
 
-                        // 2. THROTTLE Rest API (MongoDB) update to only once every 2 minutes
-                        // to prevent DDOSing your Node.js backend
-                        if (now - lastDbUpdateTime.current > 120000) {
-                            updateLocation(token, longitude, latitude);
+                        // Keep admin tracking current without sending every GPS sample.
+                        if (now - lastDbUpdateTime.current > 30000) {
+                            updateLocation(token, longitude, latitude, accuracy, heading);
                             lastDbUpdateTime.current = now;
                         }
 
                         if (activeOrderId) {
-                            let heading = position.coords.heading || 0;
-                            if (prevLocation.current && (!heading || heading === 0)) {
-                                heading = calculateBearing(
-                                    prevLocation.current.latitude,
-                                    prevLocation.current.longitude,
-                                    latitude,
-                                    longitude
-                                );
-                            }
-                            prevLocation.current = { latitude, longitude };
-
                             // Firebase RTDB handles high-frequency updates efficiently
                             const trackingRef = ref(db, `active_trackings/${activeOrderId}`);
                             update(trackingRef, {
@@ -104,7 +97,7 @@ const useLocationTracking = (token, isActive, activeOrderId = null) => {
             if (watchId) navigator.geolocation.clearWatch(watchId);
             releaseWakeLock();
         };
-    }, [isActive, token, updateLocation, activeOrderId]);
+    }, [isActive, token, updateLocation, setLocalLocation, activeOrderId]);
 };
 
 export default useLocationTracking;
