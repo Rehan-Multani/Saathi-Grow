@@ -46,5 +46,18 @@ const userTransactionSchema = new mongoose.Schema({
   timestamps: true
 });
 
+userTransactionSchema.index(
+  { razorpayPaymentId: 1 },
+  {
+    unique: true,
+    partialFilterExpression: {
+      category: 'topup',
+      razorpayPaymentId: { $type: 'string' }
+    }
+  }
+);
+
+userTransactionSchema.index({ user: 1, createdAt: -1 });
+
 const UserTransaction = mongoose.model('UserTransaction', userTransactionSchema);
 export default UserTransaction;

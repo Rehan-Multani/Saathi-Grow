@@ -1,6 +1,4 @@
 import axios from 'axios';
-import Razorpay from 'razorpay';
-import crypto from 'crypto';
 import Order from '../models/Order.js';
 import User from '../models/User.js';
 import UserTransaction from '../models/UserTransaction.js';
@@ -22,6 +20,12 @@ import PromoUsage from '../models/PromoUsage.js';
 import { sendPushNotification, notifyByBranchAndPermission, notifySuperAdmins } from '../services/notificationService.js';
 import { sendSystemNotificationEmail } from '../services/emailService.js';
 import { buildRouteCacheKey, getCachedRoute, setCachedRoute } from '../services/routeCacheService.js';
+import razorpayInstance, {
+  PaymentVerificationError,
+  fetchAndValidateRazorpayPayment,
+  parseRupeesToPaise,
+  verifyCheckoutSignature
+} from '../services/razorpayVerificationService.js';
 // import { triggerAutoAssignmentForOrder } from './adminDeliveryController.js';
 
 /**
@@ -308,11 +312,6 @@ export const computeBillDetails = async (items, options = {}) => {
   };
 };
 
-const razorpayInstance = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID || 'dummy_id',
-  key_secret: process.env.RAZORPAY_KEY_SECRET || 'dummy_secret'
-});
-
 // @desc    Initiate an online order via Razorpay
 // @route   POST /api/orders/razorpay
 // @access  Private
@@ -336,9 +335,13 @@ export const createRazorpayOrder = async (req, res) => {
     const computedBill = await computeBillDetails(items, { promoId, userId: req.user._id });
 
     const options = {
-      amount: parseInt(computedBill.totalAmount * 100), // Razorpay strictly takes format in paise
+      amount: parseRupeesToPaise(computedBill.totalAmount),
       currency: 'INR',
-      receipt: `sg_rcpt_${Date.now()}`
+      receipt: `sg_rcpt_${Date.now()}`,
+      notes: {
+        purpose: 'order_payment',
+        userId: String(req.user._id)
+      }
     };
 
     const order = await razorpayInstance.orders.create(options);
@@ -370,6 +373,10 @@ export const verifyRazorpayPayment = async (req, res) => {
       orderData
     } = req.body;
 
+    if (!orderData || !Array.isArray(orderData.items) || orderData.items.length === 0) {
+      return res.status(400).json({ message: 'Order items are required' });
+    }
+
     // 0. ACCOUNT SECURITY SHIELD: Verify user is not blocked before finalization
     const currentUser = await User.findById(req.user._id);
     if (!currentUser || currentUser.isActive === false) {
@@ -378,15 +385,17 @@ export const verifyRazorpayPayment = async (req, res) => {
         });
     }
 
-    // Verify authenticity using crypto SHA256 digest
-    const sign = razorpayOrderId + "|" + razorpayPaymentId;
-    const expectedSign = crypto
-      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
-      .update(sign.toString())
-      .digest("hex");
+    verifyCheckoutSignature({ razorpayOrderId, razorpayPaymentId, razorpaySignature });
 
-    if (razorpaySignature !== expectedSign) {
-      return res.status(400).json({ message: "Invalid payment signature!" });
+    const existingPaidOrder = await Order.findOne({ razorpayPaymentId });
+    if (existingPaidOrder) {
+      if (
+        String(existingPaidOrder.user) !== String(req.user._id)
+        || String(existingPaidOrder.razorpayOrderId) !== String(razorpayOrderId)
+      ) {
+        throw new PaymentVerificationError('Payment has already been used', 409, 'PAYMENT_ALREADY_USED');
+      }
+      return res.status(200).json({ success: true, order: existingPaidOrder, replayed: true });
     }
 
     // Strip empty location bounds so the 2dsphere index doesn't explode
@@ -407,6 +416,26 @@ export const verifyRazorpayPayment = async (req, res) => {
 
     // Recompute bill to guarantee no manipulation during payment verify leap
     const computedBill = await computeBillDetails(orderData.items, { promoId: orderData.promoId, userId: req.user._id });
+
+    const paymentVerification = await fetchAndValidateRazorpayPayment({
+      razorpayOrderId,
+      razorpayPaymentId,
+      expectedAmountPaise: parseRupeesToPaise(computedBill.totalAmount),
+      expectedCurrency: 'INR'
+    });
+
+    const providerPurpose = paymentVerification.order?.notes?.purpose;
+    const providerUserId = paymentVerification.order?.notes?.userId;
+    const providerReceipt = String(paymentVerification.order?.receipt || '');
+    if (providerPurpose && providerPurpose !== 'order_payment') {
+      throw new PaymentVerificationError('Razorpay order is not an order payment', 409, 'PAYMENT_PURPOSE_MISMATCH');
+    }
+    if (!providerPurpose && !providerReceipt.startsWith('sg_rcpt_')) {
+      throw new PaymentVerificationError('Razorpay order is not an order payment', 409, 'PAYMENT_PURPOSE_MISMATCH');
+    }
+    if (providerUserId && String(providerUserId) !== String(req.user._id)) {
+      throw new PaymentVerificationError('Payment was initiated by a different customer', 403, 'PAYMENT_OWNERSHIP_MISMATCH');
+    }
 
     // Enrich items with physicalLocation for receiver picking
     const enrichedItems = await enrichItemsWithLocations(orderData.items);
@@ -532,7 +561,19 @@ export const verifyRazorpayPayment = async (req, res) => {
     }
   } catch (error) {
     console.error('Verify Payment Error:', error);
-    res.status(500).json({ message: error.message || 'Internal Verification Error' });
+    if (error?.code === 11000 && req.body?.razorpayPaymentId) {
+      const existingOrder = await Order.findOne({ razorpayPaymentId: req.body.razorpayPaymentId }).catch(() => null);
+      if (existingOrder && String(existingOrder.user) === String(req.user?._id)) {
+        return res.status(200).json({ success: true, order: existingOrder, replayed: true });
+      }
+    }
+    const statusCode = error instanceof PaymentVerificationError ? error.statusCode : 500;
+    res.status(statusCode).json({
+      message: error instanceof PaymentVerificationError
+        ? error.message
+        : (error.message || 'Internal Verification Error'),
+      code: error.code || 'ORDER_PAYMENT_VERIFICATION_FAILED'
+    });
   }
 };
 

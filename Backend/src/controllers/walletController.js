@@ -1,13 +1,28 @@
 import User from '../models/User.js';
 import UserTransaction from '../models/UserTransaction.js';
-import Razorpay from 'razorpay';
-import crypto from 'crypto';
-import { sendPushNotification } from '../services/notificationService.js';
+import WalletTopup from '../models/WalletTopup.js';
+import {
+  createWalletTopupIntent,
+  verifyAndCreditWalletTopup
+} from '../services/walletTopupService.js';
+import {
+  PaymentVerificationError,
+  verifyWebhookSignature
+} from '../services/razorpayVerificationService.js';
 
-const razorpayInstance = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID || 'dummy_id',
-  key_secret: process.env.RAZORPAY_KEY_SECRET || 'dummy_secret'
-});
+const sendPaymentError = (res, error, fallbackMessage) => {
+  const statusCode = error instanceof PaymentVerificationError
+    ? error.statusCode
+    : (error.statusCode || 500);
+  if (statusCode >= 500) {
+    console.error('[WALLET_PAYMENT_ERROR]', error);
+  }
+  return res.status(statusCode).json({
+    success: false,
+    message: error instanceof PaymentVerificationError ? error.message : fallbackMessage,
+    code: error.code || 'WALLET_PAYMENT_ERROR'
+  });
+};
 
 // @desc    Get current wallet balance and recent transactions
 // @route   GET /api/wallet/balance
@@ -38,17 +53,10 @@ export const getWalletData = async (req, res) => {
 export const initiateTopup = async (req, res) => {
   try {
     const { amount } = req.body;
-    if (!amount || amount <= 0) {
-      return res.status(400).json({ message: 'Invalid amount' });
-    }
-
-    const options = {
-      amount: parseInt(amount * 100), // in paise
-      currency: 'INR',
-      receipt: `wallet_topup_${Date.now()}`
-    };
-
-    const order = await razorpayInstance.orders.create(options);
+    const { razorpayOrder: order } = await createWalletTopupIntent({
+      userId: req.user._id,
+      amount
+    });
 
     res.status(200).json({
       success: true,
@@ -57,7 +65,7 @@ export const initiateTopup = async (req, res) => {
       currency: order.currency
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    sendPaymentError(res, error, 'Unable to initiate wallet top-up');
   }
 };
 
@@ -69,51 +77,72 @@ export const verifyTopup = async (req, res) => {
     const {
       razorpayOrderId,
       razorpayPaymentId,
-      razorpaySignature,
-      amount
+      razorpaySignature
     } = req.body;
 
-    const sign = razorpayOrderId + "|" + razorpayPaymentId;
-    const expectedSign = crypto
-      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
-      .update(sign.toString())
-      .digest("hex");
-
-    if (razorpaySignature !== expectedSign) {
-      return res.status(400).json({ message: "Invalid payment signature!" });
-    }
-
-    // Update User Balance
-    const user = await User.findByIdAndUpdate(
-      req.user._id,
-      { $inc: { walletBalance: amount } },
-      { new: true }
-    );
-
-    // Create Transaction Log
-    await UserTransaction.create({
-      user: req.user._id,
-      amount,
-      type: 'credit',
-      category: 'topup',
-      status: 'completed',
-      description: 'Wallet Topup via Razorpay',
+    const result = await verifyAndCreditWalletTopup({
+      userId: req.user._id,
       razorpayOrderId,
-      razorpayPaymentId
+      razorpayPaymentId,
+      razorpaySignature
     });
 
     res.status(200).json({
       success: true,
-      balance: user.walletBalance,
-      message: 'Wallet topped up successfully'
+      balance: result.balance,
+      amount: result.amount,
+      replayed: result.replayed,
+      message: result.replayed ? 'Wallet top-up was already processed' : 'Wallet topped up successfully'
+    });
+  } catch (error) {
+    sendPaymentError(res, error, 'Unable to verify wallet top-up');
+  }
+};
+
+// Razorpay requires the untouched request body for webhook signature verification.
+export const handleWalletTopupWebhook = async (req, res) => {
+  try {
+    const rawBody = Buffer.isBuffer(req.body) ? req.body : Buffer.from(req.body || '');
+    verifyWebhookSignature(rawBody, req.header('x-razorpay-signature'));
+
+    let event;
+    try {
+      event = JSON.parse(rawBody.toString('utf8'));
+    } catch {
+      throw new PaymentVerificationError('Invalid webhook payload');
+    }
+
+    if (event.event !== 'payment.captured') {
+      return res.status(200).json({ success: true, ignored: true });
+    }
+
+    const payment = event.payload?.payment?.entity;
+    const razorpayOrderId = payment?.order_id;
+    const razorpayPaymentId = payment?.id;
+    if (!razorpayOrderId || !razorpayPaymentId) {
+      throw new PaymentVerificationError('Webhook payment details are incomplete');
+    }
+
+    const intent = await WalletTopup.findOne({ razorpayOrderId }).select('user');
+    if (!intent) {
+      console.warn('[WALLET_WEBHOOK_INTENT_NOT_FOUND]', {
+        orderIdSuffix: String(razorpayOrderId).slice(-6)
+      });
+      return res.status(200).json({ success: true, ignored: true });
+    }
+
+    const result = await verifyAndCreditWalletTopup({
+      userId: intent.user,
+      razorpayOrderId,
+      razorpayPaymentId,
+      verifySignature: false
     });
 
-    // Notify User (Push)
-    await sendPushNotification(req.user._id, 'User', {
-      title: 'Wallet Topped Up!',
-      body: `₹${amount} has been successfully added to your wallet. New balance: ₹${user.walletBalance}`
-    }, { type: 'wallet_topup', balance: user.walletBalance.toString() });
+    return res.status(200).json({
+      success: true,
+      replayed: result.replayed
+    });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    return sendPaymentError(res, error, 'Unable to process wallet webhook');
   }
 };

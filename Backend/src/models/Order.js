@@ -223,6 +223,26 @@ orderSchema.index({ branchId: 1, createdAt: -1 });
 orderSchema.index({ deliveryPartnerId: 1, status: 1, createdAt: -1 });
 orderSchema.index({ status: 1, createdAt: -1 });
 orderSchema.index({ 'returnRequest.status': 1 });
+orderSchema.index(
+    { razorpayPaymentId: 1 },
+    {
+        unique: true,
+        partialFilterExpression: {
+            paymentMethod: 'online',
+            razorpayPaymentId: { $type: 'string' }
+        }
+    }
+);
+orderSchema.index(
+    { razorpayOrderId: 1 },
+    {
+        unique: true,
+        partialFilterExpression: {
+            paymentMethod: 'online',
+            razorpayOrderId: { $type: 'string' }
+        }
+    }
+);
 
 const Order = mongoose.model('Order', orderSchema);
 export default Order;

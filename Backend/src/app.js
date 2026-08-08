@@ -13,6 +13,7 @@ import { randomUUID } from 'crypto';
 import connectDB from './config/db.js';
 import noCache from './utils/noCache.js';
 import { validateRuntimeEnv, printEnvValidationSummary } from './config/validateEnv.js';
+import { handleWalletTopupWebhook } from './controllers/walletController.js';
 
 // Database Connection
 const envSummary = validateRuntimeEnv();
@@ -115,6 +116,11 @@ app.options('*', cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
 }));
 app.use(morgan('dev')); // Logging
+app.post(
+  '/api/wallet/webhook',
+  express.raw({ type: 'application/json', limit: '1mb' }),
+  handleWalletTopupWebhook
+);
 app.use(express.json({ limit: '50mb' })); // Body parser
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use((req, res, next) => {

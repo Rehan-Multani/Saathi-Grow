@@ -61,8 +61,7 @@ const AddMoneyPage = () => {
                         await walletApi.verifyTopup(token, {
                             razorpayOrderId: response.razorpay_order_id,
                             razorpayPaymentId: response.razorpay_payment_id,
-                            razorpaySignature: response.razorpay_signature,
-                            amount: numAmount
+                            razorpaySignature: response.razorpay_signature
                         });
 
                         setIsSuccess(true);
@@ -91,7 +90,7 @@ const AddMoneyPage = () => {
             };
 
             const rzp = new window.Razorpay(options);
-            rzp.on('payment.failed', (response) => {
+            rzp.on('payment.failed', () => {
                 toast.error("Payment failed. Please try again.");
                 setIsProcessing(false);
             });

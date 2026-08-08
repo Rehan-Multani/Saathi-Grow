@@ -13,7 +13,9 @@
     "seed:products": "node src/seedProducts.js",
     "seed:category-page": "node scripts/seed-category-page.mjs",
     "seed:admin": "node seed_admin.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node --test test/paymentSecurity.test.js",
+    "audit:wallet-topups": "node scripts/audit-wallet-topups.mjs",
+    "migrate:payment-indexes": "node scripts/create-payment-security-indexes.mjs"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

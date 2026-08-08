@@ -38,6 +38,24 @@ export const sensitiveAdminActionLimiter = rateLimit({
   message: { message: 'Too many sensitive operations in a short time. Please try again soon.' }
 });
 
+export const walletTopupInitiateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => `wallet-topup-init:${req.user?._id?.toString() || getClientIp(req)}`,
+  message: { message: 'Too many wallet top-up attempts. Please try again shortly.' }
+});
+
+export const walletTopupVerifyLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 40,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => `wallet-topup-verify:${req.user?._id?.toString() || getClientIp(req)}`,
+  message: { message: 'Too many wallet verification attempts. Please try again shortly.' }
+});
+
 export const auditAction = (action) => (req, res, next) => {
   const startedAt = Date.now();
   res.on('finish', () => {
