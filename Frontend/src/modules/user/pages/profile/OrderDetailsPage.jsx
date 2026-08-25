@@ -48,12 +48,20 @@ const OrderDetailsPage = () => {
                 return raw.replace(new RegExp(`\\s*\\(${escaped}\\)\\s*$`, 'i'), '').trim() || raw;
             };
 
+            const immediateDeliveryFee = Number(data.immediateDeliveryFee) || 0;
+            const totalDeliveryFee = Number(data.deliveryFee) || 0;
+            const baseDeliveryFee = data.baseDeliveryFee != null ? Number(data.baseDeliveryFee) : Math.max(0, totalDeliveryFee - immediateDeliveryFee);
+
             return {
                 id: data._id,
                 status: data.status,
                 date: formattedDate,
                 subTotal: data.subTotal || 0,
-                deliveryFee: data.deliveryFee || 0,
+                deliveryFee: totalDeliveryFee,
+                baseDeliveryFee,
+                immediateDeliveryFee,
+                isImmediate: data.isImmediate,
+                deliverySlot: data.deliverySlot,
                 taxAmount: data.taxAmount || 0,
                 handlingFee: data.handlingFee || 0,
                 discountAmount: data.discountAmount || 0,
@@ -486,12 +494,27 @@ const OrderDetailsPage = () => {
                                 <span className="text-[12px] text-gray-500 font-medium">Items Total</span>
                                 <span className="text-[12px] font-black text-gray-900 dark:text-white">₹{order.subTotal}</span>
                             </div>
-                            <div className="flex justify-between items-center">
-                                <span className="text-[12px] text-gray-500 font-medium">Delivery Fee</span>
-                                <span className={`text-[12px] font-black ${order.deliveryFee === 0 ? 'text-[#0c831f]' : 'text-gray-900 dark:text-white'}`}>
-                                    {order.deliveryFee === 0 ? 'Free' : `₹${order.deliveryFee}`}
-                                </span>
-                            </div>
+                            {order.immediateDeliveryFee > 0 ? (
+                                <>
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-[12px] text-gray-500 font-medium">Base Delivery Fee</span>
+                                        <span className={`text-[12px] font-black ${order.baseDeliveryFee === 0 ? 'text-[#0c831f]' : 'text-gray-900 dark:text-white'}`}>
+                                            {order.baseDeliveryFee === 0 ? 'Free' : `₹${order.baseDeliveryFee}`}
+                                        </span>
+                                    </div>
+                                    <div className="flex justify-between items-center text-[#0c831f]">
+                                        <span className="text-[12px] font-bold">Express Delivery Surcharge</span>
+                                        <span className="text-[12px] font-black">+₹{order.immediateDeliveryFee}</span>
+                                    </div>
+                                </>
+                            ) : (
+                                <div className="flex justify-between items-center">
+                                    <span className="text-[12px] text-gray-500 font-medium">Delivery Fee</span>
+                                    <span className={`text-[12px] font-black ${order.deliveryFee === 0 ? 'text-[#0c831f]' : 'text-gray-900 dark:text-white'}`}>
+                                        {order.deliveryFee === 0 ? 'Free' : `₹${order.deliveryFee}`}
+                                    </span>
+                                </div>
+                            )}
                             {order.handlingFee > 0 && (
                                 <div className="flex justify-between items-center">
                                     <span className="text-[12px] text-gray-500 font-medium">Handling Fee</span>

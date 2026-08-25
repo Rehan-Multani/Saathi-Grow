@@ -57,6 +57,10 @@ const AllOrders = () => {
             `;
         }).join('') : '<tr><td colspan="3" style="text-align:center;font-size:11px;padding:8px;">No items found</td></tr>';
 
+        const immediateFee = Number(order.immediateDeliveryFee) || 0;
+        const totalDelFee = Number(order.deliveryFee) || 0;
+        const baseDelFee = order.baseDeliveryFee != null ? Number(order.baseDeliveryFee) : Math.max(0, totalDelFee - immediateFee);
+
         const receiptHtml = `
             <!DOCTYPE html>
             <html>
@@ -93,6 +97,7 @@ const AllOrders = () => {
                     <div class="tag">Customer: ${order.user?.name || order.posCustomer?.name || 'Guest'}</div>
                     ${order.user?.phone || order.posCustomer?.phone ? `<div class="tag">Phone: ${order.user?.phone || order.posCustomer?.phone}</div>` : ''}
                     ${order.deliveryAddress?.street ? `<div class="tag">Address: ${order.deliveryAddress.street}, ${order.deliveryAddress.city || ''}</div>` : ''}
+                    ${order.isImmediate ? '<div class="tag" style="color:green;font-weight:bold;">⚡ EXPRESS DELIVERY</div>' : ''}
                 </div>
                 <div class="divider"></div>
                 <table>
@@ -108,7 +113,10 @@ const AllOrders = () => {
                 <div class="divider"></div>
                 <table>
                     <tr><td style="font-size:12px;padding:2px 0;">Subtotal</td><td style="text-align:right;font-size:12px;">₹${(order.subTotal || order.subtotal || order.totalAmount)?.toLocaleString('en-IN')}</td></tr>
-                    ${(order.deliveryFee > 0) ? `<tr><td style="font-size:12px;padding:2px 0;">Delivery Fee</td><td style="text-align:right;font-size:12px;">₹${order.deliveryFee?.toLocaleString('en-IN')}</td></tr>` : '<tr><td style="font-size:12px;padding:2px 0;">Delivery Fee</td><td style="text-align:right;font-size:12px;color:green;">FREE</td></tr>'}
+                    ${immediateFee > 0 ? `
+                        <tr><td style="font-size:12px;padding:2px 0;">Base Delivery Fee</td><td style="text-align:right;font-size:12px;">${baseDelFee === 0 ? '<span style="color:green;">FREE</span>' : `₹${baseDelFee.toLocaleString('en-IN')}`}</td></tr>
+                        <tr><td style="font-size:12px;padding:2px 0;">Express Surcharge</td><td style="text-align:right;font-size:12px;color:green;">+₹${immediateFee.toLocaleString('en-IN')}</td></tr>
+                    ` : (totalDelFee > 0 ? `<tr><td style="font-size:12px;padding:2px 0;">Delivery Fee</td><td style="text-align:right;font-size:12px;">₹${totalDelFee.toLocaleString('en-IN')}</td></tr>` : '<tr><td style="font-size:12px;padding:2px 0;">Delivery Fee</td><td style="text-align:right;font-size:12px;color:green;">FREE</td></tr>')}
                     ${(order.taxAmount > 0) ? `<tr><td style="font-size:12px;padding:2px 0;">Tax</td><td style="text-align:right;font-size:12px;">₹${order.taxAmount?.toLocaleString('en-IN')}</td></tr>` : ''}
                     ${(order.platformFee > 0) ? `<tr><td style="font-size:12px;padding:2px 0;">Handling Fee</td><td style="text-align:right;font-size:12px;">₹${order.platformFee?.toLocaleString('en-IN')}</td></tr>` : ''}
                     ${(order.discountAmount > 0) ? `<tr><td style="font-size:12px;padding:2px 0;">Discount</td><td style="text-align:right;font-size:12px;color:green;">-₹${order.discountAmount?.toLocaleString('en-IN')}</td></tr>` : ''}

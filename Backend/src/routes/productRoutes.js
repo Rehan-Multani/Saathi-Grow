@@ -1,6 +1,7 @@
 import express from 'express';
 import {
   createProduct,
+  bulkReorderProducts,
   getProducts,
   getProductById,
   updateProduct,
@@ -38,6 +39,7 @@ router.get('/inventory/low-stock', protectAdmin, requirePermission('VIEW_PRODUCT
 router.post('/inventory/bulk-adjust', protectAdmin, requirePermission('MANAGE_INVENTORY'), bulkAdjustInventory);
 router.post('/ai-suggestions', protectStoreManager, getAISuggestions);
 router.get('/inventory-logs', protectAdmin, requirePermission('MANAGE_INVENTORY'), getAllInventoryLogs);
+router.put('/reorder', protectAdmin, requirePermission('MANAGE_PRODUCTS'), bulkReorderProducts);
 router.post('/bulk-upload', protectAdmin, requirePermission('MANAGE_PRODUCTS'), csvUpload.single('file'), bulkUploadProducts);
 router.post('/bulk-json', protectAdmin, requirePermission('MANAGE_PRODUCTS'), bulkUploadProductsJson);
 router.delete('/bulk', protectAdmin, requirePermission('MANAGE_PRODUCTS'), restrictTo('Admin', 'Store Manager'), bulkDeleteProducts);

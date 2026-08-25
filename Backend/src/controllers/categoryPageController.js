@@ -296,7 +296,7 @@ const enrichProductsForStore = (products = [], storeId, storeType) => {
   });
 };
 
-const orderByIds = (items = [], ids = []) => {
+export const orderByIds = (items = [], ids = []) => {
   if (!Array.isArray(ids) || ids.length === 0) return items;
   const rank = new Map(ids.map((id, index) => [String(id), index]));
   return [...items].sort((a, b) => {
@@ -337,11 +337,24 @@ const fetchSectionProducts = async (section, categoryName, storeContext) => {
       subCategoryNames: subCategoryDocs.map((item) => item.name).filter(Boolean)
     });
 
-    products = await Product.find(query)
-      .select('name image basePrice mrp category subCategory brandName unitType unitValue status isVeg sku branchStocks vendor stock lowStockThreshold averageRating ratingCount')
-      .sort({ isSaathigro: -1, createdAt: -1 })
-      .limit(section.maxProducts || 10)
+    const maxLimit = section.maxProducts || 10;
+    const orderedProducts = await Product.find({ ...query, displayOrder: { $ne: null, $gte: 0 } })
+      .select('name image basePrice mrp category subCategory brandName unitType unitValue status isVeg sku branchStocks vendor stock lowStockThreshold averageRating ratingCount displayOrder')
+      .sort({ displayOrder: 1, isSaathigro: -1, createdAt: -1, _id: 1 })
+      .limit(maxLimit)
       .lean();
+
+    if (orderedProducts.length < maxLimit) {
+      const remainingLimit = maxLimit - orderedProducts.length;
+      const unassignedProducts = await Product.find({ ...query, $or: [{ displayOrder: null }, { displayOrder: { $exists: false } }] })
+        .select('name image basePrice mrp category subCategory brandName unitType unitValue status isVeg sku branchStocks vendor stock lowStockThreshold averageRating ratingCount displayOrder')
+        .sort({ isSaathigro: -1, createdAt: -1, _id: 1 })
+        .limit(remainingLimit)
+        .lean();
+      products = orderedProducts.concat(unassignedProducts);
+    } else {
+      products = orderedProducts;
+    }
   }
 
   const limitedProducts = products.slice(0, section.maxProducts || 10);

@@ -229,3 +229,20 @@ export const getLowStockAlerts = async (token, params = {}) => {
   }
   return data;
 };
+
+export const bulkReorderProducts = async (token, items) => {
+  const response = await fetch(`${PRODUCTS_API_BASE_URL}/reorder`, {
+    method: 'PUT',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ items }),
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || 'Failed to reorder products');
+  }
+  return data;
+};

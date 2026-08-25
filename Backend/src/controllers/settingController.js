@@ -33,6 +33,14 @@ export const updateSettings = async (req, res) => {
     // Prevent manual override of the platformWalletBalance from this general settings endpoint
     delete updates.platformWalletBalance;
 
+    if (updates.immediateDeliveryFee !== undefined) {
+      const fee = Number(updates.immediateDeliveryFee);
+      if (!Number.isFinite(fee) || fee < 0) {
+        return res.status(400).json({ message: 'Invalid immediateDeliveryFee. Must be a non-negative number.' });
+      }
+      updates.immediateDeliveryFee = fee;
+    }
+
     Object.assign(settings, updates);
 
     const updatedSettings = await settings.save();
@@ -57,6 +65,7 @@ export const getPublicSettings = async (req, res) => {
       defaultTaxRate: settings.defaultTaxRate,
       taxCalculation: settings.taxCalculation,
       baseDeliveryFee: settings.baseDeliveryFee,
+      immediateDeliveryFee: settings.immediateDeliveryFee ?? 0,
       freeDeliveryThreshold: settings.freeDeliveryThreshold,
       handlingFee: settings.handlingFee,
       surgeMultiplier: settings.surgeMultiplier,

@@ -1,4 +1,4 @@
-import { API_BASE_URL } from '../../../config/apiConfig';
+﻿import { API_BASE_URL } from '../../../config/apiConfig';
 import axios from 'axios';
 
 const API_URL = `${API_BASE_URL}/orders`;
@@ -17,8 +17,8 @@ export const createRazorpayOrder = async (token, items, promoId = null, storeId 
   return data;
 };
 
-export const calculateBill = async (token, items, storeInfo = null, promoId = null) => {
-  const body = { items };
+export const calculateBill = async (token, items, storeInfo = null, promoId = null, deliveryTiming = {}) => {
+  const body = { items, ...deliveryTiming };
   if (storeInfo) {
     body.storeId = storeInfo.storeId;
     body.storeType = storeInfo.storeType;
@@ -166,6 +166,7 @@ export const submitReturnRequest = async (token, orderId, formData) => {
     throw new Error(error.response?.data?.message || 'Failed to submit return request');
   }
 };
+
 export const fetchOrderRoute = async (token, orderId, lat = null, lng = null) => {
   let url = `${API_URL}/${orderId}/route`;
   if (lat !== null && lng !== null) {

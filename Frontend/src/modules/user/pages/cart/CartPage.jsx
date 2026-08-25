@@ -9,15 +9,20 @@ import { toast } from 'react-toastify';
 const categoryPlaceholder = ASSET_URLS.placeholder;
 
 const CartPage = () => {
-  const { cart, updateQuantity, cartTotal } = useCart();
+  const { cart, updateQuantity, cartTotal, cartCount, publicSettings } = useCart();
   const { user, protectAction } = useAuth();
   const navigate = useNavigate();
-  const deliveryFee = 15;
-  const handlingFee = 5;
+
+  const thresh = publicSettings?.freeDeliveryThreshold ?? 500;
+  const baseDelivery = publicSettings?.baseDeliveryFee ?? 25;
+  const surge = publicSettings?.surgeMultiplier ?? 1.0;
+  const estimatedDeliveryFee = cartTotal >= thresh ? 0 : Math.round(baseDelivery * surge);
+  const handlingFee = publicSettings?.handlingFee ?? 5;
   const [upsellingPromos, setUpsellingPromos] = React.useState([]);
   const [loadingPromos, setLoadingPromos] = React.useState(false);
 
-  const finalTotal = cartTotal + deliveryFee + handlingFee;
+  const finalTotal = cartTotal + estimatedDeliveryFee + handlingFee;
+  const remainingForFreeDelivery = Math.max(0, thresh - cartTotal);
 
   React.useEffect(() => {
     const fetchUpselling = async () => {
@@ -137,23 +142,36 @@ const CartPage = () => {
         <div className="md:col-span-1">
           {/* Bill Details */}
           <div className="bg-transparent md:bg-white dark:bg-transparent dark:md:bg-gray-800 rounded-none md:rounded-2xl shadow-none md:shadow-sm border-none md:border border-gray-100 dark:border-gray-700 p-6 mb-24 md:mb-0">
+            {/* Free Delivery Threshold Banner */}
+            {remainingForFreeDelivery > 0 ? (
+              <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/30 rounded-xl text-xs font-bold text-blue-700 dark:text-blue-300">
+                Add <span className="font-extrabold text-blue-900 dark:text-blue-100">₹{remainingForFreeDelivery.toFixed(0)}</span> more to unlock <span className="uppercase">Free Delivery</span>
+              </div>
+            ) : (
+              <div className="mb-4 p-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800/30 rounded-xl text-xs font-bold text-emerald-700 dark:text-emerald-300">
+                🎉 You've unlocked <span className="uppercase font-extrabold">Free Standard Delivery</span>!
+              </div>
+            )}
+
             <h3 className="font-bold text-gray-800 dark:text-white mb-4">Bill Details</h3>
             <div className="space-y-3 text-sm">
               <div className="flex justify-between text-gray-600 dark:text-gray-300">
                 <span>Item Total</span>
-                <span>?{cartTotal}</span>
+                <span>₹{cartTotal}</span>
               </div>
               <div className="flex justify-between text-gray-600 dark:text-gray-300">
                 <span>Delivery Fee</span>
-                <span>?{deliveryFee}</span>
+                <span className={estimatedDeliveryFee === 0 ? 'text-emerald-600 dark:text-emerald-400 font-bold' : ''}>
+                  {estimatedDeliveryFee === 0 ? 'Free' : `₹${estimatedDeliveryFee}`}
+                </span>
               </div>
               <div className="flex justify-between text-gray-600 dark:text-gray-300">
                 <span>Handling Fee</span>
-                <span>?{handlingFee}</span>
+                <span>₹{handlingFee}</span>
               </div>
               <div className="border-t border-gray-100 dark:border-gray-700 pt-3 flex justify-between font-bold text-lg text-gray-900 dark:text-white">
                 <span>To Pay</span>
-                <span>?{finalTotal}</span>
+                <span>₹{finalTotal}</span>
               </div>
             </div>
           </div>
@@ -170,8 +188,8 @@ const CartPage = () => {
             className="w-full bg-[var(--saathi-green)] text-white py-4 font-black text-center hover:bg-green-700 transition active:scale-[0.98] shadow-lg shadow-green-500/20 flex items-center justify-between px-8"
           >
             <div className="flex flex-col items-start leading-none gap-0.5">
-              <span className="text-xs font-medium opacity-90">{finalTotal} items</span>
-              <span className="text-lg font-bold">?{finalTotal}</span>
+              <span className="text-xs font-medium opacity-90">{cartCount} {cartCount > 1 ? 'items' : 'item'}</span>
+              <span className="text-lg font-bold">₹{finalTotal}</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-sm font-bold uppercase tracking-wide">Proceed</span>

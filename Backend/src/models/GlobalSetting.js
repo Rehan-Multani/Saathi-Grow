@@ -11,6 +11,7 @@ const globalSettingSchema = new mongoose.Schema({
   baseDeliveryFee: { type: Number, default: 25 },
   freeDeliveryThreshold: { type: Number, default: 500 },
   handlingFee: { type: Number, default: 5 },
+  immediateDeliveryFee: { type: Number, default: 0, min: 0 },
   surgeMultiplier: { type: Number, default: 1.0 },
 
   // Business Logic

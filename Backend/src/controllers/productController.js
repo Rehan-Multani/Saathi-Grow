@@ -140,8 +140,18 @@ export const createProduct = async (req, res) => {
       pickPriority,
       pickingZone,
       variantGroupId,
-      pickSequence
+      pickSequence,
+      displayOrder
     } = req.body;
+
+    let parsedDisplayOrder = null;
+    if (displayOrder !== undefined && displayOrder !== null && String(displayOrder).trim() !== '') {
+      const num = Number(displayOrder);
+      if (!Number.isFinite(num) || num < 0) {
+        return res.status(400).json({ message: 'Invalid displayOrder. Must be a non-negative number or null.' });
+      }
+      parsedDisplayOrder = num;
+    }
 
     const productExists = await Product.findOne({ sku });
     if (productExists) {
@@ -235,6 +245,7 @@ export const createProduct = async (req, res) => {
       pickingZone: pickingZone || 'Other',
       variantGroupId: variantGroupId || '',
       pickSequence: Number(pickSequence) || 0,
+      displayOrder: parsedDisplayOrder,
 
       createdBy: req.admin._id
     });
@@ -511,9 +522,11 @@ export const getProducts = async (req, res) => {
 
     const total = await Product.countDocuments(query);
 
-    // Build Sort Object: Prioritize Saathi Grow only on default sort, otherwise apply user sort directly
-    let sortObj = {};
-    if (sort && sort !== '-createdAt') {
+    let products = [];
+    const isExplicitSort = sort && sort !== '-createdAt' && sort !== 'displayOrder';
+
+    if (isExplicitSort) {
+      let sortObj = {};
       if (typeof sort === 'string') {
         const parts = sort.split(' ');
         parts.forEach(p => {
@@ -522,25 +535,80 @@ export const getProducts = async (req, res) => {
           sortObj[field] = order;
         });
       }
+      let productQuery = Product.find(query)
+        .sort(sortObj)
+        .skip(skip)
+        .limit(Number(limit));
+
+      if (!req.admin && !req.vendor) {
+        productQuery = productQuery.select('name image gallery variants description basePrice mrp category status brandName unitType unitValue isVeg sku branchStocks vendor stock lowStockThreshold averageRating ratingCount displayOrder');
+      }
+
+      products = await productQuery
+        .populate('branchStocks.branchId', 'name code logo phone email address')
+        .populate('vendor', 'storeName logo businessType phone email address')
+        .lean();
     } else {
-      sortObj.isSaathigro = -1;
-      sortObj.createdAt = -1;
+      // Default/Featured catalog ordering:
+      // 1. Explicit displayOrder (1, 2, 3...)
+      // 2. Unassigned (null) ordered by isSaathigro DESC, createdAt DESC, _id ASC
+      const orderedQuery = { ...query, displayOrder: { $ne: null, $gte: 0 } };
+      const unassignedQuery = { ...query, $or: [{ displayOrder: null }, { displayOrder: { $exists: false } }] };
+
+      const orderedCount = await Product.countDocuments(orderedQuery);
+
+      if (skip < orderedCount) {
+        let q1 = Product.find(orderedQuery)
+          .sort({ displayOrder: 1, isSaathigro: -1, createdAt: -1, _id: 1 })
+          .skip(skip)
+          .limit(Number(limit));
+
+        if (!req.admin && !req.vendor) {
+          q1 = q1.select('name image gallery variants description basePrice mrp category status brandName unitType unitValue isVeg sku branchStocks vendor stock lowStockThreshold averageRating ratingCount displayOrder');
+        }
+
+        const res1 = await q1
+          .populate('branchStocks.branchId', 'name code logo phone email address')
+          .populate('vendor', 'storeName logo businessType phone email address')
+          .lean();
+
+        products = res1;
+
+        if (products.length < Number(limit)) {
+          const remainingNeeded = Number(limit) - products.length;
+          let q2 = Product.find(unassignedQuery)
+            .sort({ isSaathigro: -1, createdAt: -1, _id: 1 })
+            .skip(0)
+            .limit(remainingNeeded);
+
+          if (!req.admin && !req.vendor) {
+            q2 = q2.select('name image gallery variants description basePrice mrp category status brandName unitType unitValue isVeg sku branchStocks vendor stock lowStockThreshold averageRating ratingCount displayOrder');
+          }
+
+          const res2 = await q2
+            .populate('branchStocks.branchId', 'name code logo phone email address')
+            .populate('vendor', 'storeName logo businessType phone email address')
+            .lean();
+
+          products = products.concat(res2);
+        }
+      } else {
+        const unassignedSkip = skip - orderedCount;
+        let q2 = Product.find(unassignedQuery)
+          .sort({ isSaathigro: -1, createdAt: -1, _id: 1 })
+          .skip(unassignedSkip)
+          .limit(Number(limit));
+
+        if (!req.admin && !req.vendor) {
+          q2 = q2.select('name image gallery variants description basePrice mrp category status brandName unitType unitValue isVeg sku branchStocks vendor stock lowStockThreshold averageRating ratingCount displayOrder');
+        }
+
+        products = await q2
+          .populate('branchStocks.branchId', 'name code logo phone email address')
+          .populate('vendor', 'storeName logo businessType phone email address')
+          .lean();
+      }
     }
-
-    let productQuery = Product.find(query)
-      .sort(sortObj)
-      .skip(skip)
-      .limit(Number(limit));
-
-    // If it's a public/user request (no admin/vendor), select only necessary fields
-    if (!req.admin && !req.vendor) {
-      productQuery = productQuery.select('name image gallery variants description basePrice mrp category status brandName unitType unitValue isVeg sku branchStocks vendor stock lowStockThreshold averageRating ratingCount');
-    }
-
-    let products = await productQuery
-      .populate('branchStocks.branchId', 'name code logo phone email address')
-      .populate('vendor', 'storeName logo businessType phone email address')
-      .lean();
 
     // Store-Aware logic: Inject isDeliverable flag and specific stock info
     const enrichmentStoreId = effectiveStoreId || req.query.activeStoreId;
@@ -1038,6 +1106,17 @@ export const updateProduct = async (req, res) => {
       if (req.body.pickingZone !== undefined) product.pickingZone = req.body.pickingZone;
       if (req.body.variantGroupId !== undefined) product.variantGroupId = req.body.variantGroupId;
       if (req.body.pickSequence !== undefined) product.pickSequence = Number(req.body.pickSequence);
+      if (req.body.displayOrder !== undefined) {
+        if (req.body.displayOrder === null || String(req.body.displayOrder).trim() === '') {
+          product.displayOrder = null;
+        } else {
+          const num = Number(req.body.displayOrder);
+          if (!Number.isFinite(num) || num < 0) {
+            return res.status(400).json({ message: 'Invalid displayOrder. Must be a non-negative number or null.' });
+          }
+          product.displayOrder = num;
+        }
+      }
 
       // Handle Branch Stock Updates
       if (req.body.branchStocks) {
@@ -2157,6 +2236,7 @@ const BULK_HEADER_ALIASES = {
   status: ['status', 'productstatus', 'product_status'],
   image: ['image', 'imageurl', 'image_url', 'img', 'photo'],
   isveg: ['isveg', 'is_veg', 'veg'],
+  displayorder: ['displayorder', 'display_order', 'sequence', 'sortorder', 'sort_order', 'order', 'position', 'rank'],
 };
 
 const normalizeHeaderKey = (key) =>
@@ -2174,6 +2254,7 @@ const canonicalBulkKey = (rawKey) => {
       : canonical === 'unittype' ? 'unitType'
       : canonical === 'unitvalue' ? 'unitValue'
       : canonical === 'isveg' ? 'isVeg'
+      : canonical === 'displayorder' ? 'displayOrder'
       : canonical;
   }
   return null;
@@ -2277,6 +2358,13 @@ const processBulkProductRows = async (rows, adminId, { rowLabel = (i) => `Row ${
           return statusMap[raw] || 'Active';
         })(),
         isVeg: row.isVeg === 'false' || row.isVeg === false ? false : true,
+        displayOrder: (() => {
+          if (row.displayOrder !== undefined && row.displayOrder !== null && String(row.displayOrder).trim() !== '') {
+            const num = Number(row.displayOrder);
+            return Number.isFinite(num) && num >= 0 ? num : null;
+          }
+          return null;
+        })(),
         branchStocks: [],
         isAllBranches: false,
         createdBy: adminId,
@@ -2296,6 +2384,9 @@ const processBulkProductRows = async (rows, adminId, { rowLabel = (i) => `Row ${
           stock: productData.stock,
           status: productData.status,
         };
+        if (productData.displayOrder !== null) {
+          updateSet.displayOrder = productData.displayOrder;
+        }
         // If Excel provides an image, use it; if product has no image yet, set SG logo default
         const rowImage = (row.image || '').toString().trim();
         if (rowImage) {
@@ -2397,3 +2488,89 @@ export const bulkUploadProductsJson = async (req, res) => {
   }
 };
 
+
+// @desc    Bulk reorder products
+// @route   PUT /api/admin/products/reorder
+// @access  Private (Admin / Store Manager with MANAGE_PRODUCTS)
+export const bulkReorderProducts = async (req, res) => {
+  try {
+    const { items } = req.body;
+    if (!Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ message: 'Request body must contain a non-empty items array: [{ id, displayOrder }]' });
+    }
+
+    const assignedPositions = new Set();
+    const operations = [];
+
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (!item || !item.id) {
+        return res.status(400).json({ message: `Item at index ${i} is missing product ID.` });
+      }
+
+      if (!mongoose.Types.ObjectId.isValid(item.id)) {
+        return res.status(400).json({ message: `Item at index ${i} has an invalid product ID: ${item.id}` });
+      }
+
+      let parsedOrder = null;
+      if (item.displayOrder !== undefined && item.displayOrder !== null && String(item.displayOrder).trim() !== '') {
+        const num = Number(item.displayOrder);
+        if (!Number.isFinite(num) || num < 0) {
+          return res.status(400).json({ message: `Item with ID ${item.id} has an invalid displayOrder: must be a non-negative number or null.` });
+        }
+        if (assignedPositions.has(num)) {
+          return res.status(400).json({ message: `Duplicate displayOrder position ${num} found in reorder payload.` });
+        }
+        assignedPositions.add(num);
+        parsedOrder = num;
+      }
+
+      const opFilter = { _id: item.id };
+      if (req.admin && req.admin.role !== 'Admin' && req.admin.branchId) {
+        opFilter['branchStocks.branchId'] = req.admin.branchId;
+      } else if (req.vendor) {
+        opFilter.vendor = req.vendor._id;
+      }
+
+      operations.push({
+        updateOne: {
+          filter: opFilter,
+          update: { $set: { displayOrder: parsedOrder } }
+        }
+      });
+    }
+
+    // Atomic pre-validation: verify all products exist and are within user's authorization scope
+    const itemIds = items.map(it => it.id);
+    const scopeFilter = { _id: { $in: itemIds } };
+    if (req.admin && req.admin.role !== 'Admin' && req.admin.branchId) {
+      scopeFilter['branchStocks.branchId'] = req.admin.branchId;
+    } else if (req.vendor) {
+      scopeFilter.vendor = req.vendor._id;
+    }
+
+    const matchingProducts = await Product.find(scopeFilter).select('_id').lean();
+    const matchingIdSet = new Set(matchingProducts.map(p => String(p._id)));
+    const missingIds = itemIds.filter(id => !matchingIdSet.has(String(id)));
+
+    if (missingIds.length > 0) {
+      return res.status(404).json({
+        message: 'Reorder rejected: some products were not found or you do not have permission to modify them.',
+        missingIds,
+        matchedCount: matchingProducts.length,
+        totalRequested: items.length
+      });
+    }
+
+    const result = await Product.bulkWrite(operations);
+
+    res.json({
+      success: true,
+      message: 'Product ordering updated successfully',
+      matchedCount: result.matchedCount,
+      modifiedCount: result.modifiedCount
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to reorder products: ' + error.message });
+  }
+};

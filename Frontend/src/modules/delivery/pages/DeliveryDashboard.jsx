@@ -239,9 +239,14 @@ const DeliveryDashboard = () => {
                                     <div>
                                         <p className="text-[8px] font-bold text-slate-400 uppercase tracking-tight">Delivery Target</p>
                                         <h4 className="text-[13px] font-black text-slate-800 dark:text-zinc-100 leading-tight">{currentStop?.order?.user?.name || 'Client Location'}</h4>
-                                        <div className="flex items-center gap-2 mt-1.5">
+                                        <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                                             <span className="bg-slate-50 dark:bg-zinc-800 text-slate-500 dark:text-zinc-400 px-1.5 py-0.5 rounded-lg text-[8px] font-black tracking-tight border border-slate-100 dark:border-zinc-750">COD: {currentStop?.order?.totalAmount ? formatCurrency(currentStop.order.totalAmount) : 'N/A'}</span>
                                             <span className="bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 px-1.5 py-0.5 rounded-lg text-[8px] font-black tracking-tight border border-emerald-100 dark:border-emerald-900/30">OTP SECURED</span>
+                                            {currentStop?.order?.isImmediate && (
+                                                <span className="bg-green-50 text-[#028A0F] dark:bg-green-950/40 dark:text-green-400 px-1.5 py-0.5 rounded-lg text-[8px] font-black tracking-tight border border-green-200 dark:border-green-900/30 animate-pulse">
+                                                    ⚡ EXPRESS
+                                                </span>
+                                            )}
                                         </div>
                                     </div>
                                 </div>

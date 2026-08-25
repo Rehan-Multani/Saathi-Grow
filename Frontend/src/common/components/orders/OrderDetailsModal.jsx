@@ -138,6 +138,9 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
     const displayCustomer = displayOrder.user?.name || displayOrder.posCustomer?.name || 'Guest';
     const displayTotal = displayOrder.totalAmount?.toLocaleString() || '0';
     const displayDate = new Date(displayOrder.createdAt).toLocaleString();
+    const immediateDeliveryFee = Number(displayOrder.immediateDeliveryFee) || 0;
+    const totalDeliveryFee = Number(displayOrder.deliveryFee) || 0;
+    const baseDeliveryFee = displayOrder.baseDeliveryFee != null ? Number(displayOrder.baseDeliveryFee) : Math.max(0, totalDeliveryFee - immediateDeliveryFee);
 
     const getStatusColor = (status = '') => {
         const s = status.toLowerCase();
@@ -438,11 +441,26 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
                                             <span>₹{displayOrder.taxAmount}</span>
                                         </div>
                                     )}
-                                    {displayOrder.deliveryFee > 0 && (
-                                        <div className="flex justify-between text-xs font-medium text-slate-400">
-                                            <span>Delivery Fee</span>
-                                            <span>₹{displayOrder.deliveryFee}</span>
-                                        </div>
+                                    {immediateDeliveryFee > 0 ? (
+                                        <>
+                                            <div className="flex justify-between text-xs font-medium text-slate-400">
+                                                <span>Base Delivery Fee</span>
+                                                <span className={baseDeliveryFee === 0 ? 'text-emerald-600 font-bold' : ''}>
+                                                    {baseDeliveryFee === 0 ? 'Free' : `₹${baseDeliveryFee}`}
+                                                </span>
+                                            </div>
+                                            <div className="flex justify-between text-xs font-medium text-blue-600">
+                                                <span className="font-bold">Express Delivery Surcharge</span>
+                                                <span className="font-bold">+₹{immediateDeliveryFee}</span>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        totalDeliveryFee > 0 && (
+                                            <div className="flex justify-between text-xs font-medium text-slate-400">
+                                                <span>Delivery Fee</span>
+                                                <span>₹{totalDeliveryFee}</span>
+                                            </div>
+                                        )
                                     )}
                                     {displayOrder.handlingFee > 0 && (
                                         <div className="flex justify-between text-xs font-medium text-slate-400">

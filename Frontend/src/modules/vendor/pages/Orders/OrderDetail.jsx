@@ -27,6 +27,10 @@ const OrderDetail = () => {
         );
     }
 
+    const immediateDeliveryFee = Number(order.immediateDeliveryFee) || 0;
+    const totalDeliveryFee = Number(order.deliveryFee) || 0;
+    const baseDeliveryFee = order.baseDeliveryFee != null ? Number(order.baseDeliveryFee) : Math.max(0, totalDeliveryFee - immediateDeliveryFee);
+
     const statusColors = {
         'pending': 'text-amber-600 bg-amber-50 border-amber-200',
         'confirmed': 'text-amber-600 bg-amber-50 border-amber-200',
@@ -195,11 +199,26 @@ const OrderDetail = () => {
                                 <span className="font-bold text-gray-900">+{formatCurrency(order.taxAmount)}</span>
                             </div>
                             )}
-                            {order.deliveryFee > 0 && (
-                            <div className="flex justify-between text-xs">
-                                <span className="text-gray-600">Delivery Fee</span>
-                                <span className="font-bold text-gray-900">+{formatCurrency(order.deliveryFee)}</span>
-                            </div>
+                            {immediateDeliveryFee > 0 ? (
+                                <>
+                                    <div className="flex justify-between text-xs">
+                                        <span className="text-gray-600">Base Delivery Fee</span>
+                                        <span className={`font-bold ${baseDeliveryFee === 0 ? 'text-green-600' : 'text-gray-900'}`}>
+                                            {baseDeliveryFee === 0 ? 'Free' : `+${formatCurrency(baseDeliveryFee)}`}
+                                        </span>
+                                    </div>
+                                    <div className="flex justify-between text-xs text-[#0c831f]">
+                                        <span className="font-medium">Express Delivery Surcharge</span>
+                                        <span className="font-bold">+{formatCurrency(immediateDeliveryFee)}</span>
+                                    </div>
+                                </>
+                            ) : (
+                                totalDeliveryFee > 0 && (
+                                    <div className="flex justify-between text-xs">
+                                        <span className="text-gray-600">Delivery Fee</span>
+                                        <span className="font-bold text-gray-900">+{formatCurrency(totalDeliveryFee)}</span>
+                                    </div>
+                                )
                             )}
                             {order.handlingFee > 0 && (
                             <div className="flex justify-between text-xs">

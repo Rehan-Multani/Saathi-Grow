@@ -13,7 +13,7 @@
     "seed:products": "node src/seedProducts.js",
     "seed:category-page": "node scripts/seed-category-page.mjs",
     "seed:admin": "node seed_admin.js",
-    "test": "node --test test/paymentSecurity.test.js test/deliveryRules.test.js",
+    "test": "node --test test/*.test.js",
     "audit:wallet-topups": "node scripts/audit-wallet-topups.mjs",
     "migrate:payment-indexes": "node scripts/create-payment-security-indexes.mjs"
   },

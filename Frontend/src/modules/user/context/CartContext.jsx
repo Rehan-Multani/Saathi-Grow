@@ -26,7 +26,9 @@ export const CartProvider = ({ children }) => {
         baseDeliveryFee: 0,
         handlingFee: 0,
         surgeMultiplier: 1,
-        freeDeliveryThreshold: 500
+        freeDeliveryThreshold: 500,
+        immediateDeliveryEnabled: true,
+        immediateDeliveryFee: 0
     });
 
     // Fetch public rules and cart

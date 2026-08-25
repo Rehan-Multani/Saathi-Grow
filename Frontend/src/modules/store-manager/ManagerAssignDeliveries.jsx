@@ -195,8 +195,13 @@ const ManagerAssignDeliveries = () => {
                                 <tr key={item._id} className="hover:bg-slate-50 transition-colors group">
                                     <td className="px-6 py-5">
                                         <div className="font-black text-slate-900 text-sm group-hover:text-blue-600 transition-colors uppercase">#{item.orderId?.slice(-8)}</div>
-                                        <div className="mt-1 flex items-center gap-2">
+                                        <div className="mt-1 flex items-center gap-1.5 flex-wrap">
                                             <span className="px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-100 rounded-md text-[10px] font-black uppercase tracking-widest">VAL: ₹{item.totalAmount.toLocaleString()}</span>
+                                            {item.isImmediate && (
+                                                <span className="px-2 py-0.5 bg-green-50 text-[#0c831f] border border-green-200 rounded-md text-[10px] font-black uppercase tracking-widest animate-pulse">
+                                                    ⚡ Express
+                                                </span>
+                                            )}
                                         </div>
                                     </td>
                                     <td className="px-6 py-5">

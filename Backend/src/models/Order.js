@@ -38,6 +38,10 @@ const orderSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
+    immediateDeliveryFee: {
+        type: Number,
+        default: 0
+    },
     handlingFee: {
         type: Number,
         default: 0

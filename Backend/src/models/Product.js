@@ -125,6 +125,11 @@ const productSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  displayOrder: {
+    type: Number,
+    default: null,
+    index: true
+  },
   averageRating: {
     type: Number,
     default: 0,
@@ -196,7 +201,8 @@ productSchema.index(
 );
 
 // Compound Indexes for Performance (Phase 1 Optimization)
-productSchema.index({ category: 1, status: 1, isSaathigro: -1, createdAt: -1 });
+productSchema.index({ category: 1, status: 1, displayOrder: 1, isSaathigro: -1, createdAt: -1 });
+productSchema.index({ status: 1, displayOrder: 1, isSaathigro: -1, createdAt: -1 });
 productSchema.index({ vendor: 1, status: 1 });
 productSchema.index({ 'branchStocks.branchId': 1, status: 1 });
 

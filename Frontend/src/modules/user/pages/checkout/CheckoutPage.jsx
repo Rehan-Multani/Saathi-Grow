@@ -178,10 +178,19 @@ const CheckoutPage = () => {
                     weight: item.weight || item.selectedVariant?.value || null,
                     selectedVariant: item.selectedVariant || null
                 }));
-                const computed = await orderApi.calculateBill(token, items, {
-                    storeId: activeStore?.id,
-                    storeType: activeStore?.type
-                }, appliedPromo?._id);
+                const computed = await orderApi.calculateBill(
+                    token,
+                    items,
+                    {
+                        storeId: activeStore?.id,
+                        storeType: activeStore?.type
+                    },
+                    appliedPromo?._id,
+                    {
+                        isImmediate,
+                        deliverySlotId: isImmediate ? null : selectedSlotId
+                    }
+                );
                 setBillDetails(computed);
             } catch (error) {
                 console.error(error);
@@ -191,7 +200,7 @@ const CheckoutPage = () => {
             }
         };
         fetchBill();
-    }, [cart, token, appliedPromo]);
+    }, [cart, token, appliedPromo, isImmediate, selectedSlotId, activeStore?.id, activeStore?.type]);
 
     useEffect(() => {
         const fetchPromos = async () => {
@@ -575,8 +584,10 @@ const CheckoutPage = () => {
                                     : 'border-gray-100 dark:border-white/5 bg-transparent hover:border-gray-200'
                                     }`}
                             >
-                                <span className={`text-[11px] font-black ${isImmediate ? 'text-[#0c831f]' : 'text-gray-900 dark:text-gray-200'}`}>⚡ Immediate</span>
-                                <span className="text-[8px] font-bold text-gray-400 mt-0.5 tracking-tight">ASAP Delivery</span>
+                                <span className={`text-[11px] font-black ${isImmediate ? 'text-[#0c831f]' : 'text-gray-900 dark:text-gray-200'}`}>⚡ Express</span>
+                                <span className="text-[8px] font-bold text-gray-400 mt-0.5 tracking-tight">
+                                    {deliverySettings.immediateDeliveryFee > 0 ? `+₹${deliverySettings.immediateDeliveryFee} Surcharge` : 'ASAP Delivery'}
+                                </span>
                             </div>}
 
                             {/* Slot options */}
@@ -856,12 +867,27 @@ const CheckoutPage = () => {
                             <span className="text-[11px] text-gray-500 font-medium capitalize">Items total</span>
                             <span className="text-[11px] font-black text-gray-900 dark:text-white">₹{cartTotal}</span>
                         </div>
-                        <div className="flex justify-between items-center">
-                            <span className="text-[11px] text-gray-500 font-medium capitalize">Delivery fee</span>
-                            <span className={`text-[11px] font-black ${Number(billDetails?.deliveryFee) === 0 ? 'text-[#0c831f]' : 'text-gray-900 dark:text-white'}`}>
-                                {Number(billDetails?.deliveryFee) === 0 ? 'Free' : `₹${Number(billDetails?.deliveryFee) || 0}`}
-                            </span>
-                        </div>
+                        {billDetails?.immediateDeliveryFee > 0 ? (
+                            <>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-[11px] text-gray-500 font-medium capitalize">Base delivery fee</span>
+                                    <span className={`text-[11px] font-black ${Number(billDetails?.baseDeliveryFee) === 0 ? 'text-[#0c831f]' : 'text-gray-900 dark:text-white'}`}>
+                                        {Number(billDetails?.baseDeliveryFee) === 0 ? 'Free' : `₹${Number(billDetails?.baseDeliveryFee) || 0}`}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between items-center text-[#0c831f]">
+                                    <span className="text-[11px] font-bold capitalize">Express delivery surcharge</span>
+                                    <span className="text-[11px] font-black">+₹{billDetails.immediateDeliveryFee}</span>
+                                </div>
+                            </>
+                        ) : (
+                            <div className="flex justify-between items-center">
+                                <span className="text-[11px] text-gray-500 font-medium capitalize">Delivery fee</span>
+                                <span className={`text-[11px] font-black ${Number(billDetails?.deliveryFee) === 0 ? 'text-[#0c831f]' : 'text-gray-900 dark:text-white'}`}>
+                                    {Number(billDetails?.deliveryFee) === 0 ? 'Free' : `₹${Number(billDetails?.deliveryFee) || 0}`}
+                                </span>
+                            </div>
+                        )}
                         <div className="flex justify-between items-center">
                             <span className="text-[11px] text-gray-500 font-medium capitalize">Handling fee</span>
                             <span className="text-[11px] font-black text-gray-900 dark:text-white">₹{Number(billDetails?.handlingFee) || 0}</span>
@@ -913,11 +939,11 @@ const CheckoutPage = () => {
                     </div>
                     <button
                         onClick={handlePlaceOrder}
-                        disabled={isPlacing || cart.length === 0 || isStoreOutOfRange || user?.isActive === false}
+                        disabled={isPlacing || isCalculating || cart.length === 0 || isStoreOutOfRange || user?.isActive === false}
                         style={{ borderRadius: '16px' }}
-                        className={`flex-1 ${isStoreOutOfRange || user?.isActive === false ? 'bg-gray-400' : 'bg-[#0c831f]'} text-white h-12 font-black text-[12px] uppercase tracking-[0.15em] transition-all shadow-xl shadow-green-500/20 active:scale-[0.98] flex items-center justify-center gap-2`}
+                        className={`flex-1 ${isStoreOutOfRange || user?.isActive === false || isCalculating ? 'bg-gray-400' : 'bg-[#0c831f]'} text-white h-12 font-black text-[12px] uppercase tracking-[0.15em] transition-all shadow-xl shadow-green-500/20 active:scale-[0.98] flex items-center justify-center gap-2`}
                     >
-                        {isPlacing ? (
+                        {isPlacing || isCalculating ? (
                             <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
                         ) : (
                             <>

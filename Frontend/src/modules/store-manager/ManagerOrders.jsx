@@ -197,10 +197,15 @@ const ManagerOrders = () => {
                                                 )}
                                             </div>
                                             <div className="text-[10px] text-slate-400 font-bold uppercase mt-0.5 tracking-wider">{new Date(order.createdAt).toLocaleDateString()} • {new Date(order.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
-                                            <div className="mt-1">
+                                            <div className="mt-1 flex items-center gap-1.5 flex-wrap">
                                                 <span className="bg-slate-100 text-slate-500 border border-slate-200 text-[8px] font-black px-1.5 py-0.5 rounded uppercase">
                                                     {order.paymentMethod === 'cod' ? 'COD' : 'ONLINE'}
                                                 </span>
+                                                {order.isImmediate && (
+                                                    <span className="bg-green-50 text-[#0c831f] border border-green-200 text-[8px] font-black px-1.5 py-0.5 rounded uppercase">
+                                                        ⚡ Express
+                                                    </span>
+                                                )}
                                             </div>
                                         </td>
                                         <td className="px-6 py-5 text-center">

@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Search, Plus, Upload, Edit, Trash2, QrCode, Filter, Store, Sparkles, ChevronLeft, ChevronRight, History, X, Download, FileText } from 'lucide-react';
+import { Search, Plus, Upload, Edit, Trash2, QrCode, Filter, Store, Sparkles, ChevronLeft, ChevronRight, History, X, Download, FileText, ArrowUpDown } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import ProductEditModal from '../../../../common/components/products/ProductEditModal';
 import RestockModal from '../../../../common/components/products/RestockModal';
+import ProductReorderModal from '../../components/products/ProductReorderModal';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { getProducts, deleteProduct, bulkDeleteProducts, updateProduct } from '../../../../common/api/productApi';
 import { bulkUploadProductsJson } from '../../api/productApi';
@@ -62,6 +63,7 @@ const AllProducts = () => {
     const [showEditModal, setShowEditModal] = useState(false);
     const [showRestockModal, setShowRestockModal] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState(null);
+    const [showReorderModal, setShowReorderModal] = useState(false);
     const [showBulkModal, setShowBulkModal] = useState(false);
     const [bulkMode, setBulkMode] = useState('excel');
     const [bulkFile, setBulkFile] = useState(null);
@@ -72,11 +74,11 @@ const AllProducts = () => {
     const downloadExcelTemplate = () => {
         const headers = [
             'name', 'category', 'subCategory', 'brandName', 'basePrice', 'mrp',
-            'unitType', 'unitValue', 'description', 'tags', 'sku', 'stock', 'status'
+            'unitType', 'unitValue', 'description', 'tags', 'sku', 'stock', 'status', 'displayOrder'
         ];
         const example = [
             'Amul Butter 100g', 'Dairy Bread & Eggs', '', 'Amul', 52, 55,
-            'g', 100, 'Fresh Amul butter 100g pack', 'dairy,butter,amul', 'DAI-AMU-XXXXX', 50, 'Active'
+            'g', 100, 'Fresh Amul butter 100g pack', 'dairy,butter,amul', 'DAI-AMU-XXXXX', 50, 'Active', 1
         ];
         
         const worksheet = XLSX.utils.aoa_to_sheet([headers, example]);
@@ -138,7 +140,8 @@ const AllProducts = () => {
                 tags: ['dairy', 'butter', 'amul'],
                 sku: 'DAI-AMU-XXXXX',
                 stock: 50,
-                status: 'Active'
+                status: 'Active',
+                displayOrder: 1
             }
         ];
         const blob = new Blob([JSON.stringify(template, null, 2)], { type: 'application/json' });
@@ -419,6 +422,12 @@ const AllProducts = () => {
                         {adminUser?.role === 'Admin' && (
                             <>
                                 <button
+                                    onClick={() => setShowReorderModal(true)}
+                                    className="px-5 py-2.5 bg-white border border-slate-200 text-slate-700 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50/50 rounded-xl text-sm font-semibold flex items-center gap-2 transition-all shadow-sm active:scale-95"
+                                >
+                                    <ArrowUpDown size={18} /> {t('reorder_btn', 'Reorder Sequence')}
+                                </button>
+                                <button
                                     onClick={() => setShowBulkModal(true)}
                                     className="px-5 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl text-sm font-semibold flex items-center gap-2 hover:bg-slate-50 transition-all shadow-sm"
                                 >
@@ -465,6 +474,7 @@ const AllProducts = () => {
                                         aria-label="Select all products on this page"
                                     />
                                 </th>
+                                <th className="px-4 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider text-center w-16">{t('table.seq', 'Seq')}</th>
                                 <th className="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider">{t('table.product')}</th>
                                 <th className="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider text-center">{t('table.category')}</th>
                                 <th className="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider text-center">{t('table.price')}</th>
@@ -477,7 +487,7 @@ const AllProducts = () => {
                         <tbody className="divide-y divide-slate-100">
                             {loading ? (
                                 <tr>
-                                    <td colSpan="8" className="py-20 text-center">
+                                    <td colSpan="9" className="py-20 text-center">
                                         <div className="saathi-spinner mx-auto mb-4"></div>
                                         <p className="text-slate-400 text-sm">{t('meta.syncing')}</p>
                                     </td>
@@ -493,6 +503,15 @@ const AllProducts = () => {
                                                 className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer accent-blue-600"
                                                 aria-label={`Select ${p.name}`}
                                             />
+                                        </td>
+                                        <td className="px-4 py-4 text-center">
+                                            {p.displayOrder !== null && p.displayOrder !== undefined && p.displayOrder >= 0 ? (
+                                                <span className="inline-flex items-center justify-center min-w-[28px] h-7 px-2 rounded-lg bg-blue-50 text-blue-700 border border-blue-200 text-xs font-bold font-mono">
+                                                    #{p.displayOrder}
+                                                </span>
+                                            ) : (
+                                                <span className="text-xs text-slate-300 font-mono font-medium">—</span>
+                                            )}
                                         </td>
                                         <td className="px-6 py-4">
                                             <Link to={`/admin/products/${p._id}`} className="flex items-center gap-4 group/item">
@@ -816,6 +835,15 @@ const AllProducts = () => {
                     </div>
                 </div>
             )}
+
+            {/* Product Display Sequence Modal */}
+            <ProductReorderModal
+                show={showReorderModal}
+                onHide={() => setShowReorderModal(false)}
+                token={adminUser?.token}
+                onSuccess={fetchData}
+                categories={categories}
+            />
             
             <style dangerouslySetInnerHTML={{ __html: `
                 .saathi-spinner {

@@ -180,6 +180,18 @@ const ProductDetails = () => {
                                         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">SKU</span>
                                         <p className="text-sm font-mono font-bold text-blue-600 truncate">{product.sku}</p>
                                     </div>
+                                    <div className="space-y-1">
+                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Display Sequence</span>
+                                        <div>
+                                            {product.displayOrder !== null && product.displayOrder !== undefined && product.displayOrder >= 0 ? (
+                                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                                                    #{product.displayOrder} Priority
+                                                </span>
+                                            ) : (
+                                                <span className="text-xs text-slate-400 font-medium">Default (Unassigned)</span>
+                                            )}
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div className="space-y-2 pt-4 border-t border-slate-50">

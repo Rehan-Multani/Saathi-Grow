@@ -165,7 +165,7 @@ const validateStockAvailability = async (items, storeId, storeType) => {
 };
 
 export const computeBillDetails = async (items, options = {}) => {
-  const { promoId = null, userId = null, orderSource = null } = options;
+  const { promoId = null, userId = null, orderSource = null, isImmediate = false } = options;
   let subTotal = 0;
 
   // Validate each item against the actual database to prevent frontend price manipulation
@@ -184,16 +184,26 @@ export const computeBillDetails = async (items, options = {}) => {
 
   const taxAmount = (subTotal * settings.defaultTaxRate) / 100;
 
-  let deliveryFee = settings.baseDeliveryFee * settings.surgeMultiplier;
-
+  // Base standard delivery fee
+  let baseDeliveryFee = settings.baseDeliveryFee * settings.surgeMultiplier;
   if (subTotal >= settings.freeDeliveryThreshold) {
-    deliveryFee = 0;
+    baseDeliveryFee = 0;
   }
 
+  // Immediate delivery surcharge (Option A: remains applicable even if base fee is waived)
+  let immediateDeliveryFee = 0;
+  if (isImmediate === true && settings.immediateDeliveryEnabled === true && orderSource !== 'pos') {
+    immediateDeliveryFee = Number(settings.immediateDeliveryFee) || 0;
+  }
+
+  // Combined delivery fee
+  let deliveryFee = baseDeliveryFee + immediateDeliveryFee;
   let handlingFee = settings.handlingFee;
 
   // POS orders do not incur delivery or handling fees
   if (orderSource === 'pos') {
+    baseDeliveryFee = 0;
+    immediateDeliveryFee = 0;
     deliveryFee = 0;
     handlingFee = 0;
   }
@@ -257,7 +267,7 @@ export const computeBillDetails = async (items, options = {}) => {
           } else if (promo.discountType === 'Fixed') {
             discountAmount = promo.discountValue;
           } else if (promo.discountType === 'FreeShipping') {
-            discountAmount = deliveryFee; // Discount equals the delivery fee
+            discountAmount = baseDeliveryFee; // Option A: Discount waives only the base standard delivery fee
           }
 
           // Ensure discount doesn't exceed total
@@ -276,6 +286,8 @@ export const computeBillDetails = async (items, options = {}) => {
   return {
     subTotal: parseFloat(subTotal.toFixed(2)),
     taxAmount: parseFloat(taxAmount.toFixed(2)),
+    baseDeliveryFee: parseFloat(baseDeliveryFee.toFixed(2)),
+    immediateDeliveryFee: parseFloat(immediateDeliveryFee.toFixed(2)),
     deliveryFee: parseFloat(deliveryFee.toFixed(2)),
     handlingFee: parseFloat(handlingFee.toFixed(2)),
     discountAmount: parseFloat(discountAmount.toFixed(2)),
@@ -290,8 +302,6 @@ export const computeBillDetails = async (items, options = {}) => {
 };
 
 // @desc    Initiate an online order via Razorpay
-// @route   POST /api/orders/razorpay
-// @access  Private
 export const createRazorpayOrder = async (req, res) => {
   try {
     const { items, promoId, deliverySlotId, isImmediate } = req.body;
@@ -311,7 +321,7 @@ export const createRazorpayOrder = async (req, res) => {
     }
 
     // Always recompute on backend. NEVER trust frontend amount.
-    const computedBill = await computeBillDetails(items, { promoId, userId: req.user._id });
+    const computedBill = await computeBillDetails(items, { promoId, userId: req.user._id, isImmediate: deliveryTiming.isImmediate });
 
     const options = {
       amount: parseRupeesToPaise(computedBill.totalAmount),
@@ -396,7 +406,7 @@ export const verifyRazorpayPayment = async (req, res) => {
     await validateStockAvailability(orderData.items, orderData.storeId, orderData.storeType);
 
     // Recompute bill to guarantee no manipulation during payment verify leap
-    const computedBill = await computeBillDetails(orderData.items, { promoId: orderData.promoId, userId: req.user._id });
+    const computedBill = await computeBillDetails(orderData.items, { promoId: orderData.promoId, userId: req.user._id, isImmediate: deliveryTiming.isImmediate });
 
     const paymentVerification = await fetchAndValidateRazorpayPayment({
       razorpayOrderId,
@@ -444,6 +454,7 @@ export const verifyRazorpayPayment = async (req, res) => {
       subTotal: computedBill.subTotal,
       taxAmount: computedBill.taxAmount,
       deliveryFee: computedBill.deliveryFee,
+      immediateDeliveryFee: computedBill.immediateDeliveryFee,
       handlingFee: computedBill.handlingFee,
       platformCommission: computedBill.platformCommission,
       vendorPayoutAmount: computedBill.vendorPayoutAmount,
@@ -974,7 +985,11 @@ export const createCODOrder = async (req, res) => {
     await validateStockAvailability(orderData.items, orderData.storeId, orderData.storeType);
 
     // Always recompute on backend. NEVER trust frontend amount
-    const computedBill = await computeBillDetails(orderData.items, { promoId: orderData.promoId, userId: req.user._id });
+    const computedBill = await computeBillDetails(orderData.items, {
+      promoId: orderData.promoId,
+      userId: req.user._id,
+      isImmediate: deliveryTiming.isImmediate
+    });
 
     // Enrich items with physicalLocation for receiver picking
     const enrichedCODItems = await enrichItemsWithLocations(orderData.items);
@@ -992,6 +1007,7 @@ export const createCODOrder = async (req, res) => {
       subTotal: computedBill.subTotal,
       taxAmount: computedBill.taxAmount,
       deliveryFee: computedBill.deliveryFee,
+      immediateDeliveryFee: computedBill.immediateDeliveryFee,
       handlingFee: computedBill.handlingFee,
       platformCommission: computedBill.platformCommission,
       vendorPayoutAmount: computedBill.vendorPayoutAmount,
@@ -1099,11 +1115,15 @@ export const createWalletOrder = async (req, res) => {
     const { orderData } = req.body;
     const user = await User.findById(req.user._id);
 
-    // Recompute bill to guarantee security
-    const computedBill = await computeBillDetails(orderData.items, { promoId: orderData.promoId, userId: req.user._id });
-
     // SLOT VALIDATION
     const deliveryTiming = await validateAndBuildDeliveryTiming(orderData.deliverySlotId, orderData.isImmediate);
+
+    // Recompute bill to guarantee security
+    const computedBill = await computeBillDetails(orderData.items, {
+      promoId: orderData.promoId,
+      userId: req.user._id,
+      isImmediate: deliveryTiming.isImmediate
+    });
 
     // Strip empty location bounds
     if (orderData.shippingAddress && (!orderData.shippingAddress.location || !orderData.shippingAddress.location.coordinates || orderData.shippingAddress.location.coordinates.length < 2)) {
@@ -1135,6 +1155,7 @@ export const createWalletOrder = async (req, res) => {
       subTotal: computedBill.subTotal,
       taxAmount: computedBill.taxAmount,
       deliveryFee: computedBill.deliveryFee,
+      immediateDeliveryFee: computedBill.immediateDeliveryFee,
       handlingFee: computedBill.handlingFee,
       platformCommission: computedBill.platformCommission,
       vendorPayoutAmount: computedBill.vendorPayoutAmount,
@@ -1419,10 +1440,16 @@ export const requestReturn = async (req, res) => {
 // @access  Private
 export const calculateBill = async (req, res) => {
   try {
-    const { items, storeId, storeType, promoId } = req.body;
+    const { items, storeId, storeType, promoId, isImmediate } = req.body;
     if (!items || items.length === 0) return res.status(400).json({ message: 'Cart is empty' });
 
-    const bill = await computeBillDetails(items, { storeId, storeType, promoId, userId: req.user._id });
+    const bill = await computeBillDetails(items, {
+      storeId,
+      storeType,
+      promoId,
+      userId: req.user?._id,
+      isImmediate: isImmediate === true || isImmediate === 'true'
+    });
     res.json(bill);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -1435,7 +1462,7 @@ export const calculateBill = async (req, res) => {
 export const getMyOrders = async (req, res) => {
   try {
     const orders = await Order.find({ user: req.user._id })
-      .select('orderId status items totalAmount createdAt paymentStatus cancellation paymentMethod deliveryOTP returnRequest branchId vendor')
+      .select('orderId status items totalAmount createdAt paymentStatus cancellation paymentMethod deliveryOTP returnRequest branchId vendor isImmediate deliverySlot deliveryWindowSnapshot deliveryFee immediateDeliveryFee baseDeliveryFee')
       .populate('items.product', 'name images basePrice stock branchStocks lowStockThreshold')
       .populate('branchId', 'name')
       .populate('vendor', 'storeName')
@@ -1677,7 +1704,7 @@ export const getAllOrdersAdmin = async (req, res) => {
     // Run paginated results, total count, AND full-dataset aggregate stats in parallel
     const [orders, totalOrders, statsAgg] = await Promise.all([
       Order.find(query)
-        .select('orderId user posCustomer totalAmount status createdAt paymentMethod paymentStatus branchId vendor deliverySlot deliverySlotId deliveryWindowSnapshot isImmediate orderSource promoCode discountAmount items')
+        .select('orderId user posCustomer totalAmount status createdAt paymentMethod paymentStatus branchId vendor deliverySlot deliverySlotId deliveryWindowSnapshot isImmediate orderSource promoCode discountAmount items subTotal taxAmount deliveryFee immediateDeliveryFee baseDeliveryFee handlingFee')
         .populate('user', 'name email phone')
         .populate('branchId', 'name')
         .populate('vendor', 'storeName')

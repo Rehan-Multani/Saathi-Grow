@@ -30,6 +30,8 @@ const BillingSettings = () => {
         maxDeliveryRadius: 20,
         platformWalletBalance: 0,
         autoInvoicingEnabled: true,
+        immediateDeliveryEnabled: true,
+        immediateDeliveryFee: 0,
         supportPhone: '',
         whatsappNumber: '',
         supportEmail: ''
@@ -59,6 +61,14 @@ const BillingSettings = () => {
     };
 
     const handleSave = async () => {
+        if (settings.immediateDeliveryFee < 0) {
+            toast.error('Immediate delivery surcharge must be a non-negative number.');
+            return;
+        }
+        if (settings.baseDeliveryFee < 0) {
+            toast.error('Base delivery fee must be a non-negative number.');
+            return;
+        }
         setIsSaving(true);
         try {
             const updated = await settingApi.updateAdminSettings(token, settings);
@@ -266,6 +276,76 @@ const BillingSettings = () => {
                                 <div className="relative">
                                     <input type="number" name="maxDeliveryRadius" value={settings.maxDeliveryRadius} onChange={handleInputChange} className="w-full pr-12 pl-4 py-2 bg-blue-50 border border-blue-200 rounded-xl text-lg font-bold text-blue-700 focus:bg-white  focus:border-blue-500 outline-none transition-all shadow-inner" />
                                     <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-blue-400">KM</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Express / Immediate Delivery Section */}
+                        <div className="pt-6 border-t border-slate-100 space-y-6">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600">
+                                        <Zap size={16} />
+                                    </div>
+                                    <div>
+                                        <h4 className="text-sm font-semibold text-slate-800">{t('billing.immediate_delivery_title')}</h4>
+                                        <p className="text-xs text-slate-500">{t('billing.enable_immediate_desc')}</p>
+                                    </div>
+                                </div>
+                                <label className="relative inline-flex items-center cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        name="immediateDeliveryEnabled"
+                                        checked={settings.immediateDeliveryEnabled !== false}
+                                        onChange={handleInputChange}
+                                        className="sr-only peer"
+                                    />
+                                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                </label>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="group">
+                                    <label className="block text-xs font-medium text-slate-500 mb-1.5 ml-1">{t('billing.immediate_delivery_fee')}</label>
+                                    <div className="relative">
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            name="immediateDeliveryFee"
+                                            value={settings.immediateDeliveryFee ?? 0}
+                                            onChange={handleInputChange}
+                                            disabled={settings.immediateDeliveryEnabled === false}
+                                            className={`w-full pl-8 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-normal text-slate-800 focus:bg-white focus:border-blue-500 outline-none transition-all ${settings.immediateDeliveryEnabled === false ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                        />
+                                        <IndianRupee size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                                    </div>
+                                    <p className="text-[11px] text-slate-400 mt-1 ml-1">{t('billing.immediate_delivery_desc')}</p>
+                                </div>
+
+                                {/* Live Option A Rule Preview Card */}
+                                <div className="bg-gradient-to-br from-blue-50/50 to-indigo-50/30 rounded-xl p-4 border border-blue-100 space-y-2">
+                                    <div className="flex items-center gap-1.5 text-xs font-bold text-blue-900">
+                                        <Info size={14} className="text-blue-600" />
+                                        <span>{t('billing.rule_preview_title')}</span>
+                                    </div>
+                                    <div className="text-xs text-slate-600 space-y-1">
+                                        <div className="flex justify-between">
+                                            <span>Standard Scheduled Delivery:</span>
+                                            <span className="font-semibold text-slate-800">₹{settings.baseDeliveryFee || 0} <span className="text-[10px] text-slate-400 font-normal">(₹0 if order ≥ ₹{settings.freeDeliveryThreshold || 0})</span></span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span>Express Immediate Delivery:</span>
+                                            <span className="font-semibold text-blue-700">₹{settings.baseDeliveryFee || 0} + ₹{settings.immediateDeliveryFee || 0} = ₹{(Number(settings.baseDeliveryFee) || 0) + (Number(settings.immediateDeliveryFee) || 0)}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span>Express above Free Threshold:</span>
+                                            <span className="font-semibold text-emerald-700">₹0 + ₹{settings.immediateDeliveryFee || 0} = ₹{settings.immediateDeliveryFee || 0}</span>
+                                        </div>
+                                        <div className="flex justify-between text-[11px] text-slate-400 pt-1 border-t border-blue-100">
+                                            <span>POS & Store Pickup Orders:</span>
+                                            <span className="font-medium text-slate-600">₹0 Delivery Fee</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>

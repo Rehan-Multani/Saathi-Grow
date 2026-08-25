@@ -57,6 +57,8 @@ const OrdersPage = () => {
                              return i === 0 ? [curr] : [...acc, ', ', curr];
                         }, []),
                         color: colorClass,
+                        paymentMethod: o.paymentMethod,
+                        isImmediate: Boolean(o.isImmediate || o.immediateDeliveryFee > 0),
                         deliveryOTP: o.deliveryOTP,
                         returnRequest: o.returnRequest
                     }
@@ -140,8 +142,15 @@ const OrdersPage = () => {
                                     <div className="md:flex-1 md:pr-4">
                                         {/* Mobile: Removed 'Items Summary' label for cleaner look, usually context is sufficient or keep concise */}
                                         <div className="!text-[11px] md:!text-sm font-medium text-gray-600 dark:text-gray-300 line-clamp-1 md:line-clamp-2 mt-1">{order.items}</div>
-                                        <div className="mt-2 inline-block px-2 py-0.5 rounded text-[8px] md:text-[10px] font-black tracking-widest uppercase bg-slate-100 text-slate-600 border border-slate-200">
-                                            PAYMENT: {order.paymentMethod === 'cod' ? 'COD' : 'ONLINE'}
+                                        <div className="mt-2 flex items-center gap-1.5 flex-wrap">
+                                            <div className="inline-block px-2 py-0.5 rounded text-[8px] md:text-[10px] font-black tracking-widest uppercase bg-slate-100 text-slate-600 border border-slate-200">
+                                                PAYMENT: {order.paymentMethod === 'cod' ? 'COD' : 'ONLINE'}
+                                            </div>
+                                            {order.isImmediate && (
+                                                <div className="inline-block px-2 py-0.5 rounded text-[8px] md:text-[10px] font-black tracking-widest uppercase bg-green-50 text-[#0c831f] border border-green-200 dark:bg-green-500/10 dark:border-green-500/20">
+                                                    ⚡ Express
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                     <div className="text-right md:flex flex-col items-end md:justify-between md:h-full">

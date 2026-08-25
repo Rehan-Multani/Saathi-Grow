@@ -203,9 +203,22 @@ const RunDetail = () => {
                                 </div>
                                 <div className="ml-0 md:ml-auto text-left md:text-right">
                                     <p className="font-black text-lg text-slate-800 dark:text-zinc-100">₹{order?.totalAmount}</p>
-                                    <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mt-0.5">
-                                        {order?.paymentMethod} • {stop.status.replace('_', ' ')}
-                                    </p>
+                                    <div className="flex items-center gap-1.5 justify-start md:justify-end mt-0.5 flex-wrap">
+                                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">
+                                            {order?.paymentMethod} • {stop.status.replace('_', ' ')}
+                                        </span>
+                                        {order?.isImmediate ? (
+                                            <span className="px-1.5 py-0.5 rounded bg-green-100 text-[#028A0F] dark:bg-green-950/40 dark:text-green-400 text-[8px] font-black uppercase tracking-wider">
+                                                ⚡ Express
+                                            </span>
+                                        ) : (
+                                            order?.deliverySlot && (
+                                                <span className="px-1.5 py-0.5 rounded bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400 text-[8px] font-black uppercase tracking-wider">
+                                                    {order.deliverySlot}
+                                                </span>
+                                            )
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                             
