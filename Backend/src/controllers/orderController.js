@@ -1117,7 +1117,6 @@ export const createWalletOrder = async (req, res) => {
 
     // SLOT VALIDATION
     const deliveryTiming = await validateAndBuildDeliveryTiming(orderData.deliverySlotId, orderData.isImmediate);
-
     // Recompute bill to guarantee security
     const computedBill = await computeBillDetails(orderData.items, {
       promoId: orderData.promoId,
